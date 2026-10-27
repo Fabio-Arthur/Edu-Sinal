@@ -54,7 +54,7 @@ O `estrutura.sql` usa recursos do MySQL 8.0, por isso versões mais antigas dão
 
 A `main` é o que a Vercel publica no site, então ninguém envia nada direto para ela. Todo trabalho passa por uma branch e um pull request.
 
-1. Uma vez só: `git clone https://github.com/Cristian150508/edusinal.git`.
+1. Uma vez só: `git clone https://github.com/Fabio-Arthur/Edu-Sinal.git`.
 2. Antes de cada tarefa, pegar a versão mais nova: `git checkout main` e depois `git pull`.
 3. Criar uma branch com o seu nome e o assunto: `git checkout -b angeli/rotas-login`.
 4. Fazer commits pequenos, com a mensagem em português dizendo o que mudou, por exemplo "Rota de login com mensagem de erro única".
