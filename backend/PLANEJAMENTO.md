@@ -27,6 +27,7 @@ Cada parte cuida de uma camada do código. A rota chama a regra, a regra chama a
 | Cristian e Eduardo Lima | Banco de dados | `estrutura.sql` e `src/repositories/` | As tabelas do MySQL, os dados de exemplo e as consultas SQL que leem e gravam |
 | Angeli | API | `src/controllers/` e `src/schemas/` | As rotas (os endereços que o app chama), o formato dos dados que entram e saem e a documentação em `/docs` |
 | Fabo e Claude | Regras e ligação com o app | `src/services/` e a pasta `frontend` | As regras do jogo (XP, vidas, energia, ofensiva, missões, lojinha, ligas), o login seguro e o app usando a API |
+| Erick | Acessibilidade e testes | O app inteiro e os pull requests de todos | Testa cada pull request no celular e no computador e confere a acessibilidade: leitor de tela, contraste, texto grande e uso só com o teclado |
 
 Cada um trabalha numa branch própria no Git e junta na `main` por pull request, revisado por alguém de outra parte.
 
@@ -59,7 +60,7 @@ A `main` é o que a Vercel publica no site, então ninguém envia nada direto pa
 3. Criar uma branch com o seu nome e o assunto: `git checkout -b angeli/rotas-login`.
 4. Fazer commits pequenos, com a mensagem em português dizendo o que mudou, por exemplo "Rota de login com mensagem de erro única".
 5. Enviar a branch com `git push -u origin angeli/rotas-login` e abrir um pull request no GitHub.
-6. Alguém de outra parte revisa e testa. Só depois do ok o pull request entra na `main`.
+6. Alguém de outra parte revisa o código, e o Erick testa no celular e no computador. Só depois do ok o pull request entra na `main`.
 7. Se aparecer conflito, chamar quem mexeu no mesmo arquivo antes de resolver, para ninguém apagar o trabalho do outro.
 
 ## O contrato
@@ -221,11 +222,12 @@ Resposta 200:
 
 ## Aprovação do contrato
 
-O portão da fase 0 só abre quando os cinco marcarem, no documento de planejamento (link no topo). Quem discordar de algo deixa um comentário no trecho, em vez de marcar, e a equipe resolve antes de começar a programar.
+O portão da fase 0 só abre quando os seis marcarem, no documento de planejamento (link no topo). Quem discordar de algo deixa um comentário no trecho, em vez de marcar, e a equipe resolve antes de começar a programar.
 
 - [ ] Cristian
 - [ ] Eduardo Lima
 - [ ] Angeli
+- [ ] Erick
 - [ ] Fabo
 - [ ] Claude (revisa as respostas e os comentários)
 
