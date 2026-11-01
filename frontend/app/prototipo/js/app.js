@@ -51,7 +51,7 @@ function renderMobileStats() {
     <button class="stat-chip stat-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong></button>
     <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.coins} moedas. Abrir lojinha">${icon("coin")}<strong>${state.coins}</strong></button>
     <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.energy} de ${MAX_ENERGY} de energia">${icon("battery-charging")}<strong>${state.energy}</strong></button>
-    <button class="stat-chip stat-lives" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
+    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
 }
 
 // Celular: o mascote do aluno no canto de cima leva ao Perfil.
