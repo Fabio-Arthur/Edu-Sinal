@@ -24,8 +24,6 @@ const MASCOT_VIEWBOX = {
   full: "-14 -30 204 204", // corpo inteiro (com espaço para chapéus)
   head: "34 -20 124 112", // só a cabeça (miniaturas de chapéu e óculos)
   avatar: "24 -14 144 144", // cabeça e peito no centro (foto de perfil redonda)
-  hat: "24 -38 144 144", // cabeça com espaço em cima (vitrine da Lojinha)
-  chest: "26 4 144 144", // peito de perto, para o broche aparecer (vitrine da Lojinha)
 };
 
 // Cada SVG precisa de ids únicos (por causa da camiseta listrada).
@@ -206,6 +204,41 @@ function drawChestItem(id) {
   return `<circle cx="${x - 1.5}" cy="${y + 2}" r="10.5" fill="${MASCOT_INK.shadow}" opacity="0.25"/><circle cx="${x}" cy="${y}" r="10.5" fill="#ffffff"/>${icon}`;
 }
 
+// ----- Item sozinho (vitrine da Lojinha) -----
+// Cada peça desenhada sem o mascote, como um adesivo. O viewBox é o quadrado
+// em volta da peça (nas coordenadas do mascote).
+const ITEM_VIEWBOX = {
+  "chapeu-festa": "72 -31 52 52",
+  "tiara-flores": "50 -30 92 92",
+  "oculos-sol": "46 -8 100 100",
+};
+const CHEST_ITEM_VIEWBOX = "109 109 32 32"; // o broche fica em (125, 125)
+
+// Camiseta como ícone (num quadrado de 0 a 100), com a mesma sombra do mascote.
+function shirtIconSvg(shirt) {
+  mascotDrawCount += 1;
+  const shape = (fill) => `<path d="M32 20 L44 14 Q50 22 56 14 L68 20 L84 36 L73 47 L66 41 L66 86 L34 86 L34 41 L27 47 L16 36 Z" fill="${fill}"/>`;
+  let fill = shirt.fill;
+  let defs = "";
+  if (shirt.design === "stripes") {
+    defs = `<defs><pattern id="listras-${mascotDrawCount}" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="${shirt.fill}"/><rect width="10" height="4" fill="${shirt.stripe}"/></pattern></defs>`;
+    fill = `url(#listras-${mascotDrawCount})`;
+  }
+  return `<svg class="mascot-svg" viewBox="0 2 100 100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${defs}
+    <g transform="${SHADOW_OFFSET}" opacity="0.32">${shape(MASCOT_INK.shadow)}</g>${shape(fill)}
+    <path d="M44 14 Q50 22 56 14" fill="none" stroke="${shirt.trim}" stroke-width="4" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// Desenho de um item da loja sozinho. Fundo não tem desenho: a própria moldura mostra a cor.
+function mascotItemSvg(item) {
+  if (item.slot === "shirt") return shirtIconSvg(item);
+  const drawings = { head: drawHeadItem, face: drawFaceItem, chest: drawChestItem };
+  if (!drawings[item.slot]) return "";
+  const viewBox = item.slot === "chest" ? CHEST_ITEM_VIEWBOX : ITEM_VIEWBOX[item.id] || MASCOT_VIEWBOX.head;
+  return `<svg class="mascot-svg" viewBox="${viewBox}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${drawings[item.slot](item.id)}</svg>`;
+}
+
 // ----- Animação -----
 // Feita com as animações do próprio SVG (<animateTransform>), sem biblioteca.
 // O boneco fica sempre na pose da logo, "respirando" de leve. Ao vestir roupa
@@ -253,8 +286,7 @@ function drawAnimatedSparks(animated) {
 // ----- Montagem -----
 
 // look = { shirt, head, face, chest } com os ids dos itens escolhidos.
-// crop = "full" (corpo inteiro), "head" (só a cabeça), "avatar" (foto de perfil),
-// "hat" ou "chest" (recortes de perto usados na vitrine da Lojinha).
+// crop = "full" (corpo inteiro), "head" (só a cabeça) ou "avatar" (foto de perfil).
 // options.animated: respira e dá a cutucada (só nos mascotes grandes).
 function mascotSvg(look, crop = "full", label = "Mascote do EduSinal", options = {}) {
   const animated = Boolean(options.animated) && isMotionAllowed();

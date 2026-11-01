@@ -344,11 +344,26 @@
 /* Vitrine do dia: 3 itens do mascote, cada um mostrado já no mascote */
 .shop-showcase { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .shop-item { justify-items: center; text-align: center; }
-.shop-item-art { width: 112px; height: 112px; display: block; overflow: hidden; border-radius: 50%; }
+.shop-item-art { width: 112px; height: 112px; display: block; overflow: hidden; border-radius: 32%; } /* quadrado de pontas redondas, igual ao ícone do Perfil */
 .shop-item-art .mascot-svg { width: 100%; height: 100%; }
-.shop-item-art.is-full .mascot-svg { margin-top: 8%; }
 .shop-item-info { display: grid; justify-items: center; gap: 2px; margin-bottom: 6px; }
 .shop-item-slot { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.shop-item-description { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+
+/* Janela de compra: o mascote com o item num quadradinho em cima, o texto e os botões lado a lado */
+.buy-modal-content { display: grid; justify-items: center; gap: 4px; padding: 24px 20px 20px; border: 2px solid var(--line); border-radius: 24px; box-shadow: 0 6px 0 var(--line); text-align: center; }
+.buy-modal-art { width: 112px; height: 112px; display: block; margin-bottom: 10px; overflow: hidden; border-radius: 32%; }
+.buy-modal-art .mascot-svg { width: 100%; height: 100%; margin-top: 8%; } /* o mascote inteiro, como no Perfil */
+.buy-modal-title { margin: 0; font-family: "Manrope", sans-serif; font-size: 22px; font-weight: 800; }
+.buy-modal-text { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.buy-modal-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.buy-modal-actions .button-3d { gap: 6px; padding: 0 10px; font-size: 14px; }
+/* Contagem do Comprar: travado (cinza) com a barrinha dourada enchendo da esquerda pra direita em 3 s */
+.buy-confirm { position: relative; overflow: hidden; }
+.buy-confirm > span { position: relative; } /* o texto fica por cima da barrinha */
+.buy-price { white-space: nowrap; } /* a moedinha e o preço nunca se separam */
+.buy-confirm.is-waiting::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--yellow); opacity: 0.45; animation: buy-fill 3s linear forwards; }
+@keyframes buy-fill { to { width: 100%; } }
 .shop-item-owned { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12px; font-weight: 700; }
 
 /* Guarda-roupa: o mascote do aluno e o botão para o editor */
@@ -375,17 +390,25 @@
   .shop-hero-balance { width: 100%; grid-auto-flow: column; justify-content: center; align-items: baseline; gap: 6px; }
   .shop-hero-balance strong { font-size: 22px; }
   .shop-grid { grid-template-columns: minmax(0, 1fr); }
-  /* vitrine no celular: um item por linha, desenho à esquerda e botão embaixo */
+  /* vitrine no celular: um item por linha, desenho à esquerda, nome no meio e botão quadradinho à direita */
   .shop-showcase { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .shop-item { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 14px; padding: 14px; text-align: left; }
+  .shop-item { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; justify-items: start; align-items: center; column-gap: 12px; padding: 14px; text-align: left; }
   .shop-item-art { width: 72px; height: 72px; }
   .shop-item-info { justify-items: start; margin: 0; }
-  .shop-item .shop-buy { grid-column: 1 / -1; margin-top: 6px; }
+  .shop-item-description { font-size: 12px; }
+  /* o texto quebra em duas linhas ("Comprar" e o preço embaixo) pra caber no quadradinho,
+     que estica até a altura do card */
+  .shop-item .shop-buy { grid-column: auto; align-self: stretch; width: 96px; min-height: 72px; margin-top: 0; padding: 6px 8px; flex-wrap: wrap; column-gap: 4px; row-gap: 0; font-size: 13px; line-height: 1.25; text-align: center; }
   .shop-wardrobe { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 14px; }
   .shop-wardrobe-mascot { width: 68px; height: 68px; }
   .shop-wardrobe .button-3d { grid-column: 1 / -1; width: 100%; }
   /* na Lojinha o saldo já aparece grande no topo: tira as moedas da barra de cima */
   .app-shell[data-current-screen="shop"] .stat-coins { display: none; }
+}
+
+/* Celular bem pequeno: a vitrine fica sem a descrição dos itens, pra caber na tela */
+@media (max-width: 379px) {
+  .shop-item-description { display: none; }
 }
 
 /* ----- Dicionário ----- */
