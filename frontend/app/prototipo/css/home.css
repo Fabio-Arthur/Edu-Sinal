@@ -171,10 +171,12 @@
 .trail-wave-mobile path.is-done { stroke: var(--accent); }
 .trail-wave-mobile { display: none; } /* a onda de cima para baixo é só do celular */
 /* Setas para andar pela trilha: sempre à vista, mas discretas (ficam fortes com o
-   mouse em cima), e só do lado onde ainda tem etapa escondida */
+   mouse em cima), e só do lado onde ainda tem etapa escondida.
+   Ficam dentro da .trail-frame junto com a trilha: se a trilha desce, elas descem junto. */
+.trail-frame { position: relative; }
 .trail-arrow {
   position: absolute;
-  top: calc(var(--map-pad) + 76px + 76px + 36px - 22px); /* na altura das bolinhas: margem + faixa + espaço de cima + meia bolinha - meia seta */
+  top: calc(76px + 76px + 36px - 22px); /* na altura das bolinhas: faixa + espaço de cima + meia bolinha - meia seta */
   z-index: 3;
   width: 44px;
   height: 44px;
@@ -272,27 +274,37 @@ button.trail-node:active { transform: translateY(6px); box-shadow: 0 0 0 4px var
 }
 
 /* ----- Lateral (computador) ----- */
-.home-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+/* Seus números num cartão só: ofensiva, energia e vidas, separados por um risquinho.
+   (O XP fica no cartão da liga, lá embaixo.) */
+.home-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 2px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 4px 0 var(--line);
+}
 .home-tile {
   display: grid;
   justify-items: center;
   gap: 2px;
   padding: 14px 6px 12px;
-  border: 2px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: 0 4px 0 var(--line);
+  border: 0;
+  background: transparent;
   color: var(--text);
   font: inherit;
   text-align: center;
 }
+.home-tile + .home-tile { border-left: 2px solid var(--line); }
 .home-tile > .bi { font-size: 24px; }
 .home-tile strong { font-family: "Manrope", sans-serif; font-size: 20px; font-weight: 800; }
 .home-tile small { color: var(--muted); font-size: 12px; }
-button.home-tile { cursor: pointer; transition: transform 80ms ease, box-shadow 80ms ease; }
-button.home-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+/* a ofensiva abre o calendário: escurece um pouquinho com o mouse e ao apertar */
+button.home-tile { cursor: pointer; transition: background-color 120ms ease; }
+button.home-tile:hover { background: var(--surface-soft); }
+button.home-tile:active { background: var(--line); }
 .tile-streak > .bi { color: var(--coral); }
-.tile-xp > .bi { color: var(--yellow); }
 .tile-energy > .bi { color: var(--accent); }
 .tile-lives > .bi { color: var(--coral); }
 
@@ -304,6 +316,27 @@ button.home-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transpar
 .tile-lives.is-last-life > .bi { animation: heart-pulse 1.2s ease-in-out infinite; }
 
 .home-side-card { padding: 18px; }
+
+/* Cartão da liga: troféu 3D, posição e o que falta; aperta igual aos quadradinhos */
+.home-league {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 0 var(--line);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.home-league:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+.home-league-copy { display: grid; gap: 2px; }
+.home-league-copy strong { font-family: "Manrope", sans-serif; font-size: 15px; font-weight: 800; }
+.home-league-copy small { color: var(--muted); font-size: 12px; }
+.home-league > .bi { color: var(--muted); }
 .home-goal { display: flex; align-items: center; gap: 16px; }
 .home-goal h2 { margin: 0; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
 .home-goal p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
@@ -362,6 +395,19 @@ button.home-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transpar
 @media (max-width: 1040px) {
   .home-dashboard { grid-template-columns: minmax(0, 1fr) 260px; gap: 14px; }
   .hero-mascot { width: 116px; height: 116px; }
+}
+
+/* Computador de tela até 900px de altura (notebook): a Home ocupa a altura toda,
+   sem sobrar faixa vazia embaixo. O cartão da trilha estica (a trilha fica no meio
+   dele) e a coluna do lado termina na mesma altura (o cartão das missões estica
+   e o da liga fica no pé).
+   Em monitor alto não estica, senão o cartão fica enorme e vazio. */
+@media (min-width: 761px) and (max-height: 900px) {
+  .app-shell[data-current-screen="trail"][data-focus="off"] .screen-root { display: flex; flex-direction: column; }
+  .home-dashboard { flex: 1; align-items: stretch; }
+  .home-main-column { grid-template-rows: auto 1fr; }
+  .home-side-column { grid-template-rows: auto auto 1fr auto; } /* as missões esticam e a liga fica embaixo */
+  .home-map { display: flex; flex-direction: column; justify-content: center; }
 }
 
 /* Computador com tela baixa (notebook): a Home fica mais compacta para caber
@@ -423,6 +469,7 @@ button.home-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transpar
   /* Trilha vira um caminho de cima para baixo, ondulado, uma unidade embaixo
      da outra. A faixa da unidade fica presa no alto enquanto rola. */
   .home-map { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+  .trail-frame { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .trail-arrow,
   .trail-wave { display: none; }
   .trail-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 18px; -webkit-mask-image: none; mask-image: none; }

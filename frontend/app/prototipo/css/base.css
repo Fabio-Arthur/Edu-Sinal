@@ -291,7 +291,7 @@ a {
   width: min(1180px, 100%);
   flex: 1;
   margin: 0 auto;
-  padding: 34px clamp(22px, 4vw, 58px) 30px;
+  padding: 34px clamp(18px, 2.4vw, 36px) 30px; /* dos lados: perto do menu, sem grudar */
   animation: screen-in 260ms ease-out both;
 }
 
