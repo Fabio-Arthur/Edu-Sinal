@@ -25,9 +25,9 @@ const MASCOT_ITEMS = [
   { id: "camiseta-branca", slot: "shirt", name: "Clássica da logo", fill: "#ffffff", trim: "#1652c7", design: "plain", unlock: { type: "free" } },
   { id: "camiseta-azul", slot: "shirt", name: "Camiseta azul", fill: "#3d8bfd", trim: "#1652c7", design: "plain", unlock: { type: "free" } },
   { id: "camiseta-turquesa", slot: "shirt", name: "Camiseta turquesa", fill: "#2bbbb3", trim: "#137a75", design: "plain", unlock: { type: "free" } },
-  { id: "camiseta-coral", slot: "shirt", name: "Camiseta coral", fill: "#f07a68", trim: "#b84a3a", design: "plain", unlock: { type: "coins", cost: 20 } },
-  { id: "camiseta-amarela", slot: "shirt", name: "Camiseta amarela", fill: "#f7cd4d", trim: "#b58a12", design: "plain", unlock: { type: "coins", cost: 20 } },
-  { id: "camiseta-listrada", slot: "shirt", name: "Listrada", fill: "#ffffff", stripe: "#9cc3f0", trim: "#1652c7", design: "stripes", unlock: { type: "coins", cost: 35 } },
+  { id: "camiseta-coral", slot: "shirt", name: "Camiseta coral", description: "Quentinha igual fim de tarde", fill: "#f07a68", trim: "#b84a3a", design: "plain", unlock: { type: "coins", cost: 20 } },
+  { id: "camiseta-amarela", slot: "shirt", name: "Camiseta amarela", description: "Alegre como dia de sol", fill: "#f7cd4d", trim: "#b58a12", design: "plain", unlock: { type: "coins", cost: 20 } },
+  { id: "camiseta-listrada", slot: "shirt", name: "Listrada", description: "Listras pra todo lado", fill: "#ffffff", stripe: "#9cc3f0", trim: "#1652c7", design: "stripes", unlock: { type: "coins", cost: 35 } },
   { id: "moletom-edusinal", slot: "shirt", name: "Moletom EduSinal", fill: "#24497f", trim: "#162f55", design: "hoodie", unlock: { type: "achievement", id: "etapa" } },
   { id: "camisa-campeao", slot: "shirt", name: "Camisa de campeão", fill: "#f2c230", trim: "#b8860b", design: "champion", unlock: { type: "achievement", id: "liga" } },
 
@@ -35,29 +35,29 @@ const MASCOT_ITEMS = [
   { id: "", slot: "head", name: "Nada", unlock: { type: "free" } },
   { id: "bone", slot: "head", name: "Boné", unlock: { type: "free" } },
   { id: "laco", slot: "head", name: "Laço", unlock: { type: "free" } },
-  { id: "chapeu-festa", slot: "head", name: "Chapéu de festa", unlock: { type: "coins", cost: 30 } },
-  { id: "tiara-flores", slot: "head", name: "Tiara de flores", unlock: { type: "coins", cost: 40 } },
+  { id: "chapeu-festa", slot: "head", name: "Chapéu de festa", description: "Pra comemorar cada conquista", unlock: { type: "coins", cost: 30 } },
+  { id: "tiara-flores", slot: "head", name: "Tiara de flores", description: "Um jardim na cabeça", unlock: { type: "coins", cost: 40 } },
   { id: "coroa", slot: "head", name: "Coroa", unlock: { type: "achievement", id: "ofensiva" } },
 
   // Rosto
   { id: "", slot: "face", name: "Nada", unlock: { type: "free" } },
   { id: "bochechas", slot: "face", name: "Bochechas", unlock: { type: "free" } },
   { id: "oculos-redondos", slot: "face", name: "Óculos redondos", unlock: { type: "free" } },
-  { id: "oculos-sol", slot: "face", name: "Óculos de sol", unlock: { type: "coins", cost: 30 } },
+  { id: "oculos-sol", slot: "face", name: "Óculos de sol", description: "Estilo até debaixo do sol", unlock: { type: "coins", cost: 30 } },
 
   // Broches (os mesmos ids e preços da lojinha antiga, para ninguém perder o que comprou)
   { id: "", slot: "chest", name: "Nada", unlock: { type: "free" } },
   { id: "broche-sinal", slot: "chest", name: "Broche de sinais", unlock: { type: "reward" } },
-  { id: "estrela-coral", slot: "chest", name: "Estrela coral", unlock: { type: "coins", cost: 25 } },
-  { id: "flor-amarela", slot: "chest", name: "Flor amarela", unlock: { type: "coins", cost: 40 } },
-  { id: "folha-azul", slot: "chest", name: "Folha azul", unlock: { type: "coins", cost: 60 } },
+  { id: "estrela-coral", slot: "chest", name: "Estrela coral", description: "Pra quem brilha nos estudos", unlock: { type: "coins", cost: 25 } },
+  { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "coins", cost: 40 } },
+  { id: "folha-azul", slot: "chest", name: "Folha azul", description: "A mais rara da vitrine", unlock: { type: "coins", cost: 60 } },
 
   // Fundos (cor atrás do mascote)
   { id: "", slot: "background", name: "Azul da logo", unlock: { type: "free" } },
-  { id: "fundo-ceu", slot: "background", name: "Céu azul", unlock: { type: "coins", cost: 20 } },
-  { id: "fundo-mar", slot: "background", name: "Mar turquesa", unlock: { type: "coins", cost: 30 } },
-  { id: "fundo-por-do-sol", slot: "background", name: "Pôr do sol", unlock: { type: "coins", cost: 30 } },
-  { id: "fundo-sol", slot: "background", name: "Sol da manhã", unlock: { type: "coins", cost: 30 } },
+  { id: "fundo-ceu", slot: "background", name: "Céu azul", description: "Um céu limpinho atrás de você", unlock: { type: "coins", cost: 20 } },
+  { id: "fundo-mar", slot: "background", name: "Mar turquesa", description: "Ondas calmas cor de mar", unlock: { type: "coins", cost: 30 } },
+  { id: "fundo-por-do-sol", slot: "background", name: "Pôr do sol", description: "O céu laranja do fim do dia", unlock: { type: "coins", cost: 30 } },
+  { id: "fundo-sol", slot: "background", name: "Sol da manhã", description: "Bom dia com luz suave", unlock: { type: "coins", cost: 30 } },
 ];
 
 function findMascotItem(slot, id) {
@@ -121,14 +121,69 @@ function chooseMascotItem(slot, id) {
       return;
     }
     if (state.coins < item.unlock.cost) {
-      showToast("Você ainda não tem moedas suficientes.");
+      showToast(`Faltam ${item.unlock.cost - state.coins} moedas. Ganhe mais nos exercícios e nas missões!`);
       return;
     }
-    state.coins -= item.unlock.cost;
-    state.unlockedItems.push(item.id);
-    showToast(`${item.name} comprado: −${item.unlock.cost} moedas.`);
+    // Compra só depois de confirmar, pra ninguém gastar moedas sem querer.
+    askToBuy(item, () => {
+      state.coins -= item.unlock.cost;
+      state.unlockedItems.push(item.id);
+      showToast(`${item.name} comprado: −${item.unlock.cost} moedas.`);
+      wearMascotItem(slot, id);
+    });
+    return;
   }
 
+  wearMascotItem(slot, id);
+}
+
+// Na janela de compra, o botão Comprar fica travado por 3 s (a barrinha vai enchendo)
+// antes de liberar, pra ninguém comprar sem querer. Cancelar funciona na hora.
+const BUY_WAIT_MS = 3000;
+let buyCountdown = null;
+
+// Janela de compra (Modal do Bootstrap): o mascote já com o item, o preço e
+// os botões Cancelar e Comprar. onConfirm só roda se a pessoa confirmar.
+function askToBuy(item, onConfirm) {
+  const coinsLeft = state.coins - item.unlock.cost;
+  const text = `Depois da compra, você fica com ${coinsLeft} ${coinsLeft === 1 ? "moeda" : "moedas"}.`;
+  if (!window.bootstrap) {
+    if (window.confirm(`Comprar ${item.name}? ${text}`)) onConfirm();
+    return;
+  }
+  // Mostra como o mascote do aluno fica com o item, igual na tela de Perfil.
+  const look = lookWith(item.slot, item.id);
+  const art = document.getElementById("buy-art");
+  art.className = `buy-modal-art ${backdropClass(look)}`;
+  art.innerHTML = mascotSvg(look, "full", "");
+  document.getElementById("buy-title").textContent = item.name;
+  document.getElementById("buy-text").textContent = text;
+  const buyButton = document.getElementById("buy-ok");
+  buyButton.innerHTML = `<span>Comprar <span class="buy-price">${icon("coin")} ${item.unlock.cost}</span></span>`;
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("buy-modal"));
+  buyButton.onclick = () => {
+    buyButton.disabled = true; // trava na hora: dois cliques rápidos não compram duas vezes
+    modal.hide();
+    onConfirm();
+  };
+
+  // Contagem: trava o botão e começa a barrinha do zero (tirar e pôr a classe
+  // de novo faz a animação recomeçar, mesmo abrindo a janela várias vezes).
+  clearTimeout(buyCountdown);
+  buyButton.disabled = true;
+  buyButton.classList.remove("is-waiting");
+  void buyButton.offsetWidth;
+  buyButton.classList.add("is-waiting");
+  buyCountdown = setTimeout(() => {
+    buyButton.disabled = false;
+    buyButton.classList.remove("is-waiting");
+  }, BUY_WAIT_MS);
+
+  modal.show();
+}
+
+// Veste o item (já comprado) no mascote.
+function wearMascotItem(slot, id) {
   const changed = state.mascot[slot] !== id;
   state.mascot[slot] = id;
   persist();

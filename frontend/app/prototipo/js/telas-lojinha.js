@@ -123,30 +123,32 @@ function timeUntilNewShop() {
   return hours > 0 ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
 }
 
-// Cartão de um item da vitrine: o mascote já vestindo o item e o botão.
+// Cartão de um item da vitrine: o desenho do item sozinho e o botão.
+// (Como fica no mascote aparece na janela de compra.)
 // O botão usa a mesma ação do guarda-roupa (compra e já veste).
 function renderShopItem(item) {
   const slotInfo = MASCOT_SLOTS.find((slot) => slot.id === item.slot);
-  const look = lookWith(item.slot, item.id);
-  // Chapéu, óculos e broche são pequenos: mostra de perto a parte onde ficam.
-  const crop = { head: "hat", face: "avatar", chest: "chest" }[item.slot] || "full";
+  // Fundo: a moldura já é o próprio fundo. Os outros itens ficam no azul da logo.
+  const frame = item.slot === "background" ? backdropClass(lookWith(item.slot, item.id)) : "mascot-backdrop";
   const action = `data-action="mascot-item" data-slot="${item.slot}" data-item="${item.id}"`;
   let button;
   if (state.mascot[item.slot] === item.id) {
     button = `<button class="button-3d shop-buy" type="button" disabled>${icon("check-lg")} Em uso</button>`;
   } else if (isMascotItemOwned(item)) {
     button = `<button class="button-3d button-3d-primary shop-buy" type="button" ${action}>Vestir</button>`;
-  } else if (state.coins < item.unlock.cost) {
-    button = `<button class="button-3d shop-buy" type="button" disabled>Faltam ${item.unlock.cost - state.coins} ${icon("coin")}</button>`;
   } else {
-    button = `<button class="button-3d button-3d-gold shop-buy" type="button" ${action}>Comprar ${icon("coin")} ${item.unlock.cost}</button>`;
+    // Sempre mostra o preço. Sem moedas suficientes, o botão fica apagado e,
+    // se clicar, avisa quanto falta (em chooseMascotItem).
+    const color = state.coins < item.unlock.cost ? "" : " button-3d-gold";
+    button = `<button class="button-3d${color} shop-buy" type="button" ${action}>Comprar ${icon("coin")} ${item.unlock.cost}</button>`;
   }
   return `
     <article class="shop-card shop-item">
-      <span class="shop-item-art is-${crop} ${backdropClass(look)}">${mascotSvg(look, crop, "")}</span>
+      <span class="shop-item-art ${frame}">${mascotItemSvg(item)}</span>
       <div class="shop-item-info">
         <span class="shop-item-slot">${slotInfo.label}</span>
         <h3>${item.name}</h3>
+        ${item.description ? `<p class="shop-item-description">${item.description}</p>` : ""}
         ${isMascotItemOwned(item) ? `<span class="shop-item-owned">${icon("check-circle-fill")} Já é seu</span>` : ""}
       </div>
       ${button}

@@ -23,18 +23,18 @@
   <!-- O nosso CSS vem depois, para as cores e o visual do EduSinal valerem.
        A ORDEM IMPORTA: quando duas regras brigam, ganha a do arquivo que vem
        depois. base.css (cores e peças comuns) sempre primeiro. -->
-  <link rel="stylesheet" href="css/base.css?v=118" />
-  <link rel="stylesheet" href="css/home.css?v=118" />
-  <link rel="stylesheet" href="css/atividade.css?v=118" />
-  <link rel="stylesheet" href="css/abas.css?v=118" />
-  <link rel="stylesheet" href="css/mascote.css?v=118" />
-  <link rel="stylesheet" href="css/celular.css?v=118" />
-  <link rel="stylesheet" href="css/bootstrap.css?v=118" />
-  <link rel="stylesheet" href="css/arvore.css?v=118" />
-  <link rel="stylesheet" href="css/configuracoes.css?v=118" />
-  <link rel="stylesheet" href="css/perfil.css?v=118" />
-  <link rel="stylesheet" href="css/boas-vindas.css?v=118" />
-  <link rel="stylesheet" href="css/cadastro.css?v=118" />
+  <link rel="stylesheet" href="css/base.css?v=120" />
+  <link rel="stylesheet" href="css/home.css?v=120" />
+  <link rel="stylesheet" href="css/atividade.css?v=120" />
+  <link rel="stylesheet" href="css/abas.css?v=120" />
+  <link rel="stylesheet" href="css/mascote.css?v=120" />
+  <link rel="stylesheet" href="css/celular.css?v=120" />
+  <link rel="stylesheet" href="css/bootstrap.css?v=120" />
+  <link rel="stylesheet" href="css/arvore.css?v=120" />
+  <link rel="stylesheet" href="css/configuracoes.css?v=120" />
+  <link rel="stylesheet" href="css/perfil.css?v=120" />
+  <link rel="stylesheet" href="css/boas-vindas.css?v=120" />
+  <link rel="stylesheet" href="css/cadastro.css?v=120" />
 </head>
 <body>
   <a class="skip-link" href="#screen-root">Pular para o conteúdo</a>
@@ -104,20 +104,36 @@
     </div>
   </div>
 
+  <!-- Janela de compra da Lojinha: o mascote com o item em cima, o texto e os botões lado a lado.
+       O Comprar começa travado por 3 s (barrinha enchendo); Cancelar funciona na hora. -->
+  <div class="modal fade" id="buy-modal" tabindex="-1" aria-labelledby="buy-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content buy-modal-content">
+        <span class="buy-modal-art" id="buy-art"></span>
+        <h2 class="buy-modal-title" id="buy-title"></h2>
+        <p class="buy-modal-text" id="buy-text"></p>
+        <div class="buy-modal-actions">
+          <button type="button" class="button-3d button-3d-outline" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="button-3d button-3d-gold buy-confirm" id="buy-ok"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="../../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
-  <script src="js/estado.js?v=118" defer></script>
-  <script src="js/mascote-desenho.js?v=118" defer></script>
-  <script src="js/conteudo.js?v=118" defer></script>
-  <script src="js/telas-trilha.js?v=118" defer></script>
-  <script src="js/licao.js?v=118" defer></script>
-  <script src="js/telas-dicionario.js?v=118" defer></script>
-  <script src="js/telas-ligas.js?v=118" defer></script>
-  <script src="js/telas-missoes.js?v=118" defer></script>
-  <script src="js/telas-lojinha.js?v=118" defer></script>
-  <script src="js/telas-perfil.js?v=118" defer></script>
-  <script src="js/telas-mascote.js?v=118" defer></script>
-  <script src="js/telas-conta.js?v=118" defer></script>
-  <script src="js/calendario.js?v=118" defer></script>
-  <script src="js/app.js?v=118" defer></script>
+  <script src="js/estado.js?v=120" defer></script>
+  <script src="js/mascote-desenho.js?v=120" defer></script>
+  <script src="js/conteudo.js?v=120" defer></script>
+  <script src="js/telas-trilha.js?v=120" defer></script>
+  <script src="js/licao.js?v=120" defer></script>
+  <script src="js/telas-dicionario.js?v=120" defer></script>
+  <script src="js/telas-ligas.js?v=120" defer></script>
+  <script src="js/telas-missoes.js?v=120" defer></script>
+  <script src="js/telas-lojinha.js?v=120" defer></script>
+  <script src="js/telas-perfil.js?v=120" defer></script>
+  <script src="js/telas-mascote.js?v=120" defer></script>
+  <script src="js/telas-conta.js?v=120" defer></script>
+  <script src="js/calendario.js?v=120" defer></script>
+  <script src="js/app.js?v=120" defer></script>
 </body>
 </html>
