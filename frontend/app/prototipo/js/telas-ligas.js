@@ -73,16 +73,23 @@ function leagueTimeLeft() {
 }
 
 // Frase de situação: na zona de promoção, no meio ou na zona de rebaixamento.
-function renderLeagueStatus(ranking) {
+// Onde o aluno está na liga desta semana: posição, zona e quanto XP falta para
+// entrar na zona de promoção. Usado aqui e no cartão da liga na Home.
+function myLeagueStanding(ranking = buildRanking(state.week.xp, weekDayNumber())) {
   const position = ranking.findIndex((player) => player.isMe) + 1;
-  const zone = zoneOf(position, ranking.length);
   const me = ranking[position - 1];
+  const zone = zoneOf(position, ranking.length);
+  const missing = zone === "promotion" ? 0 : ranking[PROMOTION_SPOTS - 1].xp - me.xp + 1;
+  return { position, me, zone, missing };
+}
+
+function renderLeagueStatus(ranking) {
+  const { position, me, zone, missing } = myLeagueStanding(ranking);
 
   let message;
   if (zone === "promotion") {
     message = "Você está na <strong>zona de promoção</strong>. Continue assim para subir de liga!";
   } else {
-    const missing = ranking[PROMOTION_SPOTS - 1].xp - me.xp + 1;
     const warning = zone === "demotion" ? "Cuidado: você está na <strong>zona de rebaixamento</strong>. " : "";
     message = `${warning}Faltam <strong>${missing} XP</strong> para entrar na zona de promoção.`;
   }

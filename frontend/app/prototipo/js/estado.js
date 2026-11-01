@@ -355,6 +355,7 @@ function updateLifeIndicator() {
     lives.setAttribute("aria-label", `${state.lives} de ${MAX_LIVES} vidas, ${timeUntilNextLife()}`);
     lives.querySelector("strong").textContent = `${state.lives}/${MAX_LIVES}`;
     lives.querySelector("small").textContent = state.lives >= MAX_LIVES ? "vidas" : timeUntilNextLife();
+    lives.classList.toggle("is-last-life", state.lives === 1); // recarregou uma vida: o coração para de pulsar
   }
   const energy = document.querySelector(".tile-energy");
   if (energy) {

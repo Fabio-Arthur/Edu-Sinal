@@ -407,14 +407,16 @@ function renderTrailMap() {
   const sizes = `--step-w:${trailStepWidth}px;--edge:${TRAIL_EDGE}px;--route-top:${TRAIL_ROUTE_TOP}px;--wave-size:${TRAIL_WAVE}px`;
   return `
     <section class="home-map" aria-label="Sua trilha">
-      <button class="trail-arrow is-left" type="button" data-action="trail-scroll" data-direction="-1" aria-label="Ver etapas anteriores">${icon("chevron-left")}</button>
-      <div class="trail-scroll">
-        <div class="trail-track" style="${sizes}">
-          ${renderTrailWave()}
-          ${TRAIL_UNITS.map(renderTrailUnit).join("")}
+      <div class="trail-frame">
+        <button class="trail-arrow is-left" type="button" data-action="trail-scroll" data-direction="-1" aria-label="Ver etapas anteriores">${icon("chevron-left")}</button>
+        <div class="trail-scroll">
+          <div class="trail-track" style="${sizes}">
+            ${renderTrailWave()}
+            ${TRAIL_UNITS.map(renderTrailUnit).join("")}
+          </div>
         </div>
+        <button class="trail-arrow is-right" type="button" data-action="trail-scroll" data-direction="1" aria-label="Ver próximas etapas">${icon("chevron-right")}</button>
       </div>
-      <button class="trail-arrow is-right" type="button" data-action="trail-scroll" data-direction="1" aria-label="Ver próximas etapas">${icon("chevron-right")}</button>
     </section>`;
 }
 
@@ -532,12 +534,26 @@ function renderDailyGoal() {
     </section>`;
 }
 
-// Números coloridos: ofensiva (abre o calendário), XP, energia e vidas.
+// Cartão da liga (lateral da Home no computador): troféu, posição, XP da semana e
+// quanto falta para subir. Leva para a tela de Ligas.
+function renderHomeLeague() {
+  const league = LEAGUES[state.league];
+  const { position, me, zone, missing } = myLeagueStanding();
+  const progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;
+  const detail = `${me.xp} XP na semana · ${progress}`;
+  return `
+    <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Liga ${league.name}, ${position}º lugar. ${detail}. Abrir ligas">
+      <span class="league-badge ${league.className}">${icon("trophy-fill")}</span>
+      <span class="home-league-copy"><strong>Liga ${league.name} · ${position}º lugar</strong><small>${detail}</small></span>
+      ${icon("chevron-right")}
+    </button>`;
+}
+
+// Seus números: ofensiva (abre o calendário), energia e vidas. O XP fica no cartão da liga.
 function renderHomeTiles() {
   return `
     <section class="home-tiles" aria-label="Seus números">
       <button class="home-tile tile-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong><small>${state.streak === 1 ? "dia" : "dias"}</small></button>
-      <div class="home-tile tile-xp">${icon("lightning-charge-fill")}<strong>${state.xp}</strong><small>XP</small></div>
       <div class="home-tile tile-energy" aria-label="${state.energy} de ${MAX_ENERGY} de energia, ${timeUntilNextEnergy()}">${icon("battery-charging")}<strong>${state.energy}/${MAX_ENERGY}</strong><small>${state.energy >= MAX_ENERGY ? "energia" : timeUntilNextEnergy(true)}</small></div>
       <div class="home-tile tile-lives${state.lives === 1 ? " is-last-life" : ""}" aria-label="${state.lives} de ${MAX_LIVES} vidas, ${timeUntilNextLife()}">${icon("heart-fill")}<strong>${state.lives}/${MAX_LIVES}</strong><small>${state.lives >= MAX_LIVES ? "vidas" : timeUntilNextLife()}</small></div>
     </section>`;
@@ -561,6 +577,7 @@ function renderTrail() {
           <div class="home-side-heading"><h2 id="home-quests-title">Missões do dia</h2><button class="text-button" type="button" data-screen="missions">Ver todas</button></div>
           ${DAILY_MISSIONS.map(renderHomeMission).join("")}
         </section>
+        ${renderHomeLeague()}
       </aside>
     </div>
     <p class="demo-disclaimer">Pontos, sequência e conteúdo exibidos são dados demonstrativos deste protótipo.</p>`;
