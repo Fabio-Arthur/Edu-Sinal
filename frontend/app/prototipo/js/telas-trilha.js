@@ -539,7 +539,7 @@ function renderHomeTiles() {
       <button class="home-tile tile-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong><small>${state.streak === 1 ? "dia" : "dias"}</small></button>
       <div class="home-tile tile-xp">${icon("lightning-charge-fill")}<strong>${state.xp}</strong><small>XP</small></div>
       <div class="home-tile tile-energy" aria-label="${state.energy} de ${MAX_ENERGY} de energia, ${timeUntilNextEnergy()}">${icon("battery-charging")}<strong>${state.energy}/${MAX_ENERGY}</strong><small>${state.energy >= MAX_ENERGY ? "energia" : timeUntilNextEnergy(true)}</small></div>
-      <div class="home-tile tile-lives" aria-label="${state.lives} de ${MAX_LIVES} vidas, ${timeUntilNextLife()}">${icon("heart-fill")}<strong>${state.lives}/${MAX_LIVES}</strong><small>${state.lives >= MAX_LIVES ? "vidas" : timeUntilNextLife()}</small></div>
+      <div class="home-tile tile-lives${state.lives === 1 ? " is-last-life" : ""}" aria-label="${state.lives} de ${MAX_LIVES} vidas, ${timeUntilNextLife()}">${icon("heart-fill")}<strong>${state.lives}/${MAX_LIVES}</strong><small>${state.lives >= MAX_LIVES ? "vidas" : timeUntilNextLife()}</small></div>
     </section>`;
 }
 

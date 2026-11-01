@@ -80,6 +80,7 @@
 
   .stat-chip strong { font-family: "Manrope", sans-serif; }
   .stat-coins > span { color: #d9a20f; }
+  .stat-lives.is-last-life > .bi { animation: heart-pulse 1.2s ease-in-out infinite; }
   .stat-lives > span { color: var(--coral); }
   .settings-button { width: 40px; height: 40px; border: 2px solid var(--line); border-radius: 14px; box-shadow: 0 3px 0 var(--line); font-size: 18px; color: var(--text); }
   .settings-button.is-active { border-color: transparent; background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); box-shadow: 0 3px 0 var(--hero-shadow); color: #ffffff; }

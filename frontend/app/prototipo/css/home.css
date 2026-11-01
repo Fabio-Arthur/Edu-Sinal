@@ -296,6 +296,13 @@ button.home-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transpar
 .tile-energy > .bi { color: var(--accent); }
 .tile-lives > .bi { color: var(--coral); }
 
+@keyframes heart-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.tile-lives.is-last-life > .bi { animation: heart-pulse 1.2s ease-in-out infinite; }
+
 .home-side-card { padding: 18px; }
 .home-goal { display: flex; align-items: center; gap: 16px; }
 .home-goal h2 { margin: 0; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
