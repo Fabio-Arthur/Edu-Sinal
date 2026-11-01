@@ -288,7 +288,7 @@ a {
 }
 
 .screen-root {
-  width: min(1180px, 100%);
+  width: min(1400px, 100%); /* em telas largas cresce até 1400px e só depois centraliza */
   flex: 1;
   margin: 0 auto;
   padding: 34px clamp(18px, 2.4vw, 36px) 30px; /* dos lados: perto do menu, sem grudar */
