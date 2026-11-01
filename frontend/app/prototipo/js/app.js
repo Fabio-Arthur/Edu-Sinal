@@ -51,7 +51,7 @@ function renderMobileStats() {
     <button class="stat-chip stat-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong></button>
     <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.coins} moedas. Abrir lojinha">${icon("coin")}<strong>${state.coins}</strong></button>
     <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.energy} de ${MAX_ENERGY} de energia">${icon("battery-charging")}<strong>${state.energy}</strong></button>
-    <button class="stat-chip stat-lives" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
+    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
 }
 
 // Celular: o mascote do aluno no canto de cima leva ao Perfil.
@@ -313,7 +313,36 @@ window.setInterval(() => {
   renderMobileStats();
 }, 15000);
 
+// ----- Recadinho no Console -----
+// Easter egg: só quem abre o F12 vê o Claudinho em pixel art (O = laranja, D = laranja escuro, E = olho).
+const CLAUDINHO_PIXELS = [
+  "..OOOOOOOOOO..",
+  "..OOEOOOOEOO..",
+  "OOOOEOOOOEOOOO",
+  "OOOOOOOOOOOOOO",
+  "..OOOOOOOOOO..",
+  "..DDDDDDDDDD..",
+  "...O.O..O.O...",
+  "...O.O..O.O...",
+];
+const CLAUDINHO_COLORS = { O: "#d97757", D: "#b85c3e", E: "#1e1f29", ".": "transparent" };
+
+function greetDevelopers() {
+  const rows = CLAUDINHO_PIXELS.map((row) => "%c  ".repeat(row.length)).join("%c\n");
+  const styles = CLAUDINHO_PIXELS.flatMap((row, index) => {
+    const pixels = [...row].map((pixel) => `background: ${CLAUDINHO_COLORS[pixel]}; font-size: 8px;`);
+    return index < CLAUDINHO_PIXELS.length - 1 ? [...pixels, ""] : pixels;
+  });
+  console.log(rows, ...styles);
+  console.log(
+    "%cOi, curioso! 👋%c\nSe você abriu o F12, já tem alma de dev.\nO EduSinal foi feito pela equipe do TCC, com uma ajudinha do Claude 🧡\nDica: pergunte sempre o porquê. É assim que se aprende.",
+    "color: #d97757; font-size: 16px; font-weight: 800;",
+    "font-size: 13px;"
+  );
+}
+
 // ----- Início -----
 // O HTML nasce vazio; desenhamos a primeira tela aqui.
 fixOldProgress();
 render();
+greetDevelopers();
