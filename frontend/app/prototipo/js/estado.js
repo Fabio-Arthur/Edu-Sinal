@@ -378,7 +378,7 @@ function giveActivityReward() {
     state.unlockedItems.push("broche-sinal");
     state.mascot.chest = "broche-sinal";
     state.hasFirstActivityReward = true;
-    showToast("Desafio concluído: +20 XP, +15 moedas e broche para o mascote!");
+    showToast("Primeira atividade concluída: +20 XP, +15 moedas e um broche para o mascote!");
   } else {
     state.coins += 5;
     showToast("Atividade concluída: +20 XP, +5 moedas e −1 de energia");
