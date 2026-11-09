@@ -211,7 +211,7 @@
   .lesson-lives.is-losing .bi { animation: none; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .lesson { min-height: 0; padding-bottom: 124px; }
   .lesson-top { gap: 10px; }
   .lesson-body { justify-content: flex-start; gap: 14px; padding: 18px 0; }

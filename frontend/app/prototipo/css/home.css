@@ -266,7 +266,7 @@ button.trail-node:active { transform: translateY(4px); box-shadow: 0 0 0 4px var
 .trail-step-copy p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .trail-step.is-locked .trail-step-copy h3 { color: var(--muted); }
 /* No computador as 4 etapas ficam lado a lado: texto menor para os títulos não se encostarem */
-@media (min-width: 761px) {
+@media (min-width: 1001px) {
   .trail-step-copy { padding: 0 4px; }
   .trail-step-copy small { font-size: 10px; }
   .trail-step-copy h3 { font-size: 14px; }
@@ -402,7 +402,7 @@ button.home-tile:active { background: var(--line); }
    dele) e a coluna do lado termina na mesma altura (o cartão das missões estica
    e o da liga fica no pé).
    Em monitor alto não estica, senão o cartão fica enorme e vazio. */
-@media (min-width: 761px) and (max-height: 900px) {
+@media (min-width: 1001px) and (max-height: 900px) {
   .app-shell[data-current-screen="trail"][data-focus="off"] .screen-root { display: flex; flex-direction: column; }
   .home-dashboard { flex: 1; align-items: stretch; }
   .home-main-column { grid-template-rows: auto 1fr; }
@@ -412,13 +412,13 @@ button.home-tile:active { background: var(--line); }
 /* Tela um pouco mais alta (monitor de até 900px de altura): o cartão da trilha fica
    bem alto, então a trilha ganha uma "lupa" de 15% para não sobrar tanto vazio.
    (O zoom é o mesmo truque do "texto grande", que a trilha já aceita.) */
-@media (min-width: 761px) and (min-height: 761px) and (max-height: 900px) {
+@media (min-width: 1001px) and (min-height: 761px) and (max-height: 900px) {
   .home-map .trail-frame { zoom: 1.15; }
 }
 
 /* Computador com tela baixa (notebook): a Home fica mais compacta para caber
    inteira na tela, sem rolar. Em tela alta, nada muda. */
-@media (min-width: 761px) and (max-height: 820px) {
+@media (min-width: 1001px) and (max-height: 820px) {
   .app-shell[data-current-screen="trail"][data-focus="off"] .screen-root { padding-top: 16px; padding-bottom: 8px; }
   .app-shell[data-current-screen="trail"][data-focus="off"] .app-footer { min-height: 34px; }
   .home-dashboard { gap: 16px; }
@@ -438,7 +438,7 @@ button.home-tile:active { background: var(--line); }
 }
 
 /* Celular: só o destaque e a trilha (o resto já fica nas barras e nas abas) */
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .home-dashboard { grid-template-columns: minmax(0, 1fr); }
   .home-side-column { display: none; }
   /* destaque enxuto: sobra mais espaço para a trilha, que é o principal */

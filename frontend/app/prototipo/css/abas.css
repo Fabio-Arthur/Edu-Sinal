@@ -169,7 +169,7 @@
 .ranking-divider.zone-promotion { background: var(--accent-soft); color: var(--accent); }
 .ranking-divider.zone-demotion { background: var(--coral-soft); color: var(--coral); }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .league-hero { flex-wrap: wrap; gap: 14px; padding: 18px; border-radius: 20px; }
   .league-hero .league-badge-large { width: 64px; height: 64px; border-radius: 18px; font-size: 32px; }
   .league-hero-copy h2 { font-size: 24px; }
@@ -268,7 +268,7 @@
   .mission-claim > .bi { animation: none; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .missions-hero { flex-wrap: wrap; gap: 14px; padding: 18px; border-radius: 20px; }
   .missions-hero-gift { width: 64px; height: 64px; border-radius: 18px; font-size: 30px; }
   .missions-hero-copy h2 { font-size: 24px; }
@@ -383,7 +383,7 @@
 .shop-wardrobe h3 { margin: 0 0 4px; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
 .shop-wardrobe p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .shop-hero { flex-wrap: wrap; gap: 14px; padding: 18px; border-radius: 20px; }
   .shop-hero-coin { width: 64px; height: 64px; font-size: 30px; }
   .shop-hero-copy h2 { font-size: 24px; }
@@ -648,7 +648,7 @@
   .letter-tile.is-next::after { animation: none; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .alphabet-banner { padding: 12px 16px; }
   .alphabet-banner h2 { font-size: 18px; }
   .alphabet-layout { grid-template-columns: minmax(0, 1fr); }
@@ -683,7 +683,7 @@
 .name-form-actions { display: flex; align-items: center; gap: 14px; }
 
 /* ----- Celular ----- */
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .league-status { grid-template-columns: auto minmax(0, 1fr); }
   .league-status .button-3d { grid-column: 1 / -1; }
   .ranking-row { grid-template-columns: 32px 36px minmax(0, 1fr) auto; gap: 10px; padding: 8px 12px; }

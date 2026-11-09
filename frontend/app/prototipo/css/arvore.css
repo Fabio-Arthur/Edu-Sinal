@@ -318,7 +318,7 @@ button.tree-leaf:active .tree-icon { transform: translateY(6px); box-shadow: 0 0
   .tree-center.is-done .tree-final-node::after { animation: none; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .topic-heading { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; }
   .topic-heading .back-button { width: 40px; height: 40px; }
   .topic-title h2 { font-size: 18px; }
@@ -326,7 +326,8 @@ button.tree-leaf:active .tree-icon { transform: translateY(6px); box-shadow: 0 0
   .topic-lives small,
   .topic-energy small { display: none; } /* no celular, só os corações e a bateria */
 
-  .tree-canvas { --origin-y: 84%; height: max(330px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 130px)); border-radius: 20px; }
+  /* 134px = respiro de cima (18) + faixa da etapa (77) + espaço (14) + respiro de baixo (24) + 1 de folga */
+  .tree-canvas { --origin-y: 84%; height: max(330px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 134px)); border-radius: 20px; }
   .tree-warning + .tree-canvas { height: max(300px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 200px)); }
   .tree-lines-spiral { display: none; }
   .tree-lines-wave { display: block; }
@@ -370,7 +371,7 @@ button.tree-leaf:active .tree-icon { transform: translateY(6px); box-shadow: 0 0
   .tree-bubble .button-3d { width: 100%; }
 }
 /* Celular com tela baixa: bolinhas menores para o caminho inteiro caber */
-@media (max-width: 760px) and (max-height: 700px) {
+@media (max-width: 1000px) and (max-height: 700px) {
   .tree-icon { width: 58px; height: 58px; font-size: 22px; }
   .tree-center { --lift: -38px; }
   .tree-final-node { width: 76px; height: 76px; font-size: 30px; }
@@ -382,7 +383,7 @@ button.tree-leaf:active .tree-icon { transform: translateY(6px); box-shadow: 0 0
 @media (max-width: 360px) {
   .tree-canvas { height: max(330px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 152px)); }
 }
-@media (max-width: 760px) and (max-height: 600px) {
+@media (max-width: 1000px) and (max-height: 600px) {
   .tree-icon { width: 48px; height: 48px; font-size: 18px; }
   .tree-order { min-width: 22px; height: 22px; font-size: 11px; }
   .tree-center { --lift: -32px; }

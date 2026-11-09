@@ -213,7 +213,7 @@
   .profile-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   /* Perfil: mascote em cima, centralizado */
   .profile-hero { flex-direction: column; gap: 14px; padding: 20px 18px; border-radius: 20px; text-align: center; }
   .profile-hero-avatar { width: 128px; height: 128px; }
