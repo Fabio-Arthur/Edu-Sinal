@@ -103,7 +103,7 @@
 .settings-about strong { font-family: "Manrope", sans-serif; font-size: 16px; }
 .settings-about p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .settings-hero { gap: 14px; padding: 18px; border-radius: 20px; }
   .settings-hero-icon { width: 60px; height: 60px; font-size: 28px; }
   .settings-hero-copy h2 { font-size: 24px; }

@@ -176,7 +176,7 @@ h3 { font-size: 1.17em; }
 .calendar-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .calendar-legend .calendar-day { width: 24px; font-size: 11px; }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .sidebar { display: none; } /* no celular: barra de baixo + engrenagem */
   .app-toast-area { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); left: 16px; }
   .app-toast { --bs-toast-max-width: none; width: 100%; }

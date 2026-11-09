@@ -63,7 +63,7 @@ const WAVE_POINTS = [
 
 // No celular, o primeiro toque mostra o balão; no computador, já começa.
 function isMobileLayout() {
-  return Boolean(window.matchMedia && window.matchMedia("(max-width: 760px)").matches);
+  return Boolean(window.matchMedia && window.matchMedia("(max-width: 1000px)").matches);
 }
 
 // Um exercício abre quando o anterior estiver concluído (o primeiro já vem aberto).
@@ -448,11 +448,42 @@ function layoutTrail(scroller) {
   updateTrailArrows(scroller);
 }
 
+// Vigia o tamanho do quadro da trilha (ver setupTrailScroll).
+let trailResizeWatcher = null;
+
 // Depois de desenhar a Home: ajusta as medidas, posiciona a trilha e liga as setas.
 function setupTrailScroll() {
   const scroller = screenRoot.querySelector(".trail-scroll");
   if (!scroller) return;
   layoutTrail(scroller);
+  positionTrail(scroller);
+  scroller.addEventListener("scroll", () => {
+    trailScrollLeft = scroller.scrollLeft;
+    trailScrollTop = scroller.scrollTop;
+    updateTrailArrows(scroller);
+  }, { passive: true });
+  updateTrailArrows(scroller);
+
+  // Ao voltar da atividade ou da árvore, o menu lateral volta deslizando
+  // (0,38 s) e o quadro da trilha vai encolhendo. Sem vigiar, a trilha ficava
+  // com as medidas de antes do menu voltar (etapas largas demais, faixa da
+  // unidade cortada). Então: mudou o tamanho do quadro, mede de novo. No
+  // primeiro segundo também reposiciona, porque o aluno ainda nem rolou.
+  const drawnAt = performance.now();
+  let lastWidth = scroller.clientWidth;
+  trailResizeWatcher?.disconnect();
+  trailResizeWatcher = new ResizeObserver(() => {
+    if (scroller.clientWidth === lastWidth) return;
+    lastWidth = scroller.clientWidth;
+    layoutTrail(scroller);
+    if (performance.now() - drawnAt < 1000) positionTrail(scroller);
+  });
+  trailResizeWatcher.observe(scroller);
+}
+
+// Rola a trilha até a etapa certa: a mesma posição de antes (se a tela só foi
+// redesenhada) ou a etapa atual.
+function positionTrail(scroller) {
   const step = scroller.querySelector(`.trail-node[data-topic="${trailCenterTopic || currentTopicId()}"]`)?.closest(".trail-step");
   if (app.dataset.redraw === "on") {
     if (isMobileLayout()) scroller.scrollTop = trailScrollTop;
@@ -466,12 +497,6 @@ function setupTrailScroll() {
     const stepEnd = offsetInTrack(step, "left") + step.offsetWidth + TRAIL_EDGE;
     scroller.scrollLeft = Math.max(offsetInTrack(step.closest(".trail-unit"), "left") - TRAIL_EDGE, stepEnd - scroller.clientWidth);
   }
-  scroller.addEventListener("scroll", () => {
-    trailScrollLeft = scroller.scrollLeft;
-    trailScrollTop = scroller.scrollTop;
-    updateTrailArrows(scroller);
-  }, { passive: true });
-  updateTrailArrows(scroller);
 }
 
 // Janela mudou de tamanho: as etapas se ajustam de novo.

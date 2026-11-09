@@ -292,7 +292,10 @@ a {
   flex: 1;
   margin: 0 auto;
   padding: 34px clamp(18px, 2.4vw, 36px) 30px; /* dos lados: perto do menu, sem grudar */
-  animation: screen-in 260ms ease-out both;
+  /* "backwards" e não "both": depois de entrar, a tela não fica com transform.
+     Um transform que sobra prende as faixas fixas (como o botão da atividade)
+     ao tamanho da tela, e no tablet a faixa ficava no meio, e não embaixo. */
+  animation: screen-in 260ms ease-out backwards;
 }
 
 .screen-root:focus {
@@ -590,7 +593,7 @@ textarea {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .app-shell {
     display: block;
   }
@@ -663,7 +666,7 @@ textarea {
 
 /* Modo foco: ao abrir uma matéria, as áreas laterais recuam e as lições viram uma árvore. */
 
-@media (min-width: 761px) {
+@media (min-width: 1001px) {
   .app-shell {
     transition: grid-template-columns 380ms cubic-bezier(0.4, 0, 0.2, 1);
   }

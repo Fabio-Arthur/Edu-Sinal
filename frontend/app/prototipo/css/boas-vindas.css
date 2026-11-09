@@ -59,7 +59,7 @@
 .welcome-point span:not(.welcome-point-icon) { color: var(--muted); font-size: 14px; line-height: 1.5; }
 .welcome-point-icon { width: 46px; height: 46px; flex: none; display: grid; place-items: center; border-radius: 14px; font-size: 21px; }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   /* celular: mascote em cima, botões grandes ocupando a largura */
   .welcome { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 8px 0 0; text-align: center; }
   .welcome-stage { padding-top: 44px; }
