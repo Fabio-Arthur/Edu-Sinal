@@ -1,0 +1,11 @@
+{
+  "name": "edusinal-testes",
+  "private": true,
+  "description": "Testes automáticos do front-end do EduSinal (rodam fora da pasta frontend, para não atrapalhar a Vercel)",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}
