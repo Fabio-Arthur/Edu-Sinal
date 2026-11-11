@@ -61,7 +61,10 @@ def gerar_hash(senha: str) -> str:
 
 def conferir_senha(senha: str, hash_guardado: str) -> bool:
     # Embaralha a senha digitada com o mesmo sal e compara com o que está guardado.
-    _, sal, embaralhada_guardada = hash_guardado.split("$")
+    partes = hash_guardado.split("$")
+    if len(partes) != 3 or partes[0] != "scrypt":
+        return False  # hash num formato que não é o nosso (ex.: dados de teste)
+    _, sal, embaralhada_guardada = partes
     embaralhada = hashlib.scrypt(senha.encode(), salt=bytes.fromhex(sal), n=2**14, r=8, p=1)
 
     # compare_digest compara sem "vazar" pelo tempo quantas letras acertou.

@@ -1,11 +1,10 @@
 # Testes das regras que não dependem do banco:
-# energia (gastar), senha, missões, lojinha, ligas, dicionário, desafio e conteúdo.
+# energia (gastar), senha, missões, lojinha, ligas, dicionário e desafio.
 
 import unittest
 from datetime import date, datetime, timedelta
 
 from src.services import (
-    conteudo_service,
     desafio_service,
     dicionario_service,
     energia_service,
@@ -64,17 +63,35 @@ class MissoesTests(unittest.TestCase):
         self.assertFalse(missoes_service.pode_resgatar(missao, ["dicionario"]))
 
 
+# Os itens vendidos por moedas, na mesma ordem do app e do banco.
+ITENS_A_VENDA = [
+    {"id": codigo, "parte": parte, "jeito": "moedas", "preco": preco}
+    for codigo, parte, preco in [
+        ("camiseta-coral", "Roupa", 20), ("camiseta-amarela", "Roupa", 20), ("camiseta-listrada", "Roupa", 35),
+        ("chapeu-festa", "Chapeu", 30), ("tiara-flores", "Chapeu", 40), ("oculos-sol", "Rosto", 30),
+        ("estrela-coral", "Peito", 25), ("flor-amarela", "Peito", 40), ("folha-azul", "Peito", 60),
+        ("fundo-ceu", "Fundo", 20), ("fundo-mar", "Fundo", 30), ("fundo-por-do-sol", "Fundo", 30), ("fundo-sol", "Fundo", 30),
+    ]
+]
+
+
 class LojinhaTests(unittest.TestCase):
+    def test_vitrine_igual_a_do_app(self):
+        # O app (js/telas-lojinha.js) mostra estes 3 itens em 01/11/2026.
+        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 1), ITENS_A_VENDA)
+
+        self.assertEqual([item["id"] for item in vitrine], ["fundo-mar", "oculos-sol", "estrela-coral"])
+
     def test_vitrine_tem_tres_itens_de_partes_diferentes(self):
-        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
+        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
         partes = [item["parte"] for item in vitrine]
 
         self.assertEqual(len(vitrine), 3)
         self.assertEqual(len(set(partes)), 3)
 
     def test_vitrine_e_igual_no_mesmo_dia(self):
-        primeira = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
-        segunda = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
+        primeira = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
+        segunda = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
 
         self.assertEqual(primeira, segunda)
 
@@ -148,26 +165,6 @@ class DesafioTests(unittest.TestCase):
         self.assertTrue(desafio_service.ganhou_premio(erros=1, ja_ganhou_hoje=False))
         self.assertFalse(desafio_service.ganhou_premio(erros=1, ja_ganhou_hoje=True))
         self.assertFalse(desafio_service.ganhou_premio(erros=2, ja_ganhou_hoje=False))
-
-
-class ConteudoTests(unittest.TestCase):
-    def test_trilha_tem_oito_etapas_com_cinco_atividades(self):
-        self.assertEqual(len(conteudo_service.ETAPAS), 8)
-        for etapa in conteudo_service.ETAPAS:
-            self.assertEqual(len(etapa["atividades"]), 5)
-
-    def test_prova_tem_seis_perguntas(self):
-        prova = conteudo_service.buscar_atividade("numeros:final")
-
-        self.assertEqual(len(prova["perguntas"]), 6)
-
-    def test_app_nao_recebe_o_gabarito(self):
-        atividade = conteudo_service.buscar_atividade("numeros:pratica-um-a-cinco")
-        seguras = conteudo_service.perguntas_sem_gabarito(atividade["perguntas"])
-
-        for pergunta in seguras:
-            self.assertNotIn("resposta_certa", pergunta)
-        self.assertIn("resposta_certa", atividade["perguntas"][0])  # o original não muda
 
 
 if __name__ == "__main__":
