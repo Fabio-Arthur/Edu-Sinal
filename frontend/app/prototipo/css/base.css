@@ -718,3 +718,21 @@ textarea {
   transition: none !important;
   scroll-behavior: auto !important;
 }
+
+/* Carregando: enquanto o app espera a API, uma barrinha corre no topo da tela. */
+body.is-loading::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  width: 40%;
+  height: 3px;
+  background: var(--accent, #2bbbb3);
+  animation: loading-bar 900ms ease-in-out infinite;
+}
+
+@keyframes loading-bar {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}

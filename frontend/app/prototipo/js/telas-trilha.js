@@ -605,5 +605,5 @@ function renderTrail() {
         ${renderHomeLeague()}
       </aside>
     </div>
-    <p class="demo-disclaimer">Pontos, sequência e conteúdo exibidos são dados demonstrativos deste protótipo.</p>`;
+    <p class="demo-disclaimer">O conteúdo das etapas ainda é provisório e será revisado por pessoas surdas fluentes em Libras.</p>`;
 }

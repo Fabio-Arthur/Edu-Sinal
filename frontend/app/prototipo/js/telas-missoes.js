@@ -50,14 +50,18 @@ function readyMissionsCount() {
   return count;
 }
 
-function claimMission(scope, missionId) {
+// Resgatar: o servidor confere se a missão foi mesmo completada e dá as moedas.
+async function claimMission(scope, missionId) {
   const mission = missionList(scope).find((entry) => entry.id === missionId);
   const claimed = claimedList(scope);
   if (!mission || claimed.includes(mission.id) || !isMissionComplete(mission)) return;
 
-  claimed.push(mission.id);
-  state.coins += mission.reward;
-  persist();
+  try {
+    applyServerState(await api("POST", `/missoes/${missionId}/resgatar`));
+  } catch (error) {
+    showApiError(error);
+    return;
+  }
   render();
   showToast(`Missão concluída: +${mission.reward} moedas!`);
 }

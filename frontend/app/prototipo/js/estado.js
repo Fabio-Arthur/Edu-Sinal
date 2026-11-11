@@ -1,7 +1,8 @@
-// ESTADO E REGRAS DO JOGO
-// Aqui ficam os dados do aluno (XP, moedas, vidas...), o que é salvo no
-// navegador e as regras que valem para várias telas: vidas, energia, recompensas,
-// ofensiva (dias seguidos) e a virada do dia e da semana.
+// ESTADO DO JOGO
+// Aqui ficam os dados do aluno (XP, moedas, vidas...) e as regras que valem
+// para várias telas. Quem decide os números é o servidor (ver js/api.js): o app
+// recebe o "estado" depois de cada ação e só mostra. No navegador ficam salvas
+// apenas as preferências de tela (tema, tamanho do texto e animações).
 
 const savedPrototype = JSON.parse(localStorage.getItem("edusinal-prototype") || "{}");
 const requestedScreen = new URLSearchParams(location.search).get("tela");
@@ -41,23 +42,6 @@ function emptyDay() {
 
 // ----- Estado -----
 
-// Dias em que o aluno praticou (para o calendário da ofensiva). Quem jogou
-// antes desta lista existir ganha os dias da ofensiva atual, contando para trás.
-function savedPracticeDays() {
-  if (Array.isArray(savedPrototype.practiceDays)) return savedPrototype.practiceDays;
-  const streak = savedPrototype.streak ?? 4;
-  const lastDay = savedPrototype.lastActiveDate || (streak > 0 ? dateKey() : null);
-  if (!lastDay) return [];
-  return Array.from({ length: streak }, (_, back) => {
-    const day = new Date(`${lastDay}T12:00:00`);
-    day.setDate(day.getDate() - back);
-    return dateKey(day);
-  });
-}
-
-// Quem já tinha se cadastrado antes guardava "role"; continuamos aceitando isso.
-const wasRegistered = Boolean(savedPrototype.isRegistered ?? savedPrototype.role);
-
 // Nomes que podem ir na URL (?tela=ligas) e a tela de cada um.
 const screensByUrlName = {
   home: "trail",
@@ -72,10 +56,10 @@ const screensByUrlName = {
   mascote: "mascot",
 };
 
-// Tela em que o protótipo abre: pela URL ou conforme o cadastro.
+// Tela em que o app abre: pela URL ou a Home (se não estiver logado, o
+// app.js troca para a apresentação depois de perguntar à API).
 function firstScreen() {
-  if (screensByUrlName[requestedScreen]) return screensByUrlName[requestedScreen];
-  return wasRegistered ? "trail" : "intro";
+  return screensByUrlName[requestedScreen] || "trail";
 }
 
 const state = {
@@ -83,40 +67,33 @@ const state = {
   theme: savedPrototype.theme || "light",
   textSize: savedPrototype.textSize || "normal",   // "normal" ou "large"
   motion: savedPrototype.motion || "normal",       // "normal" ou "reduced"
-  xp: savedPrototype.xp ?? 120, // "??" e não "||": 0 XP é um valor válido
-  coins: savedPrototype.coins ?? 40,
-  streak: savedPrototype.streak ?? 4,
-  lastActiveDate: savedPrototype.lastActiveDate || null, // último dia com exercício feito
-  streakFreezes: savedPrototype.streakFreezes || 0,      // protetores de ofensiva comprados
-  practiceDays: savedPracticeDays(),                     // ex.: ["2026-10-23", "2026-10-24"]
-  frozenDays: Array.isArray(savedPrototype.frozenDays) ? savedPrototype.frozenDays : [], // dias salvos pelo protetor
-  league: savedPrototype.league || 0,                    // posição na lista LEAGUES (0 = Bronze)
-  lives: savedPrototype.lives ?? MAX_LIVES,
-  nextLifeAt: savedPrototype.nextLifeAt || null,
-  energy: savedPrototype.energy ?? MAX_ENERGY,
-  nextEnergyAt: savedPrototype.nextEnergyAt || null,
-  energyRefillDate: savedPrototype.energyRefillDate || null, // dia em que comprou a recarga na Lojinha
-  alphabetChallengeDate: savedPrototype.alphabetChallengeDate || null, // dia em que ganhou o prêmio do Desafia-me
-  name: savedPrototype.name || "Marina",
-  email: savedPrototype.email || "",      // e-mail do perfil criado neste navegador (para entrar de novo)
-  isRegistered: wasRegistered,
-  dailyGoal: savedPrototype.dailyGoal || DAILY_GOAL,     // atividades por dia na meta da Home
-  unlockedItems: Array.isArray(savedPrototype.unlockedItems) ? savedPrototype.unlockedItems : [],
-  // Roupa e acessórios do mascote. Quem jogou antes tinha só "equippedItem"
-  // (broche) e "equippedBackground"; eles viram o broche e o fundo.
-  mascot: savedPrototype.mascot || {
-    shirt: "camiseta-branca",
-    head: "",
-    face: "",
-    chest: savedPrototype.equippedItem || "",
-    background: savedPrototype.equippedBackground || "",
-  },
-  hasFirstActivityReward: Boolean(savedPrototype.hasFirstActivityReward),
-  completedLessons: Array.isArray(savedPrototype.completedLessons) ? savedPrototype.completedLessons : [], // ex.: "numeros:um-a-cinco"
-  trailVersion: savedPrototype.trailVersion || 0, // de que versão da trilha é esse progresso (ver fixOldProgress)
-  signsSeen: Array.isArray(savedPrototype.signsSeen) ? savedPrototype.signsSeen : [], // sinais já vistos no dicionário
-  daily: savedPrototype.daily || emptyDay(),                     // progresso de hoje (missões e meta)
-  week: savedPrototype.week || { key: weekKey(), xp: 60, claimed: [] }, // XP da semana (ligas)
+  // Os dados do jogo começam vazios e chegam da API (applyServerState, em api.js).
+  xp: 0,
+  coins: 0,
+  streak: 0,              // dias seguidos de ofensiva
+  lastActiveDate: null,   // último dia com atividade nova
+  streakFreezes: 0,       // protetores de ofensiva
+  practiceDays: [],       // dias praticados (calendário), ex.: ["2026-10-23"]
+  frozenDays: [],         // dias salvos pelo protetor
+  league: 0,              // posição na lista LEAGUES (0 = Bronze)
+  lives: MAX_LIVES,
+  nextLifeAt: null,
+  energy: MAX_ENERGY,
+  nextEnergyAt: null,
+  energyRefillDate: null,       // dia em que comprou a recarga na Lojinha
+  alphabetChallengeDate: null,  // dia em que ganhou o prêmio do Desafia-me
+  name: "",
+  email: "",
+  isRegistered: false,          // logado na API?
+  dailyGoal: DAILY_GOAL,        // atividades por dia na meta da Home
+  unlockedItems: [],            // itens do mascote comprados ou ganhos
+  mascot: { shirt: "camiseta-branca", head: "", face: "", chest: "", background: "" },
+  hasFirstActivityReward: false,
+  completedLessons: [],         // ex.: "numeros:um-a-cinco"
+  signsSeen: [],                // sinais já vistos no dicionário
+  daily: emptyDay(),            // progresso de hoje (missões e meta)
+  week: { key: weekKey(), xp: 0, claimed: [] }, // XP da semana (ligas)
+  leagueRanking: null,          // ranking da semana, quando chega da API
 
   // Daqui para baixo nada é salvo: só vale enquanto a página está aberta.
   currentLesson: null,     // galho que o aluno está fazendo agora
@@ -159,96 +136,28 @@ const navigationItems = [
   ["more", "Configurações", "gear-fill", "gray"],
 ];
 
-// Salva no navegador só o que precisa continuar na próxima visita.
+// Salva no navegador só as preferências de tela. O progresso fica no servidor.
 function persist() {
   localStorage.setItem("edusinal-prototype", JSON.stringify({
     theme: state.theme,
     textSize: state.textSize,
     motion: state.motion,
-    xp: state.xp,
-    coins: state.coins,
-    streak: state.streak,
-    lastActiveDate: state.lastActiveDate,
-    streakFreezes: state.streakFreezes,
-    practiceDays: state.practiceDays,
-    frozenDays: state.frozenDays,
-    league: state.league,
-    lives: state.lives,
-    nextLifeAt: state.nextLifeAt,
-    energy: state.energy,
-    nextEnergyAt: state.nextEnergyAt,
-    energyRefillDate: state.energyRefillDate,
-    alphabetChallengeDate: state.alphabetChallengeDate,
-    name: state.name,
-    email: state.email,
-    isRegistered: state.isRegistered,
-    dailyGoal: state.dailyGoal,
-    unlockedItems: state.unlockedItems,
-    mascot: state.mascot,
-    hasFirstActivityReward: state.hasFirstActivityReward,
-    completedLessons: state.completedLessons,
-    trailVersion: state.trailVersion,
-    signsSeen: state.signsSeen,
-    daily: state.daily,
-    week: state.week,
   }));
 }
 
 // ----- Virada do dia e da semana -----
 
-// Chamado antes de desenhar cada tela: confere se virou o dia ou a semana.
+// Chamado antes de desenhar cada tela. Se o dia ou a semana virou com o app
+// aberto, zera os contadores na tela; os números certos (ofensiva, liga)
+// chegam do servidor na próxima ação.
 function refreshCalendar() {
-  let changed = false;
-  if (state.daily.date !== dateKey()) {
-    state.daily = emptyDay(); // missões e meta diária recomeçam
-    changed = true;
-  }
-  if (state.week.key !== weekKey()) {
-    closeLeagueWeek(); // fica em telas-ligas.js: sobe ou desce de liga
-    changed = true;
-  }
-  if (checkStreak()) changed = true;
-  if (changed) persist();
-}
-
-// Se o aluno ficou dias sem praticar, a ofensiva zera, a não ser que ele
-// tenha protetores de ofensiva (um para cada dia perdido).
-function checkStreak() {
-  if (!state.lastActiveDate) return false;
-  const missedDays = daysBetween(state.lastActiveDate, dateKey()) - 1;
-  if (missedDays <= 0 || state.streak === 0) return false;
-
-  if (state.streakFreezes >= missedDays) {
-    state.streakFreezes -= missedDays;
-    // guarda os dias salvos, para aparecerem com escudo no calendário
-    for (let day = 1; day <= missedDays; day += 1) {
-      const saved = new Date(`${state.lastActiveDate}T12:00:00`);
-      saved.setDate(saved.getDate() + day);
-      state.frozenDays.push(dateKey(saved));
-    }
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    state.lastActiveDate = dateKey(yesterday);
-    showToast(`Seu protetor salvou a ofensiva de ${state.streak} dias!`);
-  } else {
-    state.streak = 0;
-  }
-  return true;
-}
-
-// Conta um exercício novo para a meta do dia, as missões, a liga e a ofensiva.
-function registerExercise(xpGained) {
-  state.daily.exercises += 1;
-  state.daily.xp += xpGained;
-  state.week.xp += xpGained;
-  if (state.lastActiveDate !== dateKey()) {
-    state.streak += 1;
-    state.lastActiveDate = dateKey();
-  }
-  if (!state.practiceDays.includes(dateKey())) state.practiceDays.push(dateKey());
+  if (state.daily.date !== dateKey()) state.daily = emptyDay();
+  if (state.week.key !== weekKey()) state.week = { key: weekKey(), xp: 0, claimed: [] };
 }
 
 // ----- Vidas e energia -----
+// Quem gasta é o servidor. Aqui o app só conta o tempo para mostrar
+// "+1 em 25 min" e encher o coração na hora certa, com as mesmas regras.
 // As duas funcionam igual: gastam 1 ponto e voltam sozinhas com o tempo.
 //   Vidas: errar uma pergunta gasta 1; volta 1 a cada 30 minutos.
 //   Energia: terminar uma atividade gasta 1; volta 1 a cada 3 horas.
@@ -270,25 +179,12 @@ function rechargeOverTime(count, next, max, interval) {
     nextAt = now + interval;
   }
 
-  let changed = false;
   while (state[count] < max && now >= nextAt) {
     state[count] += 1;
     nextAt += interval;
-    changed = true;
   }
 
   state[next] = state[count] >= max ? null : new Date(nextAt).toISOString();
-  if (changed) persist();
-}
-
-// Gasta 1 ponto e, se ainda não estava contando, começa a contar a recarga.
-function spendOverTime(count, next, max, interval) {
-  rechargeOverTime(count, next, max, interval);
-  state[count] = Math.max(0, state[count] - 1);
-  if (state[count] < max && !state[next]) {
-    state[next] = new Date(Date.now() + interval).toISOString();
-  }
-  persist();
 }
 
 // Texto "+1 em 25 min" ou "+1 em 2 h 10 min" (curto: "+1 em 2h10", para os quadradinhos).
@@ -304,11 +200,6 @@ function refreshLives() {
   rechargeOverTime("lives", "nextLifeAt", MAX_LIVES, LIFE_RECHARGE_MS);
 }
 
-// Perde uma vida por resposta errada.
-function loseLife() {
-  spendOverTime("lives", "nextLifeAt", MAX_LIVES, LIFE_RECHARGE_MS);
-}
-
 function timeUntilNextLife() {
   if (state.lives >= MAX_LIVES || !state.nextLifeAt) return "Vidas completas";
   return timeUntil(state.nextLifeAt);
@@ -316,11 +207,6 @@ function timeUntilNextLife() {
 
 function refreshEnergy() {
   rechargeOverTime("energy", "nextEnergyAt", MAX_ENERGY, ENERGY_RECHARGE_MS);
-}
-
-// Gasta uma energia quando o aluno termina uma atividade.
-function spendEnergy() {
-  spendOverTime("energy", "nextEnergyAt", MAX_ENERGY, ENERGY_RECHARGE_MS);
 }
 
 function timeUntilNextEnergy(short = false) {
@@ -365,27 +251,6 @@ function updateLifeIndicator() {
   }
 }
 
-// ----- Recompensas -----
-
-// Chamado quando o aluno acerta e conclui um exercício pela primeira vez.
-// É aqui que a energia é gasta (revisões não gastam).
-function giveActivityReward() {
-  spendEnergy();
-  state.xp += XP_PER_EXERCISE;
-  registerExercise(XP_PER_EXERCISE);
-  if (!state.hasFirstActivityReward) {
-    state.coins += 15;
-    state.unlockedItems.push("broche-sinal");
-    state.mascot.chest = "broche-sinal";
-    state.hasFirstActivityReward = true;
-    showToast("Primeira atividade concluída: +20 XP, +15 moedas e um broche para o mascote!");
-  } else {
-    state.coins += 5;
-    showToast("Atividade concluída: +20 XP, +5 moedas e −1 de energia");
-  }
-  persist();
-}
-
 // ----- Utilidades -----
 
 function escapeHtml(value) {
@@ -405,6 +270,14 @@ function showToast(message) {
   document.getElementById("toast-text").textContent = message;
   if (window.bootstrap) bootstrap.Toast.getOrCreateInstance(toast).show();
   else toast.classList.add("show"); // se o Bootstrap não carregar, o aviso aparece mesmo assim
+}
+
+// Esconde o aviso que estiver aparecendo (ex.: ao começar uma atividade, para
+// o aviso da anterior não cobrir as respostas).
+function hideToast() {
+  const toast = document.getElementById("toast");
+  if (window.bootstrap) bootstrap.Toast.getInstance(toast)?.hide();
+  else toast.classList.remove("show");
 }
 
 // Janela de confirmação (Modal do Bootstrap). onConfirm só roda se a pessoa confirmar.

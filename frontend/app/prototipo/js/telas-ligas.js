@@ -1,6 +1,7 @@
 // LIGAS
-// Ranking semanal com colegas fictícios. Os 3 primeiros sobem de liga e os
-// 2 últimos descem quando a semana vira (segunda-feira).
+// Ranking semanal com os alunos de verdade da mesma liga (vem da API:
+// GET /ligas/semana). Os 3 primeiros sobem de liga e os 2 últimos descem quando
+// a semana vira (segunda-feira); quem decide isso é o servidor.
 // Pensado para menores: só apelidos e avatares, sem chat e sem perfil aberto.
 
 const LEAGUES = [
@@ -14,55 +15,44 @@ const LEAGUES = [
 const PROMOTION_SPOTS = 3; // quantos sobem
 const DEMOTION_SPOTS = 2;  // quantos descem
 
-// Colegas fictícios: apelido e quanto XP costumam ganhar por dia.
-const LEAGUE_RIVALS = [
-  { name: "Tucano Veloz", xpPerDay: 55 },
-  { name: "Arara Feliz", xpPerDay: 48 },
-  { name: "Onça Curiosa", xpPerDay: 40 },
-  { name: "Boto Sorridente", xpPerDay: 33 },
-  { name: "Capivara Sábia", xpPerDay: 27 },
-  { name: "Sabiá Atento", xpPerDay: 21 },
-  { name: "Jabuti Firme", xpPerDay: 15 },
-  { name: "Mico Esperto", xpPerDay: 10 },
-  { name: "Lobo-guará", xpPerDay: 6 },
-];
-
 // Dia da semana: segunda = 1 ... domingo = 7.
 function weekDayNumber() {
   return ((new Date().getDay() + 6) % 7) + 1;
 }
 
-// Classificação: você + colegas fictícios, do maior XP para o menor.
-// Em caso de empate, você fica na frente.
-function buildRanking(myXp, daysPlayed) {
-  const players = [{ name: state.name, xp: myXp, isMe: true }];
-  LEAGUE_RIVALS.forEach((rival) => {
-    players.push({ name: rival.name, xp: rival.xpPerDay * daysPlayed, isMe: false });
-  });
-  return players.sort((a, b) => b.xp - a.xp);
+// Classificação da semana, do maior XP para o menor. Antes de a API
+// responder, aparece só o próprio aluno.
+// O XP do próprio aluno vem sempre do estado mais novo (o ranking dos
+// outros pode ter até 1 minuto de atraso).
+function buildRanking() {
+  if (!state.leagueRanking) return [{ name: state.name, xp: state.week.xp, isMe: true }];
+  return state.leagueRanking
+    .map((player) => ({ name: player.sou_eu ? state.name : player.apelido, xp: player.sou_eu ? state.week.xp : player.xp, isMe: player.sou_eu }))
+    .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
 }
 
-// "promotion" (sobe), "demotion" (desce) ou "safe" (fica).
+// Busca o ranking na API (no máximo uma vez por minuto) e redesenha a tela.
+let leagueRankingLoadedAt = 0;
+async function refreshLeagueRanking() {
+  if (!state.isRegistered || Date.now() - leagueRankingLoadedAt < 60000) return;
+  leagueRankingLoadedAt = Date.now();
+  try {
+    const result = await api("GET", "/ligas/semana");
+    state.leagueRanking = result.ranking;
+    applyServerState(result.estado);
+  } catch (error) {
+    leagueRankingLoadedAt = 0; // deu erro: tenta de novo na próxima vez
+    return;
+  }
+  if (["leagues", "trail"].includes(state.screen) && !state.focusTopic) render();
+}
+
+// "promotion" (sobe), "demotion" (desce) ou "safe" (fica). Mesma regra do
+// servidor: com pouca gente na liga, ninguém desce.
 function zoneOf(position, total) {
   if (position <= PROMOTION_SPOTS) return "promotion";
-  if (position > total - DEMOTION_SPOTS) return "demotion";
+  if (total > PROMOTION_SPOTS + DEMOTION_SPOTS && position > total - DEMOTION_SPOTS) return "demotion";
   return "safe";
-}
-
-// Quando a semana vira: sobe ou desce de liga conforme a posição final.
-function closeLeagueWeek() {
-  const ranking = buildRanking(state.week.xp, 7);
-  const position = ranking.findIndex((player) => player.isMe) + 1;
-  const zone = zoneOf(position, ranking.length);
-
-  if (zone === "promotion" && state.league < LEAGUES.length - 1) {
-    state.league += 1;
-    showToast(`Semana encerrada: você subiu para a liga ${LEAGUES[state.league].name}!`);
-  } else if (zone === "demotion" && state.league > 0) {
-    state.league -= 1;
-    showToast(`Semana encerrada: você voltou para a liga ${LEAGUES[state.league].name}.`);
-  }
-  state.week = { key: weekKey(), xp: 0, claimed: [] };
 }
 
 function leagueTimeLeft() {
@@ -75,7 +65,7 @@ function leagueTimeLeft() {
 // Frase de situação: na zona de promoção, no meio ou na zona de rebaixamento.
 // Onde o aluno está na liga desta semana: posição, zona e quanto XP falta para
 // entrar na zona de promoção. Usado aqui e no cartão da liga na Home.
-function myLeagueStanding(ranking = buildRanking(state.week.xp, weekDayNumber())) {
+function myLeagueStanding(ranking = buildRanking()) {
   const position = ranking.findIndex((player) => player.isMe) + 1;
   const me = ranking[position - 1];
   const zone = zoneOf(position, ranking.length);
@@ -117,7 +107,7 @@ function renderRankingRow(player, position, total) {
 
 function renderLeagues() {
   const league = LEAGUES[state.league];
-  const ranking = buildRanking(state.week.xp, weekDayNumber());
+  const ranking = buildRanking();
 
   // Escada: as ligas já passadas ficam coloridas, a atual em destaque e as próximas cinza
   const ladder = LEAGUES.map((item, index) => {
@@ -131,11 +121,11 @@ function renderLeagues() {
   const rows = [];
   ranking.forEach((player, index) => {
     const position = index + 1;
-    if (position === ranking.length - DEMOTION_SPOTS + 1) {
+    if (zoneOf(position, ranking.length) === "demotion" && zoneOf(position - 1, ranking.length) !== "demotion") {
       rows.push('<li class="ranking-divider zone-demotion" aria-hidden="true"><i class="bi bi-arrow-down" aria-hidden="true"></i> Zona de rebaixamento</li>');
     }
     rows.push(renderRankingRow(player, position, ranking.length));
-    if (position === PROMOTION_SPOTS) {
+    if (position === PROMOTION_SPOTS && ranking.length > PROMOTION_SPOTS) {
       rows.push('<li class="ranking-divider zone-promotion" aria-hidden="true"><i class="bi bi-arrow-up" aria-hidden="true"></i> Zona de promoção</li>');
     }
   });
@@ -157,5 +147,5 @@ function renderLeagues() {
       <ol class="ranking-list">${rows.join("")}</ol>
     </section>
     <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>
-    <p class="demo-disclaimer">Colegas e pontuações fictícios, apenas para demonstração.</p>`;
+    <p class="demo-disclaimer">Aparecem os alunos da sua liga que ganharam XP nesta semana.</p>`;
 }

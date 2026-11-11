@@ -27,15 +27,25 @@ const ACHIEVEMENTS = [
 
 // ----- Ações do perfil -----
 
-function saveName(form) {
+// Apelido e meta diária ficam no servidor (PUT /eu manda os dois juntos).
+async function saveProfile(name, dailyGoal) {
+  try {
+    applyServerState(await api("PUT", "/eu", { apelido: name, meta_diaria: dailyGoal }));
+    return true;
+  } catch (error) {
+    showApiError(error);
+    return false;
+  }
+}
+
+async function saveName(form) {
   const name = form.elements.name.value.trim();
   if (name.length < 2 || name.length > 20) {
     showToast("O nome precisa ter de 2 a 20 caracteres.");
     return;
   }
-  state.name = name;
+  if (!(await saveProfile(name, state.dailyGoal))) return;
   state.editingName = false;
-  persist();
   render();
   showToast("Nome atualizado.");
 }
@@ -60,10 +70,8 @@ function setTextSize(size) {
   render();
 }
 
-function setDailyGoal(goal) {
-  state.dailyGoal = Number(goal);
-  persist();
-  render();
+async function setDailyGoal(goal) {
+  if (await saveProfile(state.name, Number(goal))) render();
 }
 
 function setMotion(motion) {
@@ -72,23 +80,36 @@ function setMotion(motion) {
   render();
 }
 
-// Apaga todo o progresso salvo neste navegador e recomeça do zero.
-function resetDemo() {
+// Apagar a conta (LGPD): apaga TUDO do aluno no servidor, de uma vez.
+function deleteAccount() {
   askConfirm({
-    title: "Recomeçar a demonstração?",
-    text: "Isso apaga XP, moedas, mascote e todo o progresso salvo neste navegador.",
-    confirmLabel: "Apagar e recomeçar",
-  }, () => {
-    localStorage.removeItem("edusinal-prototype");
-    location.href = location.pathname; // recarrega sem parâmetros na URL
+    title: "Apagar sua conta?",
+    text: "Isso apaga sua conta e todo o seu progresso (XP, moedas, mascote e ofensiva) para sempre.",
+    confirmLabel: "Apagar minha conta",
+  }, async () => {
+    try {
+      await api("DELETE", "/eu");
+    } catch (error) {
+      showApiError(error);
+      return;
+    }
+    state.isRegistered = false;
+    setScreen("intro");
+    showToast("Sua conta e todos os seus dados foram apagados.");
   });
 }
 
-function logout() {
+// Sair: o servidor apaga a sessão (o cookie deixa de valer).
+async function logout() {
+  try {
+    await api("POST", "/auth/sair");
+  } catch (error) {
+    showApiError(error);
+    return;
+  }
   state.isRegistered = false;
-  persist();
   setScreen("intro");
-  showToast("Você saiu. Seu progresso continua salvo neste navegador.");
+  showToast("Você saiu. Seu progresso continua guardado na sua conta.");
 }
 
 // ----- Telas -----
@@ -217,7 +238,8 @@ function renderMore() {
   const privacy = [
     "Não existe chat nem mensagens entre alunos.",
     "Nas ligas aparecem só apelidos e avatares.",
-    "Nesta demonstração, os dados ficam só neste navegador e não são enviados.",
+    "Guardamos só o apelido, o e-mail e o progresso. A senha é guardada embaralhada.",
+    "Em Conta, você pode apagar sua conta e todos os seus dados quando quiser.",
     "Não há compras com dinheiro real: as moedas são do jogo.",
   ].map((item) => `<li>${icon("check-circle-fill")} ${item}</li>`).join("");
 
@@ -254,7 +276,7 @@ function renderMore() {
     <section class="settings-group" aria-labelledby="settings-account-title">
       <h2 class="settings-heading" id="settings-account-title">Conta</h2>
       <div class="settings-card">
-        ${renderSettingRow("arrow-counterclockwise", "coral", "Recomeçar demonstração", "Apaga XP, moedas e progresso deste navegador.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="reset-demo">Recomeçar</button>')}
+        ${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
         ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}
       </div>
     </section>

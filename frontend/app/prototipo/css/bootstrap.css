@@ -65,6 +65,9 @@ h3 { font-size: 1.17em; }
   z-index: 1090;
 }
 
+/* Na atividade, o aviso sobe para não cobrir o botão "Conferir" da faixa de baixo */
+.app-shell[data-current-screen="lesson"] ~ .app-toast-area { bottom: 108px; }
+
 .app-toast {
   --bs-toast-bg: var(--text);
   --bs-toast-color: var(--surface);
@@ -180,5 +183,6 @@ h3 { font-size: 1.17em; }
   .sidebar { display: none; } /* no celular: barra de baixo + engrenagem */
   .app-toast-area { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); left: 16px; }
   .app-toast { --bs-toast-max-width: none; width: 100%; }
-  .app-shell:is([data-current-screen="lesson"], [data-focus="on"]) ~ .app-toast-area { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .app-shell[data-focus="on"] ~ .app-toast-area { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .app-shell[data-current-screen="lesson"] ~ .app-toast-area { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }

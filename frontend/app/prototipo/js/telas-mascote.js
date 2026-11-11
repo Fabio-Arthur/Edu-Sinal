@@ -125,9 +125,13 @@ function chooseMascotItem(slot, id) {
       return;
     }
     // Compra só depois de confirmar, pra ninguém gastar moedas sem querer.
-    askToBuy(item, () => {
-      state.coins -= item.unlock.cost;
-      state.unlockedItems.push(item.id);
+    askToBuy(item, async () => {
+      try {
+        applyServerState(await api("POST", "/lojinha/compras", { id: item.id }));
+      } catch (error) {
+        showApiError(error);
+        return;
+      }
       showToast(`${item.name} comprado: −${item.unlock.cost} moedas.`);
       wearMascotItem(slot, id);
     });
@@ -182,11 +186,15 @@ function askToBuy(item, onConfirm) {
   modal.show();
 }
 
-// Veste o item (já comprado) no mascote.
-function wearMascotItem(slot, id) {
+// Veste o item (já comprado) no mascote. O servidor confere se o item é do aluno.
+async function wearMascotItem(slot, id) {
   const changed = state.mascot[slot] !== id;
-  state.mascot[slot] = id;
-  persist();
+  try {
+    applyServerState(await api("PUT", "/mascote", { parte: MASCOT_SLOT_NAMES[slot], id_item: id }));
+  } catch (error) {
+    showApiError(error);
+    return;
+  }
   render();
   if (changed) playMascotReaction(); // roupa nova: "tive uma ideia!"
 }
@@ -197,9 +205,15 @@ function chooseMascotTab(slot) {
 }
 
 // Volta para o visual da logo (os itens comprados continuam do aluno).
-function resetMascotLook() {
-  state.mascot = { ...DEFAULT_LOOK };
-  persist();
+async function resetMascotLook() {
+  try {
+    // Uma parte de cada vez (o servidor guarda uma peça por parte).
+    for (const [slot, id] of Object.entries(DEFAULT_LOOK)) {
+      applyServerState(await api("PUT", "/mascote", { parte: MASCOT_SLOT_NAMES[slot], id_item: id }));
+    }
+  } catch (error) {
+    showApiError(error);
+  }
   render();
   showToast("Visual da logo restaurado. Seus itens continuam guardados.");
 }
@@ -258,5 +272,5 @@ function renderMascotEditor() {
         <p class="wardrobe-hint">${icon("bag-heart-fill")} Itens com preço só podem ser comprados no dia em que estão na <button class="text-button" type="button" data-screen="shop">vitrine da Lojinha</button>. Os com cadeado vêm de conquistas do Perfil.</p>
       </section>
     </div>
-    <p class="demo-disclaimer">As moedas são de demonstração e os itens ficam salvos somente neste navegador.</p>`;
+    <p class="demo-disclaimer">As moedas são do jogo: não há compras com dinheiro real.</p>`;
 }

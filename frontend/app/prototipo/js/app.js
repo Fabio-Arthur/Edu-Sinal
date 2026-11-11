@@ -115,6 +115,7 @@ function render() {
   updateBarsHeight();
   if (state.focusTopic) measureTreeLines(); // para o caminho da árvore "se desenhar"
   else if (state.screen === "trail") setupTrailScroll(); // trilha da Home no lugar certo
+  if (["leagues", "trail"].includes(state.screen)) refreshLeagueRanking(); // ranking de verdade, da API
   app.dataset.theme = state.theme;
   document.documentElement.dataset.theme = state.theme;          // janelas do Bootstrap ficam fora do app
   document.documentElement.setAttribute("data-bs-theme", state.theme); // tema dos componentes do Bootstrap
@@ -275,7 +276,7 @@ document.addEventListener("click", (event) => {
   else if (action === "signup-start") setScreen("trail");
   else if (action === "login-back") loginBack();
   else if (action === "login-start") setScreen("trail");
-  else if (action === "reset-demo") resetDemo();
+  else if (action === "delete-account") deleteAccount();
   else if (action === "logout") logout();
   // Calendário da ofensiva
   else if (action === "open-streak") openStreakCalendar();
@@ -342,7 +343,16 @@ function greetDevelopers() {
 }
 
 // ----- Início -----
-// O HTML nasce vazio; desenhamos a primeira tela aqui.
-fixOldProgress();
-render();
+// O HTML nasce vazio; desenhamos a primeira tela aqui. Antes, perguntamos à
+// API se a pessoa ainda está logada (o cookie da sessão vale 7 dias).
+async function startApp() {
+  const publicScreens = ["intro", "login", "signup"];
+  if (!publicScreens.includes(state.screen)) {
+    const loggedIn = await loadSession();
+    if (!loggedIn) state.screen = "intro";
+  }
+  render();
+}
+
+startApp();
 greetDevelopers();

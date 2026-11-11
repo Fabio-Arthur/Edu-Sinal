@@ -50,10 +50,14 @@ function categoryLabel(categoryId) {
 }
 
 // Guarda que o aluno viu um sinal: conta para a missão do dia e para a conquista.
-function markSignViewed(signId) {
-  if (!state.daily.signsViewed.includes(signId)) state.daily.signsViewed.push(signId);
-  if (!state.signsSeen.includes(signId)) state.signsSeen.push(signId);
-  persist();
+// O servidor guarda e devolve o estado (a missão do dia já conta na hora).
+async function markSignViewed(signId) {
+  if (state.daily.signsViewed.includes(signId)) return; // já contou hoje
+  try {
+    applyServerState(await api("POST", `/dicionario/${encodeURIComponent(signId)}/visto`));
+  } catch (error) {
+    showApiError(error);
+  }
 }
 
 function selectWord(wordId) {
@@ -138,16 +142,12 @@ function letterSteps(letter) {
 
 function startLetter(letter) {
   if (!isLetterUnlocked(letter)) return;
-  state.currentLesson = {
+  beginLesson({
     topicId: ALPHABET_TOPIC,
     branchId: letter,
     kind: "practice",
-    steps: letterSteps(letter),
-    index: 0,
-    mistakes: 0,
-    outOfLives: false,
-  };
-  setScreen("lesson");
+    steps: numberQuestions(letterSteps(letter)),
+  });
 }
 
 // ----- Desafia-me: 5 perguntas misturando as letras já aprendidas -----
@@ -167,58 +167,28 @@ function isChallengeRewardAvailable() {
   return state.alphabetChallengeDate !== dateKey();
 }
 
-// Embaralha uma cópia da lista (cada desafio sai numa ordem diferente).
-function shuffled(list) {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-// 5 letras aprendidas, sorteadas; as opções erradas também são letras que o
-// aluno já viu. Cada pergunta é "vídeo → letra" ou "letra → vídeo", ao acaso.
-function challengeSteps() {
-  const learned = ALPHABET.filter(isLetterDone);
-  return shuffled(learned).slice(0, CHALLENGE_SIZE).map((letter) => {
-    const options = shuffled([letter, ...shuffled(learned.filter((other) => other !== letter)).slice(0, 2)]);
-    const answer = options.indexOf(letter);
-    if (Math.random() < 0.5) {
-      return { type: "video-palavra", sign: `Letra ${letter}`, title: "Que letra é esta?", options, answer, explain: `Essa é a letra ${letter} do alfabeto manual.` };
+// As 5 perguntas são sorteadas pelo servidor (entre as letras já aprendidas)
+// e chegam prontas, sem o gabarito. Aqui só viram passos da atividade.
+function challengeSteps(questions) {
+  return questions.map((question, position) => {
+    const letter = question.sinal.replace("Letra ", "");
+    if (question.tipo === "video-palavra") {
+      return { type: "video-palavra", sign: question.sinal, title: "Que letra é esta?", options: question.opcoes, questionIndex: position, explain: `Essa é a letra ${letter} do alfabeto manual.` };
     }
-    return { type: "palavra-video", sign: letter, title: `Qual é o sinal da letra ${letter}?`, options: options.map((option) => `Letra ${option}`), answer, explain: `Esse é o sinal da letra ${letter}.` };
+    return { type: "palavra-video", sign: letter, title: `Qual é o sinal da letra ${letter}?`, options: question.opcoes, questionIndex: position, explain: `Esse é o sinal da letra ${letter}.` };
   });
 }
 
 function startAlphabetChallenge() {
   if (!isChallengeUnlocked()) return;
-  state.currentLesson = {
+  beginLesson({
     topicId: ALPHABET_TOPIC,
     branchId: CHALLENGE_ID,
     kind: "practice",
     isChallenge: true,
-    steps: challengeSteps(),
-    index: 0,
-    mistakes: 0,
-    outOfLives: false,
-  };
-  setScreen("lesson");
-}
-
-// Fim do desafio (já sabendo que passou): prêmio, se ainda não ganhou hoje.
-function finishAlphabetChallenge() {
-  if (!isChallengeRewardAvailable()) {
-    showToast("Desafio vencido! O prêmio de hoje você já ganhou: volte amanhã para outro.");
-    return;
-  }
-  spendEnergy();
-  state.xp += XP_PER_EXERCISE;
-  registerExercise(XP_PER_EXERCISE);
-  state.coins += CHALLENGE_COINS;
-  state.alphabetChallengeDate = dateKey();
-  persist();
-  showToast(`Desafio vencido! +${XP_PER_EXERCISE} XP, +${CHALLENGE_COINS} moedas e −1 de energia`);
+    steps: [],
+    makeSteps: challengeSteps, // as perguntas chegam da API
+  });
 }
 
 // Cartão acima da grade: trancado (com quanto falta), com prêmio ou só treino.
