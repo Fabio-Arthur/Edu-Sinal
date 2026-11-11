@@ -20,6 +20,7 @@ const screenRenderers = {
   profile: renderProfile,
   more: renderMore,
   mascot: renderMascotEditor,
+  terms: renderTerms,
 };
 
 // ----- Desenho da página -----
@@ -116,9 +117,10 @@ function render() {
   if (state.focusTopic) measureTreeLines(); // para o caminho da árvore "se desenhar"
   else if (state.screen === "trail") setupTrailScroll(); // trilha da Home no lugar certo
   if (["leagues", "trail"].includes(state.screen)) refreshLeagueRanking(); // ranking de verdade, da API
-  app.dataset.theme = state.theme;
-  document.documentElement.dataset.theme = state.theme;          // janelas do Bootstrap ficam fora do app
-  document.documentElement.setAttribute("data-bs-theme", state.theme); // tema dos componentes do Bootstrap
+  const theme = currentTheme(); // "auto" vira o tema do aparelho
+  app.dataset.theme = theme;
+  document.documentElement.dataset.theme = theme;          // janelas do Bootstrap ficam fora do app
+  document.documentElement.setAttribute("data-bs-theme", theme); // tema dos componentes do Bootstrap
   // Barra de status do celular com a cor do tema escolhido no app (e não a do sistema)
   const background = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", background));
@@ -277,6 +279,8 @@ document.addEventListener("click", (event) => {
   else if (action === "login-back") loginBack();
   else if (action === "login-start") setScreen("trail");
   else if (action === "delete-account") deleteAccount();
+  else if (action === "open-terms") openTerms();
+  else if (action === "close-terms") closeTerms();
   else if (action === "logout") logout();
   // Calendário da ofensiva
   else if (action === "open-streak") openStreakCalendar();
@@ -306,6 +310,12 @@ document.addEventListener("keydown", (event) => {
   if (handleLessonKey(event)) return; // atividade: 1 a 4 e Enter (em licao.js)
   if (event.key !== "Escape") return;
   if (state.focusTopic) closeTopic();
+});
+
+// O aparelho trocou de modo claro para escuro (ou o contrário): no tema
+// "Automático", o app troca junto, na hora.
+deviceDarkMode?.addEventListener("change", () => {
+  if (state.theme === "auto") render();
 });
 
 // Mantém vidas e energia (e o tempo de recarga) atualizadas na Home e na barra do celular.
@@ -346,7 +356,7 @@ function greetDevelopers() {
 // O HTML nasce vazio; desenhamos a primeira tela aqui. Antes, perguntamos à
 // API se a pessoa ainda está logada (o cookie da sessão vale 7 dias).
 async function startApp() {
-  const publicScreens = ["intro", "login", "signup"];
+  const publicScreens = ["intro", "login", "signup", "terms"];
   if (!publicScreens.includes(state.screen)) {
     const loggedIn = await loadSession();
     if (!loggedIn) state.screen = "intro";

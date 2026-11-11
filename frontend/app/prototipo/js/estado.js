@@ -54,6 +54,7 @@ const screensByUrlName = {
   perfil: "profile",
   mais: "more",
   mascote: "mascot",
+  termos: "terms",
 };
 
 // Tela em que o app abre: pela URL ou a Home (se não estiver logado, o
@@ -64,7 +65,7 @@ function firstScreen() {
 
 const state = {
   screen: firstScreen(),
-  theme: savedPrototype.theme || "light",
+  theme: savedPrototype.theme || "auto", // "auto" (segue o aparelho), "light" ou "dark"
   textSize: savedPrototype.textSize || "normal",   // "normal" ou "large"
   motion: savedPrototype.motion || "normal",       // "normal" ou "reduced"
   // Os dados do jogo começam vazios e chegam da API (applyServerState, em api.js).
@@ -121,6 +122,7 @@ const screenTitles = {
   more: "Configurações",
   mascot: "Guarda-roupa",
   signup: "Criar conta",
+  terms: "Termos de uso e privacidade",
 };
 
 // Itens do menu lateral: [tela, nome, ícone do Bootstrap Icons]
@@ -135,6 +137,13 @@ const navigationItems = [
   ["profile", "Perfil", "person-fill", "blue"],
   ["more", "Configurações", "gear-fill", "gray"],
 ];
+
+// O tema que vale agora: no "auto", o mesmo do aparelho (modo claro ou escuro do sistema).
+const deviceDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)");
+function currentTheme() {
+  if (state.theme !== "auto") return state.theme;
+  return deviceDarkMode?.matches ? "dark" : "light";
+}
 
 // Salva no navegador só as preferências de tela. O progresso fica no servidor.
 function persist() {

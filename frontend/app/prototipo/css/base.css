@@ -304,19 +304,22 @@ a {
 
 .app-shell[data-current-screen="intro"],
 .app-shell[data-current-screen="login"],
-.app-shell[data-current-screen="signup"] {
+.app-shell[data-current-screen="signup"],
+.app-shell[data-current-screen="terms"] {
   grid-template-columns: minmax(0, 1fr);
 }
 
 .app-shell[data-current-screen="intro"] .sidebar,
 .app-shell[data-current-screen="login"] .sidebar,
-.app-shell[data-current-screen="signup"] .sidebar {
+.app-shell[data-current-screen="signup"],
+.app-shell[data-current-screen="terms"] .sidebar {
   display: none;
 }
 
 .app-shell[data-current-screen="intro"] .settings-button,
 .app-shell[data-current-screen="login"] .settings-button,
-.app-shell[data-current-screen="signup"] .settings-button {
+.app-shell[data-current-screen="signup"],
+.app-shell[data-current-screen="terms"] .settings-button {
   display: none;
 }
 
@@ -736,3 +739,14 @@ body.is-loading::before {
   from { transform: translateX(-100%); }
   to { transform: translateX(250%); }
 }
+
+/* ----- Termos de uso: o topo fica parado e só o texto rola (cabe na tela) ----- */
+/* 115px = respiro de cima e de baixo da tela (64) + rodapé (51) */
+.terms { width: min(760px, 100%); height: calc(100dvh - 115px); display: flex; flex-direction: column; gap: 16px; margin: 0 auto; }
+.terms-header { display: flex; align-items: center; gap: 14px; }
+.terms-header h2 { margin: 0; font-size: 24px; }
+.terms-header p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.terms-text { flex: 1; min-height: 0; overflow-y: auto; scrollbar-color: var(--line) transparent; padding: 4px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.terms-section h3 { margin: 18px 0 6px; font-size: 17px; }
+.terms-section p { margin: 0 0 8px; color: var(--text); font-size: 15px; line-height: 1.6; }
+.signup-terms { margin: 8px 0 0; color: var(--muted); font-size: 13px; }

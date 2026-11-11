@@ -58,7 +58,7 @@ async function api(method, path, body) {
 
 // Mostra o erro para o aluno. Sessão vencida (401) volta para o login.
 function showApiError(error) {
-  if (error.status === 401 && !["intro", "login", "signup"].includes(state.screen)) {
+  if (error.status === 401 && !["intro", "login", "signup", "terms"].includes(state.screen)) {
     state.isRegistered = false;
     setScreen("login");
   }

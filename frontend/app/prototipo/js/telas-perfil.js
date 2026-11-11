@@ -256,7 +256,7 @@ function renderMore() {
     <section class="settings-group" aria-labelledby="settings-prefs-title">
       <h2 class="settings-heading" id="settings-prefs-title">Preferências</h2>
       <div class="settings-card">
-        ${renderSettingRow("palette-fill", "blue", "Tema", "Cores claras ou escuras.", renderChoice("set-theme", state.theme, "Tema", [["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]))}
+        ${renderSettingRow("palette-fill", "blue", "Tema", "Automático segue o modo claro ou escuro do aparelho.", renderChoice("set-theme", state.theme, "Tema", [["auto", "Automático", "circle-half"], ["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]))}
         ${renderSettingRow("type", "teal", "Tamanho do texto", "Deixa tudo um pouco maior.", renderChoice("set-text-size", state.textSize, "Tamanho do texto", [["normal", "Normal", "fonts"], ["large", "Grande", "zoom-in"]]))}
         ${renderSettingRow("stars", "yellow", "Animações", "Reduz movimentos na tela.", renderChoice("set-motion", state.motion, "Animações", [["normal", "Ligadas", "play-fill"], ["reduced", "Reduzidas", "pause-fill"]]))}
         ${renderSettingRow("flag-fill", "coral", "Meta diária", "Atividades por dia na meta da Home.", renderChoice("set-goal", String(state.dailyGoal), "Meta diária", [["1", "1", "cup-hot-fill"], ["3", "3", "lightning-charge-fill"], ["5", "5", "fire"]]))}
@@ -270,7 +270,8 @@ function renderMore() {
 
     <section class="settings-group" aria-labelledby="settings-privacy-title">
       <h2 class="settings-heading" id="settings-privacy-title">Segurança e privacidade</h2>
-      <div class="settings-card"><ul class="settings-privacy">${privacy}</ul></div>
+      <div class="settings-card"><ul class="settings-privacy">${privacy}</ul>
+        <button class="text-button" type="button" data-action="open-terms">${icon("file-earmark-text-fill")} Ler os termos de uso e privacidade</button></div>
     </section>
 
     <section class="settings-group" aria-labelledby="settings-account-title">
