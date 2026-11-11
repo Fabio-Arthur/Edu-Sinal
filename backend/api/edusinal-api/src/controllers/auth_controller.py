@@ -61,7 +61,8 @@ def abrir_sessao(conexao, resposta: Response, id_usuario: int) -> None:
 @router.post("/cadastro", status_code=201)
 def cadastrar(dados: Cadastro, resposta: Response):
     # 1. Confere tudo com as mesmas regras do app.
-    problema = senha_service.problema_no_apelido(dados.apelido) or senha_service.problema_na_senha(dados.senha)
+    problema = (senha_service.problema_no_apelido(dados.apelido)
+                or senha_service.problema_na_senha(dados.senha, dados.apelido, dados.email))
     if problema:
         raise HTTPException(status_code=400, detail=problema)
     if dados.meta_diaria not in senha_service.METAS_DIARIAS:

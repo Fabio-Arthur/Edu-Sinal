@@ -28,8 +28,16 @@ class SenhaTests(unittest.TestCase):
     def test_senha_forte_passa(self):
         self.assertIsNone(senha_service.problema_na_senha("Exemplo#2026"))
 
-    def test_senha_sem_simbolo_nao_passa(self):
-        self.assertIsNotNone(senha_service.problema_na_senha("Exemplo2026"))
+    def test_senha_simples_e_comprida_passa(self):
+        # Como no Duolingo: não precisa de maiúscula, número nem símbolo.
+        self.assertIsNone(senha_service.problema_na_senha("gato de botas"))
+
+    def test_senha_obvia_nao_passa(self):
+        self.assertIsNotNone(senha_service.problema_na_senha("12345678"))
+        self.assertIsNotNone(senha_service.problema_na_senha("aaaaaaaa"))
+
+    def test_senha_igual_ao_apelido_nao_passa(self):
+        self.assertIsNotNone(senha_service.problema_na_senha("marinaaa", apelido="Marinaaa"))
 
     def test_senha_curta_nao_passa(self):
         self.assertIsNotNone(senha_service.problema_na_senha("Ex#1"))

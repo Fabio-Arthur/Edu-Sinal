@@ -11,12 +11,22 @@
 
 const WELCOME_COINS = 20; // moedas de boas-vindas de um perfil novo
 
-function hasStrongPassword(password) {
-  return password.length >= 8
-    && /[a-z]/.test(password)
-    && /[A-Z]/.test(password)
-    && /\d/.test(password)
-    && /[^A-Za-z0-9]/.test(password);
+// Senha no estilo do Duolingo: simples de criar, sem obrigar maiúscula,
+// número e símbolo. Vale o tamanho mínimo e não pode ser uma senha óbvia.
+// (O servidor confere a mesma coisa em senha_service.py.)
+const PASSWORD_MIN_LENGTH = 8;
+const OBVIOUS_PASSWORDS = ["12345678", "123456789", "1234567890", "87654321", "11111111", "00000000",
+  "senha123", "senha1234", "password", "qwertyui", "abcdefgh", "abc12345", "edusinal", "libras123"];
+
+// Devolve o problema da senha (para mostrar ao aluno) ou "" se está tudo certo.
+function passwordProblem(password, nickname = "", email = "") {
+  const lower = password.toLowerCase();
+  if (password.length < PASSWORD_MIN_LENGTH) return `A senha precisa ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+  if (OBVIOUS_PASSWORDS.includes(lower) || new Set(lower).size === 1) return "Essa senha é fácil demais de adivinhar. Tente outra.";
+  if ((nickname && lower === nickname.toLowerCase()) || (email && lower === email.split("@")[0].toLowerCase())) {
+    return "A senha não pode ser igual ao seu apelido ou e-mail.";
+  }
+  return "";
 }
 
 // ----- Cadastro por etapas -----
@@ -56,7 +66,8 @@ function signupStepHtml(stepName) {
       question: "Agora crie uma senha.",
       body: `<label class="field-label" for="signup-password">Senha<input id="signup-password" name="password" type="password" autocomplete="new-password" placeholder="Crie uma senha" /></label>
         <label class="field-label" for="signup-confirm-password">Confirme a senha<input id="signup-confirm-password" name="passwordConfirmation" type="password" autocomplete="new-password" placeholder="Digite a senha de novo" /></label>
-        <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres, com letra maiúscula, minúscula, número e símbolo.</p>`,
+        <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres. Dica: uma frase curta que só você conhece é fácil de lembrar e difícil de adivinhar.</p>
+        <p class="signup-terms">Ao criar a conta, você concorda com os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button>.</p>`,
     };
   }
   return {
@@ -224,7 +235,8 @@ function validateSignupStep(form) {
   if (stepName === "email" && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) return "Informe um e-mail válido.";
   if (stepName === "password") {
     const password = form.elements.password.value;
-    if (!hasStrongPassword(password)) return "A senha precisa ter 8 caracteres, maiúscula, minúscula, número e símbolo.";
+    const problem = passwordProblem(password, signup.nickname, signup.email);
+    if (problem) return problem;
     if (password !== form.elements.passwordConfirmation.value) return "As senhas não conferem.";
   }
   return "";
