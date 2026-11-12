@@ -226,7 +226,7 @@ function timeUntilNextEnergy(short = false) {
 // Atividade nova (dá prêmio e gasta energia) ou revisão? O Desafia-me do
 // alfabeto conta como novo uma vez por dia (ver telas-dicionario.js).
 function isNewActivity(topicId, branchId) {
-  if (topicId === ALPHABET_TOPIC && branchId === CHALLENGE_ID) return isChallengeRewardAvailable();
+  if (topicId === DICTIONARY_TOPIC && branchId === CHALLENGE_ID) return isChallengeRewardAvailable();
   return !isLessonDone(topicId, branchId);
 }
 

@@ -530,6 +530,10 @@
 .word-card strong { font-family: "Manrope", sans-serif; font-size: 16px; font-weight: 800; }
 .word-card small { color: var(--muted); font-size: 12px; }
 .word-card .word-seen { position: absolute; top: 8px; right: 10px; color: var(--accent); font-size: 11px; font-weight: 800; }
+/* Palavra ainda bloqueada (abre ao concluir a atividade da trilha que ensina o sinal) */
+.word-card.is-locked { border-style: dashed; background: var(--surface-soft); box-shadow: none; }
+.word-card.is-locked strong { color: var(--muted); }
+.word-card.is-locked .word-card-play { background: var(--surface); color: var(--muted); }
 
 .word-detail {
   position: sticky;

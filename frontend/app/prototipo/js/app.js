@@ -255,7 +255,6 @@ document.addEventListener("click", (event) => {
   // Dicionário
   else if (action === "dictionary-category") chooseDictionaryCategory(data.category);
   else if (action === "select-word") selectWord(data.word);
-  else if (action === "start-letter") startLetter(data.letter);
   else if (action === "start-challenge") startAlphabetChallenge();
   else if (action === "mascot-react") playMascotReaction();
   // Missões e lojinha

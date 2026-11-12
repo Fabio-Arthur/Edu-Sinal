@@ -162,8 +162,7 @@ function questionBodyHtml(question) {
 function lessonKicker() {
   const lesson = state.currentLesson;
   const position = `${lesson.index + 1} de ${lesson.steps.length}`;
-  if (lesson.isChallenge) return `Alfabeto manual · Desafia-me · ${position}`;
-  if (lesson.topicId === ALPHABET_TOPIC) return `Alfabeto manual · Letra ${lesson.branchId} · ${position}`;
+  if (lesson.isChallenge) return `Dicionário · Desafia-me · ${position}`;
   const topic = learningTopics[lesson.topicId];
   const name = isFinalExam() ? "Prova final" : topic.branches.find((branch) => branch.id === lesson.branchId).label;
   return `${topic.title} · ${name} · ${position}`;
@@ -311,8 +310,8 @@ function nextQuestion() {
 // Depois da atividade: volta direto para a árvore da etapa (sem a animação de
 // abrir, que é só a partir da Home) ou, nas letras, para o alfabeto do dicionário.
 function returnFromLesson(lesson) {
-  if (lesson.topicId === ALPHABET_TOPIC) {
-    showAlphabet();
+  if (lesson.topicId === DICTIONARY_TOPIC) {
+    setScreen("signs"); // o Desafia-me volta para o dicionário
     return;
   }
   setScreen("trail");
@@ -360,9 +359,6 @@ function finishMessage(lesson, result) {
   }
   if (!result.primeira_vez) return "Revisão concluída!";
   if (result.item_ganho) return `Primeira atividade concluída: ${prize} e um broche para o mascote!`;
-  if (lesson.topicId === ALPHABET_TOPIC && nextLetter()) {
-    return `Letra ${lesson.branchId} aprendida! A letra ${nextLetter()} foi liberada. ${prize}.`;
-  }
   if (isFinalExam(lesson)) {
     const next = TOPIC_ORDER[TOPIC_ORDER.indexOf(lesson.topicId) + 1];
     return next ? `Etapa concluída! “${learningTopics[next].title}” foi liberada. ${prize}.` : `Etapa concluída! ${prize}.`;

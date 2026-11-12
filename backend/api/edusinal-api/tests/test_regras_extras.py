@@ -145,29 +145,27 @@ class LigasTests(unittest.TestCase):
 
 class DicionarioTests(unittest.TestCase):
     def test_alfabeto_sempre_aberto(self):
-        self.assertTrue(dicionario_service.sinal_aberto("Letra Z", []))
+        self.assertTrue(dicionario_service.sinal_aberto("letra-z", []))
+        self.assertTrue(dicionario_service.sinal_aberto("Letra-A", []))
 
-    def test_palavra_abre_depois_da_atividade_de_aprender(self):
-        sinais = {"numeros:um-a-cinco": ["1", "2"]}
-
-        self.assertEqual(dicionario_service.sinais_desbloqueados([], sinais), [])
-        self.assertEqual(dicionario_service.sinais_desbloqueados(["numeros:um-a-cinco"], sinais), ["1", "2"])
+    def test_palavra_so_abre_depois_de_desbloqueada(self):
+        self.assertFalse(dicionario_service.sinal_aberto("bom-dia", []))
+        self.assertTrue(dicionario_service.sinal_aberto("bom-dia", ["bom-dia"]))
 
 
 class DesafioTests(unittest.TestCase):
-    def test_precisa_de_cinco_sinais(self):
-        self.assertFalse(desafio_service.desafio_liberado(["A", "B", "C", "D"]))
-        self.assertTrue(desafio_service.desafio_liberado(["A", "B", "C", "D", "E"]))
+    def test_abre_com_um_exercicio_concluido(self):
+        self.assertFalse(desafio_service.desafio_liberado(4))
+        self.assertTrue(desafio_service.desafio_liberado(5))
 
-    def test_perguntas_sorteadas_tem_a_resposta_certa_nas_opcoes(self):
-        sinais = ["Letra A", "Letra E", "Letra I", "Letra O", "Letra U"]
-        nomes = {sinal: sinal.replace("Letra ", "") for sinal in sinais}
-        perguntas = desafio_service.sortear_perguntas(sinais, nomes)
+    def test_sorteio_igual_com_a_mesma_semente(self):
+        perguntas = [{"id_pergunta": numero} for numero in range(20)]
 
-        self.assertEqual(len(perguntas), 5)
-        for pergunta in perguntas:
-            certa = pergunta["opcoes"][pergunta["resposta_certa"]]
-            self.assertEqual(certa, nomes[pergunta["sinal"]])
+        primeiro = desafio_service.sortear_perguntas(perguntas, semente=7)
+        segundo = desafio_service.sortear_perguntas(perguntas, semente=7)
+
+        self.assertEqual(primeiro, segundo)
+        self.assertEqual(len(primeiro), 5)
 
     def test_premio_so_uma_vez_por_dia(self):
         self.assertTrue(desafio_service.ganhou_premio(erros=1, ja_ganhou_hoje=False))

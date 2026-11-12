@@ -28,8 +28,7 @@ function lerDoApp(arquivo, nomes) {
 }
 
 const { learningTopics } = lerDoApp("conteudo.js", ["learningTopics"]);
-const { DICTIONARY_WORDS, DICTIONARY_CATEGORIES, ALPHABET, letterSteps } =
-  lerDoApp("telas-dicionario.js", ["DICTIONARY_WORDS", "DICTIONARY_CATEGORIES", "ALPHABET", "letterSteps"]);
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const { MASCOT_ITEMS } = lerDoApp("telas-mascote.js", ["MASCOT_ITEMS"]);
 
 // Texto seguro para o SQL: 'Bom dia' → 'Bom dia'; aspas simples viram duas.
@@ -38,31 +37,31 @@ const codigoDe = (nome) => nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
   .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sinal";
 
 // ----- Categorias -----
-// As 5 primeiras já são criadas pelo estrutura.sql. As etapas da trilha que
-// não têm categoria parecida ganham uma nova (para os sinais delas).
-const categorias = new Map(DICTIONARY_CATEGORIES.map((categoria, posicao) => [categoria.id, posicao + 1]));
+// As 5 primeiras (Alfabeto, Saudações, Números, Família, Cores) já são criadas
+// pelo estrutura.sql. As etapas da trilha que não têm categoria parecida
+// ganham uma nova, para os sinais delas.
+const CATEGORIAS_DO_ESTRUTURA_SQL = 5;
 const categoriaDaEtapa = { "alfabeto-manual": 1, numeros: 3 };
 const novasCategorias = [];
 for (const [id, etapa] of Object.entries(learningTopics)) {
   if (categoriaDaEtapa[id]) continue;
-  const numero = categorias.size + novasCategorias.length + 1;
+  const numero = CATEGORIAS_DO_ESTRUTURA_SQL + novasCategorias.length + 1;
   novasCategorias.push(`(${numero}, ${texto(etapa.title)}, ${numero})`);
   categoriaDaEtapa[id] = numero;
 }
 
 // ----- Palavras (sinais) -----
+// O código de cada sinal é o mesmo que o app calcula (signCode, em js/telas-dicionario.js).
 const palavras = new Map(); // nome do sinal → { id, ... }
-function palavra(nome, categoria, exemplo = null, codigoDoApp = null) {
+function palavra(nome, categoria, exemplo = null) {
   if (!palavras.has(nome)) {
-    let codigo = codigoDoApp || codigoDe(nome);
+    let codigo = codigoDe(nome);
     while ([...palavras.values()].some((outra) => outra.codigo === codigo)) codigo += "-2";
     palavras.set(nome, { id: palavras.size + 1, codigo, nome, categoria, exemplo });
   }
   return palavras.get(nome).id;
 }
-ALPHABET.forEach((letra) => palavra(`Letra ${letra}`, 1));
-// as palavras do dicionário usam o mesmo id do app ("oi", "bom-dia"...)
-DICTIONARY_WORDS.forEach((entrada) => palavra(entrada.word, categorias.get(entrada.category), entrada.example, entrada.id));
+ALPHABET.forEach((letra) => palavra(`Letra ${letra}`, 1)); // o alfabeto fica todo aberto no dicionário
 
 // ----- Etapas, atividades, cartões, perguntas e alternativas -----
 const etapas = [];
@@ -114,17 +113,11 @@ Object.entries(learningTopics).forEach(([idEtapa, etapa], posicaoDaEtapa) => {
   atividades.push(`(${atividades.length + 1}, ${texto(`${idEtapa}:final`)}, ${numeroDaEtapa}, ${etapa.branches.length + 1}, 'Prova final', 'Prova final')`);
 });
 
-// Alfabeto do dicionário: uma etapa fora da trilha (ordem vazia), 26 letras e o Desafia-me.
-const numeroDoAlfabeto = etapas.length + 1;
-etapas.push(`(${numeroDoAlfabeto}, 'alfabeto', 'Alfabeto do dicionário', 'Uma letra por vez', NULL)`);
-ALPHABET.forEach((letra, posicao) => {
-  const idAtividade = atividades.length + 1;
-  atividades.push(`(${idAtividade}, ${texto(`alfabeto:${letra}`)}, ${numeroDoAlfabeto}, ${posicao + 1}, 'Letra', ${texto(`Letra ${letra}`)})`);
-  const [cartao, ...perguntasDaLetra] = letterSteps(letra);
-  cartoes.push(`(${idAtividade}, 1, ${palavra(cartao.sign, 1)}, ${texto(cartao.tip)})`);
-  gravarPerguntas(idAtividade, perguntasDaLetra, 1);
-});
-atividades.push(`(${atividades.length + 1}, 'alfabeto:desafio', ${numeroDoAlfabeto}, ${ALPHABET.length + 1}, 'Desafio', 'Desafia-me')`);
+// Dicionário: uma etapa fora da trilha (ordem vazia), só com o Desafia-me.
+// As perguntas dele são sorteadas pela API entre os exercícios já concluídos.
+const numeroDoDicionario = etapas.length + 1;
+etapas.push(`(${numeroDoDicionario}, 'dicionario', 'Dicionário', 'Desafia-me com os sinais desbloqueados', NULL)`);
+atividades.push(`(${atividades.length + 1}, 'dicionario:desafio', ${numeroDoDicionario}, 1, 'Desafio', 'Desafia-me')`);
 
 // ----- Itens do mascote -----
 const parte = { shirt: "Roupa", head: "Chapeu", face: "Rosto", chest: "Peito", background: "Fundo" };

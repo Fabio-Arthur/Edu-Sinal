@@ -18,6 +18,7 @@ from src.repositories import extras_repository, progresso_repository, trilha_rep
 from src.schemas.entradas import Compra, Visual
 from src.services import (
     datas_service,
+    dicionario_service,
     energia_service,
     ligas_service,
     lojinha_service,
@@ -210,6 +211,9 @@ def marcar_visto(codigo: str, id_usuario: int = Depends(usuario_logado)):
         id_palavra = extras_repository.buscar_palavra(conexao, codigo)
         if id_palavra is None:
             raise HTTPException(status_code=404, detail="Esse sinal não existe no dicionário.")
+        # Palavra bloqueada ainda não pode ser vista (o alfabeto é sempre aberto).
+        if not dicionario_service.sinal_aberto(codigo, extras_repository.palavras_desbloqueadas(conexao, id_usuario)):
+            raise HTTPException(status_code=409, detail="Esse sinal ainda está bloqueado. Aprenda ele na trilha!")
         progresso = carregar_progresso(conexao, id_usuario, agora)
         extras_repository.marcar_vista(conexao, id_usuario, id_palavra, datas_service.dia_em_brasilia(agora))
         return finalizar(conexao, id_usuario, progresso, agora)

@@ -21,7 +21,7 @@ app (js/api.js) → controllers → services → repositories → MySQL
 | `src/services/` | As regras do jogo, sem banco e fáceis de testar |
 | `src/repositories/` | As consultas SQL, sempre com `%s` (nada colado no SQL) |
 | `estrutura.sql` | As tabelas do banco `edu_sinal` |
-| `conteudo.sql` | O conteúdo completo: 94 sinais, 8 etapas, 26 letras, 172 perguntas e os itens do mascote |
+| `conteudo.sql` | O conteúdo completo: 80 sinais (26 letras e as palavras da trilha), 8 etapas, 120 perguntas e os itens do mascote |
 | `ferramentas/gerar_conteudo.mjs` | Gera o `conteudo.sql` a partir do conteúdo do app |
 | `estrutura_inserts.sql` | Dados de teste pequenos, para conferir as tabelas (não use junto com o `conteudo.sql`) |
 
@@ -47,9 +47,9 @@ Todas, menos cadastro e login, exigem estar logado. Sem sessão, a resposta é 4
 | `POST` | `/lojinha/compras` | Comprar uma ajuda ou um item da vitrine |
 | `PUT` | `/mascote` | Vestir um item numa parte do mascote |
 | `GET` | `/ligas/semana` | Ranking da semana, com os alunos da mesma liga |
-| `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário) |
+| `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário). Letras sempre abertas; palavras só depois de desbloqueadas |
 
-O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final`, as letras `alfabeto:A` e o desafio `alfabeto:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.
+O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final` e o Desafia-me `dicionario:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.
 
 ### Exemplo: responder uma pergunta
 

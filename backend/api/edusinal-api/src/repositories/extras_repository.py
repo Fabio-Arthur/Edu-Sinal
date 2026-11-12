@@ -97,6 +97,21 @@ def buscar_palavra(conexao, codigo: str) -> int | None:
     return linha[0] if linha else None
 
 
+def palavras_desbloqueadas(conexao, id_usuario: int) -> list[str]:
+    # Códigos dos sinais ensinados nas atividades de aprender que o usuário já concluiu.
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            """SELECT DISTINCT palavras_dicionario.codigo
+               FROM progresso_trilha
+               JOIN atividades ON atividades.id_atividade = progresso_trilha.id_atividade
+               JOIN cartoes ON cartoes.id_atividade = atividades.id_atividade
+               JOIN palavras_dicionario ON palavras_dicionario.id_palavra = cartoes.id_palavra
+               WHERE progresso_trilha.id_usuario = %s AND atividades.tipo = 'Aprender'""",
+            (id_usuario,),
+        )
+        return [linha[0] for linha in cursor.fetchall()]
+
+
 def marcar_vista(conexao, id_usuario: int, id_palavra: int, dia: date) -> None:
     with conexao.cursor() as cursor:
         cursor.execute(

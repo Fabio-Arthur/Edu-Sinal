@@ -1,4 +1,4 @@
-# Rotas das atividades: trilha, letras do alfabeto e Desafia-me.
+# Rotas das atividades: trilha (aprender, exercícios e prova final) e Desafia-me.
 #
 # O caminho de uma atividade no app:
 #   1. POST /atividades/{codigo}/comecar    → confere se pode (trancada? energia? vidas?)
@@ -6,10 +6,8 @@
 #   3. POST /atividades/{codigo}/concluir   → no fim: XP, moedas, ofensiva e energia
 #
 # Quem decide se a resposta está certa é SEMPRE o servidor. O app só mostra.
-# O {codigo} é o mesmo id do app: "numeros:pratica-um-a-cinco", "numeros:final",
-# "alfabeto:A" ou "alfabeto:desafio".
-
-import random
+# O {codigo} é o mesmo id do app: "numeros:pratica-um-a-cinco", "numeros:final"
+# ou "dicionario:desafio" (o Desafia-me, que fica no Dicionário).
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -29,7 +27,6 @@ from src.services import (
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
-ALFABETO = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 PERGUNTAS_POR_EXERCICIO_NA_PROVA = 2
 ITEM_DA_PRIMEIRA_ATIVIDADE = "broche-sinal"
 
@@ -43,22 +40,15 @@ def buscar_ou_404(conexao, codigo: str) -> dict:
     return atividade
 
 
-def letras_aprendidas(concluidas: list[str]) -> list[str]:
-    return [letra for letra in ALFABETO if f"alfabeto:{letra}" in concluidas]
-
-
-def esta_liberada(conexao, atividade: dict, concluidas: list[str]) -> bool:
+def esta_liberada(conexao, id_usuario: int, atividade: dict, concluidas: list[str]) -> bool:
     if atividade["codigo"] in concluidas:
         return True
 
-    # Letras: abrem em ordem, uma de cada vez.
-    if atividade["tipo"] == "Letra":
-        proxima = next((letra for letra in ALFABETO if f"alfabeto:{letra}" not in concluidas), None)
-        return atividade["codigo"] == f"alfabeto:{proxima}"
-
-    # Desafia-me: abre com 5 letras aprendidas.
+    # Desafia-me: abre quando há perguntas suficientes (depois do 1º exercício concluído).
     if atividade["tipo"] == "Desafio":
-        return len(letras_aprendidas(concluidas)) >= desafio_service.PERGUNTAS_NO_DESAFIO
+        exercicios = trilha_repository.exercicios_concluidos(conexao, id_usuario)
+        disponiveis = len(trilha_repository.perguntas_dos_exercicios(conexao, exercicios))
+        return desafio_service.desafio_liberado(disponiveis)
 
     # Trilha: mesmas regras do trilha_service (ordem das atividades e das etapas).
     da_etapa = trilha_repository.atividades_da_etapa(conexao, atividade["id_etapa"])
@@ -69,37 +59,26 @@ def esta_liberada(conexao, atividade: dict, concluidas: list[str]) -> bool:
     )
 
 
-def perguntas_da_tentativa(conexao, atividade: dict, id_tentativa: int, concluidas: list[str]) -> list[dict]:
+def perguntas_da_tentativa(conexao, id_usuario: int, atividade: dict, id_tentativa: int) -> list[dict]:
     # A lista de perguntas, na ordem em que o app mostra.
     if atividade["tipo"] == "Prova final":
         return trilha_repository.perguntas_da_prova(conexao, atividade["id_etapa"], PERGUNTAS_POR_EXERCICIO_NA_PROVA)
 
     if atividade["tipo"] == "Desafio":
-        # 5 letras sorteadas entre as aprendidas, 1 pergunta de cada. O sorteio usa
-        # o número da tentativa como semente: na hora de conferir a resposta,
+        # 5 perguntas sorteadas dos exercícios já concluídos. O sorteio usa o
+        # número da tentativa como semente: na hora de conferir a resposta,
         # sorteia de novo e dá exatamente as mesmas perguntas.
-        sorteio = random.Random(id_tentativa)
-        letras = letras_aprendidas(concluidas)
-        escolhidas = sorteio.sample(letras, desafio_service.PERGUNTAS_NO_DESAFIO)
-        todas = trilha_repository.perguntas_das_letras(conexao, [f"alfabeto:{letra}" for letra in escolhidas])
-        perguntas = []
-        for letra in escolhidas:
-            da_letra = [pergunta for pergunta in todas if pergunta["codigo"] == f"alfabeto:{letra}"]
-            perguntas.append(sorteio.choice(da_letra))
-        return perguntas
+        exercicios = trilha_repository.exercicios_concluidos(conexao, id_usuario)
+        todas = trilha_repository.perguntas_dos_exercicios(conexao, exercicios)
+        return desafio_service.sortear_perguntas(todas, id_tentativa)
 
     return trilha_repository.perguntas_da_atividade(conexao, atividade["id_atividade"])
 
 
-def pergunta_para_o_app(conexao, pergunta: dict) -> dict:
-    # Só para o Desafia-me, que é sorteado aqui: o app recebe a pergunta pronta, sem o gabarito.
-    alternativas = trilha_repository.alternativas_da_pergunta(conexao, pergunta["id_pergunta"])
-    certa = next(alternativa for alternativa in alternativas if alternativa["correta"])
-    if pergunta["tipo"] == "Video-palavra":
-        return {"tipo": "video-palavra", "sinal": f"Letra {certa['descricao']}",
-                "opcoes": [alternativa["descricao"] for alternativa in alternativas]}
-    return {"tipo": "palavra-video", "sinal": certa["palavra"],
-            "opcoes": [alternativa["palavra"] for alternativa in alternativas]}
+def pergunta_para_o_app(pergunta: dict) -> dict:
+    # Só para o Desafia-me: diz ao app QUAL pergunta mostrar (o exercício e a
+    # posição dela). O texto e as opções o app já tem; o gabarito não vai.
+    return {"atividade": pergunta["codigo"], "posicao": pergunta["ordem"] - 1}
 
 
 def registrar_pratica(conexao, id_usuario: int, progresso: dict, xp: int, agora) -> None:
@@ -130,7 +109,7 @@ def comecar(codigo: str, id_usuario: int = Depends(usuario_logado)):
         concluidas = trilha_repository.concluidas(conexao, id_usuario)
 
         # 1. A atividade já abriu?
-        if not esta_liberada(conexao, atividade, concluidas):
+        if not esta_liberada(conexao, id_usuario, atividade, concluidas):
             raise HTTPException(status_code=409, detail="Essa atividade ainda está trancada.")
 
         # 2. Atividade nova precisa de energia (revisão é livre). O desafio só
@@ -149,8 +128,8 @@ def comecar(codigo: str, id_usuario: int = Depends(usuario_logado)):
         id_tentativa = trilha_repository.criar_tentativa(conexao, id_usuario, atividade["id_atividade"], datas_service.para_o_banco(agora))
         perguntas = []
         if atividade["tipo"] == "Desafio":
-            sorteadas = perguntas_da_tentativa(conexao, atividade, id_tentativa, concluidas)
-            perguntas = [pergunta_para_o_app(conexao, pergunta) for pergunta in sorteadas]
+            sorteadas = perguntas_da_tentativa(conexao, id_usuario, atividade, id_tentativa)
+            perguntas = [pergunta_para_o_app(pergunta) for pergunta in sorteadas]
 
         salvar_progresso(conexao, id_usuario, progresso)
         estado = montar_estado(conexao, id_usuario, progresso, agora)
@@ -170,8 +149,7 @@ def responder(codigo: str, dados: Resposta, id_usuario: int = Depends(usuario_lo
         if id_tentativa is None:
             raise HTTPException(status_code=404, detail="Comece a atividade antes de responder.")
 
-        concluidas = trilha_repository.concluidas(conexao, id_usuario)
-        perguntas = perguntas_da_tentativa(conexao, atividade, id_tentativa, concluidas)
+        perguntas = perguntas_da_tentativa(conexao, id_usuario, atividade, id_tentativa)
         if dados.pergunta >= len(perguntas):
             raise HTTPException(status_code=400, detail="Essa pergunta não existe nesta atividade.")
         pergunta = perguntas[dados.pergunta]
@@ -224,7 +202,7 @@ def concluir(codigo: str, id_usuario: int = Depends(usuario_logado)):
 
         # 1. Respondeu todas as perguntas? (Assim ninguém pula direto para o prêmio.)
         concluidas = trilha_repository.concluidas(conexao, id_usuario)
-        perguntas = perguntas_da_tentativa(conexao, atividade, id_tentativa, concluidas)
+        perguntas = perguntas_da_tentativa(conexao, id_usuario, atividade, id_tentativa)
         respostas = trilha_repository.respostas_da_tentativa(conexao, id_tentativa)
         respondidas = [resposta["id_pergunta"] for resposta in respostas if resposta["rodada"] == 1]
         for pergunta in perguntas:

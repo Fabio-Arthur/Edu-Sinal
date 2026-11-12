@@ -57,20 +57,31 @@ def perguntas_da_prova(conexao, id_etapa: int, por_exercicio: int) -> list[dict]
         return cursor.fetchall()
 
 
-def perguntas_das_letras(conexao, codigos_das_letras: list[str]) -> list[dict]:
-    # Todas as perguntas das letras que o usuário já aprendeu (para o Desafia-me).
-    if not codigos_das_letras:
+def perguntas_dos_exercicios(conexao, codigos_dos_exercicios: list[str]) -> list[dict]:
+    # Todas as perguntas dos exercícios que o usuário já concluiu (para o Desafia-me).
+    if not codigos_dos_exercicios:
         return []
-    marcadores = ", ".join(["%s"] * len(codigos_das_letras))  # um %s para cada letra
+    marcadores = ", ".join(["%s"] * len(codigos_dos_exercicios))  # um %s para cada exercício
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(
-            f"""SELECT perguntas.id_pergunta, perguntas.tipo, perguntas.explicacao, atividades.codigo
+            f"""SELECT perguntas.id_pergunta, perguntas.tipo, perguntas.explicacao, perguntas.ordem, atividades.codigo
                 FROM perguntas JOIN atividades ON atividades.id_atividade = perguntas.id_atividade
-                WHERE atividades.codigo IN ({marcadores})
+                WHERE atividades.tipo = 'Exercicio' AND atividades.codigo IN ({marcadores})
                 ORDER BY perguntas.id_pergunta""",
-            tuple(codigos_das_letras),
+            tuple(codigos_dos_exercicios),
         )
         return cursor.fetchall()
+
+
+def exercicios_concluidos(conexao, id_usuario: int) -> list[str]:
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            """SELECT atividades.codigo FROM progresso_trilha
+               JOIN atividades ON atividades.id_atividade = progresso_trilha.id_atividade
+               WHERE progresso_trilha.id_usuario = %s AND atividades.tipo = 'Exercicio'""",
+            (id_usuario,),
+        )
+        return [linha[0] for linha in cursor.fetchall()]
 
 
 def alternativas_da_pergunta(conexao, id_pergunta: int) -> list[dict]:
