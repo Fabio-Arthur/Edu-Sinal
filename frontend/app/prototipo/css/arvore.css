@@ -16,7 +16,7 @@
 .tree-warning.is-energy .bi { color: var(--accent); }
 .tree-warning .text-button { min-height: 0; padding: 0; font-size: 13px; text-decoration: underline; }
 /* com o aviso, a árvore fica um pouco mais baixa para continuar cabendo na tela */
-.tree-warning + .tree-canvas { height: clamp(380px, calc(100vh / var(--zoom) - 190px), 560px); }
+.tree-warning + .tree-canvas { height: clamp(380px, calc(100vh / var(--zoom) - 196px), 560px); }
 
 /* ===================================================================
    ÁRVORE DE EXERCÍCIOS (modo foco)
@@ -111,7 +111,7 @@
 /* Área da árvore: a altura acompanha a tela, para tudo caber sem rolar */
 .tree-canvas {
   position: relative;
-  height: clamp(380px, calc(100vh / var(--zoom) - 130px), 560px); /* mais alto que isso, o oval estica e as distâncias ficam desiguais */
+  height: clamp(380px, calc(100vh / var(--zoom) - 136px), 560px); /* mais alto que isso, o oval estica e as distâncias ficam desiguais */
   border: 2px solid var(--line);
   border-radius: 24px;
   background: var(--surface);
@@ -395,3 +395,16 @@ button.tree-leaf:active .tree-icon { transform: translateY(6px); box-shadow: 0 0
   from { opacity: 0; transform: translate(-50%, -6px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* Lupa da árvore (computador): a árvore tem tamanho máximo (900px de largura e
+   560px de altura), então em tela grande ela ficava pequena no meio, com muito
+   espaço vazio. Aqui ela cresce em degraus conforme a tela, para usar bem o
+   espaço sem ficar apertada: o zoom ideal é mais ou menos a altura da tela ÷ 690
+   (o tamanho da árvore com a faixa de cima), sem passar da largura.
+   Vale só no modo foco (a árvore); troca a "escala da tela" do css/base.css. */
+@media (min-width: 1100px) and (min-height: 780px)  { .app-shell[data-focus="on"] { --escala: 1.12; } }
+@media (min-width: 1250px) and (min-height: 880px)  { .app-shell[data-focus="on"] { --escala: 1.25; } }
+@media (min-width: 1350px) and (min-height: 960px)  { .app-shell[data-focus="on"] { --escala: 1.38; } } /* Full HD */
+@media (min-width: 1500px) and (min-height: 1060px) { .app-shell[data-focus="on"] { --escala: 1.52; } }
+@media (min-width: 1700px) and (min-height: 1200px) { .app-shell[data-focus="on"] { --escala: 1.7; } }
+@media (min-width: 1850px) and (min-height: 1320px) { .app-shell[data-focus="on"] { --escala: 1.9; } }  /* 2K */

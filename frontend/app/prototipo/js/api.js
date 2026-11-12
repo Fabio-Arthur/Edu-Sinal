@@ -12,7 +12,9 @@
 // No computador, a API roda na porta 8000 do MESMO endereço do app (127.0.0.1
 // ou localhost: precisa ser igual, senão o navegador não manda o cookie).
 // Publicado, o app chama "/api" e a hospedagem repassa para a API.
-const API_URL = ["localhost", "127.0.0.1"].includes(location.hostname)
+// Testando no celular pela rede de casa (ex.: 192.168.1.5), vale o mesmo: porta 8000.
+const isLocalNetwork = /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(location.hostname);
+const API_URL = isLocalNetwork
   ? `${location.protocol}//${location.hostname}:8000`
   : "/api";
 

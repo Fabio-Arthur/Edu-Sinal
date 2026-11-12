@@ -404,7 +404,7 @@ function renderTrailWave() {
 }
 
 function renderTrailMap() {
-  const sizes = `--step-w:${trailStepWidth}px;--edge:${TRAIL_EDGE}px;--route-top:${TRAIL_ROUTE_TOP}px;--wave-size:${TRAIL_WAVE}px`;
+  const sizes = `--step-w:${trailStepWidth}px;--edge:${TRAIL_EDGE}px;--wave-size:${TRAIL_WAVE}px`; // --route-top fica no css/home.css
   return `
     <section class="home-map" aria-label="Sua trilha">
       <div class="trail-frame">
@@ -441,6 +441,7 @@ function offsetInTrack(element, side) {
 function layoutTrail(scroller) {
   if (isMobileLayout()) scroller.scrollLeft = 0;
   else scroller.scrollTop = 0;
+  zoomTrail(scroller); // antes de medir: o zoom muda a largura que a trilha "enxerga"
   trailStepWidth = Math.max(TRAIL_MIN_STEP, Math.floor((scroller.clientWidth - TRAIL_EDGE * 2) / 4));
   const track = scroller.querySelector(".trail-track");
   track.style.setProperty("--step-w", `${trailStepWidth}px`);
@@ -450,6 +451,28 @@ function layoutTrail(scroller) {
 
 // Vigia o tamanho do quadro da trilha (ver setupTrailScroll).
 let trailResizeWatcher = null;
+
+// Lupa da trilha (computador): as bolinhas, a faixa da unidade e os nomes
+// crescem conforme o espaço do cartão, em qualquer tela. O tamanho "certo" da
+// trilha é uns 400px de altura (faixa + bolinhas + nomes, com um respiro) e uns
+// 760px de largura (4 etapas sem apertar). O zoom é o maior possível sem passar
+// de nenhum dos dois, entre 1 (normal) e 1.6. No celular, nada muda.
+const TRAIL_IDEAL_HEIGHT = 400;
+const TRAIL_IDEAL_WIDTH = 760;
+const TRAIL_MAX_ZOOM = 1.6;
+
+function zoomTrail(scroller) {
+  const frame = scroller.closest(".trail-frame");
+  const map = scroller.closest(".home-map");
+  if (isMobileLayout()) {
+    frame.style.zoom = "";
+    return;
+  }
+  const style = getComputedStyle(map);
+  const height = map.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  const zoom = Math.min(height / TRAIL_IDEAL_HEIGHT, map.clientWidth / TRAIL_IDEAL_WIDTH, TRAIL_MAX_ZOOM);
+  frame.style.zoom = Math.max(1, Math.round(zoom * 100) / 100); // nunca menor que o normal
+}
 
 // Depois de desenhar a Home: ajusta as medidas, posiciona a trilha e liga as setas.
 function setupTrailScroll() {

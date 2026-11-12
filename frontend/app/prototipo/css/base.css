@@ -102,7 +102,7 @@ a {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: calc(248px * var(--escala)) minmax(0, 1fr); /* o menu cresce junto (ver "Escala da tela") */
   background: var(--bg);
   color: var(--text);
 }
@@ -311,14 +311,14 @@ a {
 
 .app-shell[data-current-screen="intro"] .sidebar,
 .app-shell[data-current-screen="login"] .sidebar,
-.app-shell[data-current-screen="signup"],
+.app-shell[data-current-screen="signup"] .sidebar,
 .app-shell[data-current-screen="terms"] .sidebar {
   display: none;
 }
 
 .app-shell[data-current-screen="intro"] .settings-button,
 .app-shell[data-current-screen="login"] .settings-button,
-.app-shell[data-current-screen="signup"],
+.app-shell[data-current-screen="signup"] .settings-button,
 .app-shell[data-current-screen="terms"] .settings-button {
   display: none;
 }
@@ -708,9 +708,16 @@ textarea {
 /* Texto grande: aumenta só o conteúdo da tela. As barras de cima e de baixo do
    celular ficam do tamanho normal, senão não cabem na largura e a tela vaza
    para o lado. */
-.app-shell { --zoom: 1; }
-.app-shell[data-text-size="large"] { --zoom: 1.15; }
+/* Escala da tela: em monitor grande, o app inteiro fica proporcionalmente maior
+   (textos, cartões, botões e o menu), para preencher a tela em vez de sobrar
+   espaço vazio. O zoom final = escala da tela × texto grande. */
+.app-shell { --escala: 1; --texto: 1; --zoom: calc(var(--escala) * var(--texto)); }
+.app-shell[data-text-size="large"] { --texto: 1.15; }
+@media (min-width: 1500px) and (min-height: 820px) { .app-shell { --escala: 1.12; } }  /* ex.: 1536x864, 1600x900 */
+@media (min-width: 1800px) and (min-height: 900px) { .app-shell { --escala: 1.25; } }  /* Full HD (1920x1080) */
+@media (min-width: 2300px) and (min-height: 1200px) { .app-shell { --escala: 1.6; } }  /* 2K (2560x1440) */
 .screen-root { zoom: var(--zoom); }
+.sidebar { zoom: var(--escala); height: calc(100vh / var(--escala)); } /* com zoom, 100vh "vale" mais: divide de volta */
 /* Alturas que dependem do tamanho da tela (árvore, vídeo da atividade) usam
    "100vh / var(--zoom)": com o zoom, a tela "cabe" menos pixels de conteúdo. */
 
