@@ -122,6 +122,7 @@ function renderMissions() {
         <span><strong>${icon("coin")} ${coinsLeftToEarn()}</strong> para ganhar</span>
       </div>
     </section>
+    <div class="screen-scroll">
     <section class="mission-group" aria-labelledby="daily-missions-title">
       <div class="mission-heading"><h2 id="daily-missions-title">Missões do dia</h2><span class="mission-timer">${icon("clock-fill")} Renovam em ${hoursLeft} h</span></div>
       <div class="mission-list">${DAILY_MISSIONS.map((mission) => renderMissionRow(mission, "daily")).join("")}</div>
@@ -130,5 +131,6 @@ function renderMissions() {
       <div class="mission-heading"><h2 id="weekly-missions-title">Missões da semana</h2><span class="mission-timer">${icon("calendar-week-fill")} Renovam na segunda</span></div>
       <div class="mission-list">${WEEKLY_MISSIONS.map((mission) => renderMissionRow(mission, "weekly")).join("")}</div>
     </section>
-    <button class="button-3d button-3d-primary missions-practice" type="button" data-action="open-topic" data-topic="${currentTopicId()}">Praticar agora ${icon("arrow-right")}</button>`;
+    <button class="button-3d button-3d-primary missions-practice" type="button" data-action="open-topic" data-topic="${currentTopicId()}">Praticar agora ${icon("arrow-right")}</button>
+    </div>`;
 }

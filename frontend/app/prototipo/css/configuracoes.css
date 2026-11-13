@@ -111,8 +111,14 @@
   .settings-row { grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px; }
   .settings-row > :last-child { grid-column: 1 / -1; }
   .settings-row .segmented { display: flex; }
-  .settings-row .segmented-option { flex: 1; }
+  .settings-row .segmented-option { flex: 1; min-width: 0; padding: 0 8px; } /* min-width 0: os botões encolhem em vez de vazar da tela */
   .settings-row .button-3d { width: 100%; }
   .settings-about { flex-wrap: wrap; }
   .settings-about .text-button { width: 100%; justify-content: center; } /* o link desce para a linha de baixo */
+}
+
+/* Celular estreito (ou texto grande): os botões de escolha ficam só com o texto,
+   sem o ícone, para "Automático / Claro / Escuro" caber na largura */
+@media (max-width: 430px) {
+  .settings-row .segmented-option .bi { display: none; }
 }

@@ -163,7 +163,7 @@
 
   /* ----- Tamanhos de texto e de toque (mínimo de 12px e 44px) ----- */
   .screen-root { padding: 18px 16px 24px; }
-  .terms { height: calc(100dvh - 42px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .terms { height: calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 42px); }
   .terms-header h2 { font-size: 20px; }
   .terms-text { padding: 2px 14px 14px; }
   .eyebrow { font-size: 11px; }

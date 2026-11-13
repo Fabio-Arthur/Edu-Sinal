@@ -120,17 +120,34 @@ class LojinhaTests(unittest.TestCase):
 
 
 class LigasTests(unittest.TestCase):
+    def test_broches_vem_das_conquistas(self):
+        # primeiro exercício, 5 exercícios, 10 sinais vistos e 3 itens
+        self.assertTrue(ligas_service.conquista_liberada("primeiro", 0, 0, 0, exercicios=1))
+        self.assertFalse(ligas_service.conquista_liberada("cinco", 0, 0, 0, exercicios=4))
+        self.assertTrue(ligas_service.conquista_liberada("cinco", 0, 0, 0, exercicios=5))
+        self.assertFalse(ligas_service.conquista_liberada("explorador", 0, 0, 0, sinais_vistos=9))
+        self.assertTrue(ligas_service.conquista_liberada("colecionador", 0, 0, 0, itens=3))
+
+    def test_na_bronze_ninguem_desce(self):
+        self.assertEqual(ligas_service.zona(10, 10, liga=0), "fica")
+        self.assertEqual(ligas_service.zona(10, 10, liga=1), "desce")
+        self.assertEqual(ligas_service.nova_liga(0, 10, 10), 0)
+
+    def test_no_diamante_ninguem_sobe(self):
+        self.assertEqual(ligas_service.zona(1, 10, liga=4), "fica")
+        self.assertEqual(ligas_service.zona(1, 10, liga=3), "sobe")
+
     def test_primeiro_aluno_abre_o_grupo_1(self):
         self.assertEqual(ligas_service.grupo_com_vaga({}), 1)
 
     def test_entra_no_grupo_que_tem_vaga(self):
-        self.assertEqual(ligas_service.grupo_com_vaga({1: 20, 2: 7}), 2)
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 10, 2: 7}), 2)
 
     def test_grupos_cheios_abrem_um_novo(self):
-        self.assertEqual(ligas_service.grupo_com_vaga({1: 20, 2: 20}), 3)
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 10, 2: 10}), 3)
 
     def test_vaga_que_abriu_num_grupo_antigo_e_usada_primeiro(self):
-        self.assertEqual(ligas_service.grupo_com_vaga({1: 19, 2: 20}), 1)
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 9, 2: 10}), 1)
 
     def test_ranking_ordena_pelo_xp(self):
         ranking = ligas_service.montar_ranking([

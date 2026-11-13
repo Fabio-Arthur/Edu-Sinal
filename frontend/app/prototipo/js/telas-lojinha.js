@@ -165,6 +165,7 @@ function renderShop() {
       </div>
       <span class="shop-hero-balance"><strong>${state.coins}</strong> moedas</span>
     </section>
+    <div class="screen-scroll">
     <section class="shop-group" aria-labelledby="shop-daily-title">
       <div class="mission-heading"><h2 id="shop-daily-title">Vitrine do dia</h2><span class="mission-timer">${icon("clock-fill")} Troca em ${timeUntilNewShop()}</span></div>
       <div class="shop-showcase">${dailyShopItems().map(renderShopItem).join("")}</div>
@@ -181,5 +182,6 @@ function renderShop() {
         <button class="button-3d button-3d-primary" type="button" data-screen="mascot">Abrir guarda-roupa ${icon("arrow-right")}</button>
       </div>
     </section>
-    <p class="demo-disclaimer">As moedas são do jogo: não há compras com dinheiro real.</p>`;
+    <p class="demo-disclaimer">As moedas são do jogo: não há compras com dinheiro real.</p>
+    </div>`;
 }

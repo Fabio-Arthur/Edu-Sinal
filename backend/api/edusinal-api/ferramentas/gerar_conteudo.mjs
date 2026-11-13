@@ -121,7 +121,7 @@ atividades.push(`(${atividades.length + 1}, 'dicionario:desafio', ${numeroDoDici
 
 // ----- Itens do mascote -----
 const parte = { shirt: "Roupa", head: "Chapeu", face: "Rosto", chest: "Peito", background: "Fundo" };
-const conquista = { etapa: 3, ofensiva: 4, liga: 7 }; // ids da tabela conquistas
+const conquista = { primeiro: 1, cinco: 2, etapa: 3, ofensiva: 4, explorador: 5, colecionador: 6, liga: 7 }; // ids da tabela conquistas
 const cosmeticos = MASCOT_ITEMS.filter((item) => item.id).map((item, posicao) => {
   const forma = { free: "Gratis", coins: "Moedas", reward: "Premio", achievement: "Conquista" }[item.unlock.type];
   const custo = item.unlock.type === "coins" ? item.unlock.cost : 0;

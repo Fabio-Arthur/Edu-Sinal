@@ -157,9 +157,8 @@ function renderAchievement(achievement) {
     <article class="badge-card${isDone ? " is-done" : ""}">
       <span class="badge-medal">${icon(achievement.icon)}</span>
       <div class="badge-info">
-        <h3>${achievement.title}</h3>
+        <div class="badge-top"><h3>${achievement.title}</h3>${prize ? `<small class="badge-prize">${icon("gift-fill")} ${prize.name}</small>` : ""}</div>
         <p>${achievement.text}</p>
-        ${prize ? `<small class="badge-prize">${icon("gift-fill")} Prêmio: ${prize.name}</small>` : ""}
         ${footer}
       </div>
     </article>`;
@@ -173,8 +172,54 @@ function renderProfileTile([iconName, value, label, color]) {
   return `<div class="profile-tile">${content}</div>`;
 }
 
+// Conquistas que aparecem no Perfil: as já conquistadas e só as próximas
+// (3, ou 2 quando não cabem), na ordem da lista. As outras ficam escondidas e
+// vão aparecendo conforme o aluno completa as de cima.
+// No PC a página não rola: em tela baixa ou com texto grande, mostra só 2.
+function visibleNextAchievements() {
+  const isComputer = window.matchMedia?.("(min-width: 1001px)").matches;
+  if (isComputer && (state.textSize === "large" || window.innerHeight < 760)) return 2;
+  return 3;
+}
+
+function isAchievementDone(achievement) {
+  return achievement.progress() >= achievement.target;
+}
+
+function nextAchievements() {
+  return ACHIEVEMENTS.filter((achievement) => !isAchievementDone(achievement)).slice(0, visibleNextAchievements());
+}
+
+// A conquista já aparece no Perfil? (o guarda-roupa usa para não contar o segredo)
+function isAchievementVisible(achievement) {
+  return isAchievementDone(achievement) || nextAchievements().includes(achievement);
+}
+
+// As já conquistadas viram medalhas douradas pequenas, na linha do título
+// (não ocupam um cartão cada, então a coluna não cresce).
+function renderEarnedMedals() {
+  const done = ACHIEVEMENTS.filter(isAchievementDone);
+  if (!done.length) return "";
+  return `<div class="badge-earned" aria-label="Conquistadas">${done.map((achievement) => {
+    const prize = achievementPrize(achievement);
+    const label = `${achievement.title}: conquistada${prize ? `. Prêmio: ${prize.name}` : ""}`;
+    return `<span class="badge-earned-medal" role="img" title="${label}" aria-label="${label}">${icon(achievement.icon)}</span>`;
+  }).join("")}</div>`;
+}
+
+function renderAchievements() {
+  const next = nextAchievements();
+  const done = ACHIEVEMENTS.filter(isAchievementDone);
+  const hidden = ACHIEVEMENTS.length - next.length - done.length;
+  const secret = hidden > 0
+    ? `<p class="badge-secret">${icon("question-circle-fill")} ${hidden} ${hidden === 1 ? "conquista escondida" : "conquistas escondidas"}: complete as de cima para descobrir!</p>`
+    : "";
+  const allDone = next.length === 0 ? `<p class="badge-secret">${icon("stars")} Você ganhou todas as conquistas!</p>` : "";
+  return `<div class="badge-grid">${next.map(renderAchievement).join("")}</div>${secret}${allDone}`;
+}
+
 function renderProfile() {
-  const doneCount = ACHIEVEMENTS.filter((achievement) => achievement.progress() >= achievement.target).length;
+  const doneCount = ACHIEVEMENTS.filter(isAchievementDone).length;
   const items = mascotItemsCount();
   const tiles = [
     ["fire", state.streak, state.streak === 1 ? "dia de ofensiva" : "dias de ofensiva", "coral"],
@@ -209,8 +254,8 @@ function renderProfile() {
     <div class="desk-col">
 
     <section class="profile-group" aria-labelledby="achievements-title">
-      <div class="mission-heading"><h2 id="achievements-title">Conquistas</h2><span class="mission-timer">${icon("award-fill")} ${doneCount} de ${ACHIEVEMENTS.length}</span></div>
-      <div class="badge-grid">${ACHIEVEMENTS.map(renderAchievement).join("")}</div>
+      <div class="mission-heading badge-heading"><h2 id="achievements-title">Conquistas</h2>${renderEarnedMedals()}<span class="mission-timer">${icon("award-fill")} ${doneCount} de ${ACHIEVEMENTS.length}</span></div>
+      ${renderAchievements()}
     </section>
     </div>
     </div>`;
@@ -330,3 +375,11 @@ function renderMore() {
     </div>
     </div>`;
 }
+
+// Se a janela mudar de tamanho e passar a caber mais (ou menos) conquistas, redesenha o Perfil.
+let lastVisibleNext = null;
+window.addEventListener("resize", () => {
+  const count = visibleNextAchievements();
+  if (state.screen === "profile" && lastVisibleNext !== null && count !== lastVisibleNext) render();
+  lastVisibleNext = count;
+});

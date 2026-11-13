@@ -47,10 +47,11 @@ const MASCOT_ITEMS = [
 
   // Broches (os mesmos ids e preços da lojinha antiga, para ninguém perder o que comprou)
   { id: "", slot: "chest", name: "Nada", unlock: { type: "free" } },
-  { id: "broche-sinal", slot: "chest", name: "Broche de sinais", unlock: { type: "reward" } },
-  { id: "estrela-coral", slot: "chest", name: "Estrela coral", description: "Pra quem brilha nos estudos", unlock: { type: "coins", cost: 25 } },
-  { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "coins", cost: 40 } },
-  { id: "folha-azul", slot: "chest", name: "Folha azul", description: "A mais rara da vitrine", unlock: { type: "coins", cost: 60 } },
+  // Broches: só por conquista (cada conquista do Perfil dá um prêmio)
+  { id: "broche-sinal", slot: "chest", name: "Broche de sinais", unlock: { type: "achievement", id: "primeiro" } },
+  { id: "estrela-coral", slot: "chest", name: "Estrela coral", description: "Pra quem brilha nos estudos", unlock: { type: "achievement", id: "cinco" } },
+  { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "achievement", id: "colecionador" } },
+  { id: "folha-azul", slot: "chest", name: "Folha azul", description: "Pra quem explora o dicionário", unlock: { type: "achievement", id: "explorador" } },
 
   // Fundos (cor atrás do mascote)
   { id: "", slot: "background", name: "Azul da logo", unlock: { type: "free" } },
@@ -86,7 +87,10 @@ function unlockLabel(item) {
   const unlock = item.unlock;
   if (unlock.type === "coins") return `${unlock.cost} ${icon("coin")}`;
   if (unlock.type === "reward") return "1ª atividade";
-  if (unlock.type === "achievement") return `Conquista: ${ACHIEVEMENTS.find((entry) => entry.id === unlock.id).title}`;
+  if (unlock.type === "achievement") {
+    const achievement = ACHIEVEMENTS.find((entry) => entry.id === unlock.id);
+    return isAchievementVisible(achievement) ? `Conquista: ${achievement.title}` : "Conquista escondida";
+  }
   return "Grátis";
 }
 
@@ -109,7 +113,10 @@ function chooseMascotItem(slot, id) {
 
   if (!isMascotItemOwned(item)) {
     if (item.unlock.type === "achievement") {
-      showToast(`Complete a conquista “${ACHIEVEMENTS.find((entry) => entry.id === item.unlock.id).title}” no perfil para liberar.`);
+      const achievement = ACHIEVEMENTS.find((entry) => entry.id === item.unlock.id);
+      showToast(isAchievementVisible(achievement)
+        ? `Complete a conquista “${achievement.title}” no perfil para liberar.`
+        : "Esse item vem de uma conquista escondida. Complete as conquistas do Perfil para descobrir qual!");
       return;
     }
     if (item.unlock.type === "reward") {

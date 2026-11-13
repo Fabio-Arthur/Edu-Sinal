@@ -117,6 +117,7 @@ function render() {
   if (state.focusTopic) measureTreeLines(); // para o caminho da árvore "se desenhar"
   else if (state.screen === "trail") setupTrailScroll(); // trilha da Home no lugar certo
   if (["leagues", "trail"].includes(state.screen)) refreshLeagueRanking(); // ranking de verdade, da API
+  if (state.screen === "leagues") scrollRankingToMe(); // o aluno se vê no ranking sem rolar
   const theme = currentTheme(); // "auto" vira o tema do aparelho
   app.dataset.theme = theme;
   document.documentElement.dataset.theme = theme;          // janelas do Bootstrap ficam fora do app

@@ -513,7 +513,7 @@ CREATE TABLE xp_semanal (
     id_usuario INT NOT NULL,
     data_semana DATE NOT NULL, -- a segunda-feira da semana
     id_liga INT NOT NULL, -- a liga em que ele jogou nessa semana
-    grupo INT NOT NULL DEFAULT 1, -- cada liga tem grupos de até 20 alunos; o ranking é só do grupo
+    grupo INT NOT NULL DEFAULT 1, -- cada liga tem grupos de até 10 alunos; o ranking é só do grupo
 
     xp INT NOT NULL DEFAULT 0,
 

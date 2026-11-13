@@ -48,7 +48,7 @@ Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a re
 | `GET` | `/lojinha` | Ajudas e vitrine do dia |
 | `POST` | `/lojinha/compras` | Comprar uma ajuda ou um item da vitrine |
 | `PUT` | `/mascote` | Vestir um item numa parte do mascote |
-| `GET` | `/ligas/semana` | Ranking da semana do seu grupo da liga (até 20 alunos), com o mascote de cada um como foto (visitante recebe 403) |
+| `GET` | `/ligas/semana` | Ranking da semana do seu grupo da liga (até 10 alunos), com o mascote de cada um como foto (visitante recebe 403) |
 | `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário). Letras sempre abertas; palavras só depois de desbloqueadas |
 
 O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final` e o Desafia-me `dicionario:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.
@@ -74,7 +74,7 @@ Para quem só quer experimentar (por exemplo, quem escaneia o QR code na apresen
 
 ## Grupos da liga
 
-Como no Duolingo, cada liga é dividida em **grupos de até 20 alunos**, e o ranking mostra só o seu grupo. Quando o aluno ganha o primeiro XP da semana, ele entra no primeiro grupo da liga que tiver vaga; se todos estiverem cheios, abre um grupo novo (`grupo_com_vaga`, em `ligas_service.py`). Na virada da semana, os 3 primeiros do grupo sobem e os 2 últimos descem. O tamanho é a constante `TAMANHO_DO_GRUPO`.
+Como no Duolingo, cada liga é dividida em **grupos de até 10 alunos** (as "salinhas"), e o ranking mostra só o seu grupo. Quando o aluno ganha o primeiro XP da semana, ele entra no primeiro grupo da liga que tiver vaga; se todos estiverem cheios, abre um grupo novo (`grupo_com_vaga`, em `ligas_service.py`). Na virada da semana, os 3 primeiros do grupo sobem e os 2 últimos descem. O tamanho é a constante `TAMANHO_DO_GRUPO`.
 
 ## Banco criado antes destas mudanças
 
@@ -84,6 +84,11 @@ Se o seu banco foi criado antes do visitante e dos grupos, rode isto uma vez no 
 USE edu_sinal;
 ALTER TABLE usuarios MODIFY email VARCHAR(150) NULL, MODIFY senha_hash VARCHAR(255) NULL;
 ALTER TABLE xp_semanal ADD grupo INT NOT NULL DEFAULT 1 AFTER id_liga, ADD INDEX (data_semana, id_liga, grupo);
+-- Broches só por conquista (cada conquista do Perfil dá um prêmio)
+UPDATE cosmeticos SET forma_liberar = 'Conquista', custo_moedas = 0, id_conquista = 1 WHERE codigo = 'broche-sinal';
+UPDATE cosmeticos SET forma_liberar = 'Conquista', custo_moedas = 0, id_conquista = 2 WHERE codigo = 'estrela-coral';
+UPDATE cosmeticos SET forma_liberar = 'Conquista', custo_moedas = 0, id_conquista = 6 WHERE codigo = 'flor-amarela';
+UPDATE cosmeticos SET forma_liberar = 'Conquista', custo_moedas = 0, id_conquista = 5, descricao = 'Pra quem explora o dicionário' WHERE codigo = 'folha-azul';
 ```
 
 ## Rodar no computador

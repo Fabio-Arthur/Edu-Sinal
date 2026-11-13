@@ -1,7 +1,7 @@
 # Regras das ligas e do mascote (as duas usam conquistas).
 #
 # Ligas em ordem: Bronze, Prata, Ouro, Safira e Diamante.
-# Cada liga é dividida em grupos de até 20 alunos (como no Duolingo):
+# Cada liga é dividida em grupos de até 10 alunos (as "salinhas"):
 # o ranking é pelo XP da semana, só entre quem está no mesmo grupo.
 # Na virada da semana (segunda-feira), os 3 primeiros do grupo sobem de
 # liga e os 2 últimos descem. No ranking aparecem só o apelido e o XP.
@@ -10,7 +10,7 @@
 LIGAS = ["Bronze", "Prata", "Ouro", "Safira", "Diamante"]
 SOBEM = 3
 DESCEM = 2
-TAMANHO_DO_GRUPO = 20
+TAMANHO_DO_GRUPO = 10
 
 
 def grupo_com_vaga(alunos_por_grupo: dict[int, int]) -> int:
@@ -32,13 +32,14 @@ def montar_ranking(jogadores: list[dict]) -> list[dict]:
     return ordenados
 
 
-def zona(posicao: int, total: int) -> str:
+def zona(posicao: int, total: int, liga: int | None = None) -> str:
     # Em que parte do ranking o aluno está: "sobe", "desce" ou "fica".
     # Com pouca gente na liga, ninguém desce (não teria graça cair sendo 3º de 3).
+    # Na Bronze (a primeira) ninguém desce, e no Diamante (a última) ninguém sobe.
     if posicao <= SOBEM:
-        return "sobe"
+        return "fica" if liga == len(LIGAS) - 1 else "sobe"
     if total > SOBEM + DESCEM and posicao > total - DESCEM:
-        return "desce"
+        return "fica" if liga == 0 else "desce"
     return "fica"
 
 
@@ -47,7 +48,7 @@ def nova_liga(liga_atual: int, posicao: int, total: int) -> int:
     if posicao == 0:
         return liga_atual  # não jogou na semana: continua onde está
 
-    resultado = zona(posicao, total)
+    resultado = zona(posicao, total, liga_atual)
     if resultado == "sobe":
         return min(liga_atual + 1, len(LIGAS) - 1)
     if resultado == "desce":
@@ -55,11 +56,32 @@ def nova_liga(liga_atual: int, posicao: int, total: int) -> int:
     return liga_atual
 
 
-def conquista_liberada(conquista: str, etapas_concluidas: int, ofensiva: int, liga: int) -> bool:
-    # Itens do mascote que vêm de conquistas (iguais às do Perfil no app):
+def conquista_liberada(
+    conquista: str,
+    etapas_concluidas: int,
+    ofensiva: int,
+    liga: int,
+    exercicios: int = 0,
+    sinais_vistos: int = 0,
+    itens: int = 0,
+) -> bool:
+    # Itens do mascote que vêm de conquistas (iguais às do Perfil no app).
+    # Cada conquista dá um prêmio; os broches só vêm daqui.
+    #   "primeiro": concluir o primeiro exercício;
+    #   "cinco": concluir 5 exercícios;
     #   "etapa": passar em uma prova final;
     #   "ofensiva": chegar a 7 dias de ofensiva;
+    #   "explorador": ver 10 sinais diferentes no dicionário;
+    #   "colecionador": ter 3 itens para o mascote;
     #   "liga": chegar à liga Prata.
+    if conquista == "primeiro":
+        return exercicios >= 1
+    if conquista == "cinco":
+        return exercicios >= 5
+    if conquista == "explorador":
+        return sinais_vistos >= 10
+    if conquista == "colecionador":
+        return itens >= 3
     if conquista == "etapa":
         return etapas_concluidas >= 1
     if conquista == "ofensiva":

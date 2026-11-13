@@ -13,7 +13,7 @@ const LEAGUES = [
 ];
 
 const PROMOTION_SPOTS = 3; // quantos sobem
-const GROUP_SIZE = 20; // alunos por grupo da liga (o servidor separa os grupos)
+const GROUP_SIZE = 10; // alunos por grupo da liga (o servidor separa os grupos)
 const DEMOTION_SPOTS = 2;  // quantos descem
 
 // Dia da semana: segunda = 1 ... domingo = 7.
@@ -37,6 +37,15 @@ function buildRanking() {
     .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
 }
 
+// No PC a lista do ranking rola por dentro: rola até o aluno, para ele se ver
+// sem procurar (fica no meio da lista quando dá).
+function scrollRankingToMe() {
+  const list = document.querySelector(".ranking-list");
+  const me = list?.querySelector(".ranking-row.is-me");
+  if (!me || list.scrollHeight <= list.clientHeight) return;
+  list.scrollTop = me.offsetTop - (list.clientHeight - me.offsetHeight) / 2;
+}
+
 // Busca o ranking na API (no máximo uma vez por minuto) e redesenha a tela.
 let leagueRankingLoadedAt = 0;
 async function refreshLeagueRanking() {
@@ -55,9 +64,10 @@ async function refreshLeagueRanking() {
 
 // "promotion" (sobe), "demotion" (desce) ou "safe" (fica). Mesma regra do
 // servidor: com pouca gente na liga, ninguém desce.
-function zoneOf(position, total) {
-  if (position <= PROMOTION_SPOTS) return "promotion";
-  if (total > PROMOTION_SPOTS + DEMOTION_SPOTS && position > total - DEMOTION_SPOTS) return "demotion";
+function zoneOf(position, total, league = state.league) {
+  // Na Bronze (a primeira) ninguém desce, e no Diamante (a última) ninguém sobe.
+  if (position <= PROMOTION_SPOTS) return league === LEAGUES.length - 1 ? "safe" : "promotion";
+  if (total > PROMOTION_SPOTS + DEMOTION_SPOTS && position > total - DEMOTION_SPOTS) return league === 0 ? "safe" : "demotion";
   return "safe";
 }
 
@@ -83,7 +93,14 @@ function renderLeagueStatus(ranking) {
   const { position, me, zone, missing } = myLeagueStanding(ranking);
 
   let message;
-  if (zone === "promotion") {
+  if (me.xp === 0) {
+    // Ainda não jogou nesta semana: em vez de assustar com "rebaixamento", convida.
+    message = "Você ainda não entrou na disputa desta semana. <strong>Faça uma atividade</strong> para ganhar XP e subir no ranking!";
+  } else if (state.league === LEAGUES.length - 1) {
+    message = zone === "demotion"
+      ? "Cuidado: você está na <strong>zona de rebaixamento</strong> da Liga Diamante. Ganhe XP para continuar aqui!"
+      : "Você está na <strong>Liga Diamante</strong>, a mais alta! Continue ganhando XP para ficar aqui.";
+  } else if (zone === "promotion") {
     message = "Você está na <strong>zona de promoção</strong>. Continue assim para subir de liga!";
   } else {
     const warning = zone === "demotion" ? "Cuidado: você está na <strong>zona de rebaixamento</strong>. " : "";
@@ -91,11 +108,18 @@ function renderLeagueStatus(ranking) {
   }
 
   return `
-    <section class="league-status zone-${zone}">
+    <section class="league-status zone-${me.xp === 0 ? "safe" : zone}">
       <div class="league-status-place"><strong>${position}º</strong><span>lugar</span></div>
       <div><p>${message}</p><small>${me.xp} XP nesta semana · cada exercício novo vale ${XP_PER_EXERCISE} XP</small></div>
       <button class="button-3d button-3d-primary" type="button" data-action="open-topic" data-topic="${currentTopicId()}">Ganhar XP ${icon("arrow-right")}</button>
     </section>`;
+}
+
+// A regra da liga atual, no cartão de cima.
+function leagueRuleText() {
+  if (state.league === 0) return `Os ${PROMOTION_SPOTS} primeiros da salinha sobem para a Liga ${LEAGUES[1].name}.`;
+  if (state.league === LEAGUES.length - 1) return `A liga mais alta! Os ${DEMOTION_SPOTS} últimos da salinha descem para a Liga ${LEAGUES[state.league - 1].name}.`;
+  return `Os ${PROMOTION_SPOTS} primeiros da salinha sobem de liga e os ${DEMOTION_SPOTS} últimos descem.`;
 }
 
 // Uma linha do ranking. Os 3 primeiros ganham medalha; o aluno aparece com o mascote dele.
@@ -131,7 +155,7 @@ function renderLeagues() {
       rows.push('<li class="ranking-divider zone-demotion" aria-hidden="true"><i class="bi bi-arrow-down" aria-hidden="true"></i> Zona de rebaixamento</li>');
     }
     rows.push(renderRankingRow(player, position, ranking.length));
-    if (position === PROMOTION_SPOTS && ranking.length > PROMOTION_SPOTS) {
+    if (position === PROMOTION_SPOTS && ranking.length > PROMOTION_SPOTS && zoneOf(position, ranking.length) === "promotion") {
       rows.push('<li class="ranking-divider zone-promotion" aria-hidden="true"><i class="bi bi-arrow-up" aria-hidden="true"></i> Zona de promoção</li>');
     }
   });
@@ -142,7 +166,7 @@ function renderLeagues() {
       <div class="league-hero-copy">
         <small>LIGA DA SEMANA</small>
         <h2 id="league-title">Liga ${league.name}</h2>
-        <p>Os ${PROMOTION_SPOTS} primeiros sobem de liga e os ${DEMOTION_SPOTS} últimos descem.</p>
+        <p>${leagueRuleText()}</p>
       </div>
       <span class="league-timer">${icon("clock-fill")} Termina em <strong>${leagueTimeLeft()}</strong></span>
     </section>

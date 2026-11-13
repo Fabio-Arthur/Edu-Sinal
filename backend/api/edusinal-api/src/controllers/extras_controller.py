@@ -32,7 +32,15 @@ from src.services import (
 router = APIRouter(tags=["Missões, lojinha, mascote, liga e dicionário"])
 
 # Conquistas que liberam itens do mascote: nome no banco → regra no ligas_service.
-CONQUISTAS = {"Etapa vencida": "etapa", "Em chamas": "ofensiva", "Subindo": "liga"}
+CONQUISTAS = {
+    "Primeiro sinal": "primeiro",
+    "Mão na massa": "cinco",
+    "Etapa vencida": "etapa",
+    "Em chamas": "ofensiva",
+    "Explorador": "explorador",
+    "Colecionador": "colecionador",
+    "Subindo": "liga",
+}
 
 
 def finalizar(conexao, id_usuario: int, progresso: dict, agora) -> dict:
@@ -160,10 +168,14 @@ def vestir(visual: Visual, id_usuario: int = Depends(usuario_logado)):
         # estiver na lista dele; de conquista, se já cumpriu a conquista.
         pode = item["forma_liberar"] == "Gratis" or visual.id_item in extras_repository.itens_do_usuario(conexao, id_usuario)
         if item["forma_liberar"] == "Conquista":
+            # As mesmas contas do Perfil no app.
             concluidas = trilha_repository.concluidas(conexao, id_usuario)
             etapas = len([codigo for codigo in concluidas if codigo.endswith(":final")])
             pode = ligas_service.conquista_liberada(
-                CONQUISTAS.get(item["conquista"], ""), etapas, progresso["sequencia_dias"], progresso["id_liga"] - 1
+                CONQUISTAS.get(item["conquista"], ""), etapas, progresso["sequencia_dias"], progresso["id_liga"] - 1,
+                exercicios=len(concluidas) - etapas,
+                sinais_vistos=len(extras_repository.vistas(conexao, id_usuario)),
+                itens=len(extras_repository.itens_do_usuario(conexao, id_usuario)),
             )
         if not pode:
             raise HTTPException(status_code=409, detail="Você ainda não tem esse item.")
@@ -204,7 +216,7 @@ def ver_ranking(id_usuario: int = Depends(usuario_logado)):
         "ranking": [{"posicao": jogador["posicao"], "apelido": jogador["apelido"], "xp": jogador["xp"],
                      "mascote": mascotes.get(jogador["id_aluno"], estado["mascote"]),
                      "sou_eu": jogador["id_aluno"] == id_usuario,  # o id dos outros não sai daqui
-                     "zona": ligas_service.zona(jogador["posicao"], len(ranking))}
+                     "zona": ligas_service.zona(jogador["posicao"], len(ranking), progresso["id_liga"] - 1)}
                     for jogador in ranking],
         "estado": estado,
     }

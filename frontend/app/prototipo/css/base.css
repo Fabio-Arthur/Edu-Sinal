@@ -716,6 +716,7 @@ textarea {
 @media (min-width: 1500px) and (min-height: 820px) { .app-shell { --escala: 1.12; } }  /* ex.: 1536x864, 1600x900 */
 @media (min-width: 1800px) and (min-height: 900px) { .app-shell { --escala: 1.25; } }  /* Full HD (1920x1080) */
 @media (min-width: 2300px) and (min-height: 1200px) { .app-shell { --escala: 1.6; } }  /* 2K (2560x1440) */
+@media (min-width: 3400px) and (min-height: 1900px) { .app-shell { --escala: 2.2; } }  /* 4K (3840x2160) */
 .screen-root { zoom: var(--zoom); }
 .sidebar { zoom: var(--escala); height: calc(100vh / var(--escala)); } /* com zoom, 100vh "vale" mais: divide de volta */
 /* Alturas que dependem do tamanho da tela (árvore, vídeo da atividade) usam
@@ -749,7 +750,7 @@ body.is-loading::before {
 
 /* ----- Termos de uso: o topo fica parado e só o texto rola (cabe na tela) ----- */
 /* 115px = respiro de cima e de baixo da tela (64) + rodapé (51) */
-.terms { width: min(760px, 100%); height: calc(100dvh - 115px); display: flex; flex-direction: column; gap: 16px; margin: 0 auto; }
+.terms { width: min(760px, 100%); height: calc(100dvh / var(--zoom) - 115px); display: flex; flex-direction: column; gap: 16px; margin: 0 auto; }
 .terms-header { display: flex; align-items: center; gap: 14px; }
 .terms-header h2 { margin: 0; font-size: 24px; }
 .terms-header p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
@@ -767,7 +768,7 @@ body.is-loading::before {
 .desk-columns,
 .desk-col { display: contents; }
 
-@media (min-width: 1200px) {
+@media (min-width: 1001px) {
   .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"]) .screen-root {
     flex: none; /* sem isso, a área cresce junto com o conteúdo e a altura não vale */
     height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
@@ -802,17 +803,122 @@ body.is-loading::before {
   .desk-col-fill > .ranking-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .ranking-section .ranking-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; margin: 0 -6px; padding: 2px 6px 8px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 
+  /* Ligas (estilo Duolingo): o ranking é a coluna principal, larga; a escada
+     das ligas, a sua posição e os avisos ficam numa coluna estreita do lado.
+     As caixas das colunas "somem" e cada parte é posicionada na grade. */
+  .app-shell[data-current-screen="leagues"] .desk-columns {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 26px;
+    row-gap: 16px;
+    align-items: start;
+  }
+  .app-shell[data-current-screen="leagues"] .desk-col { display: contents; }
+  .app-shell[data-current-screen="leagues"] .ranking-section { grid-column: 1; grid-row: 1 / -1; align-self: stretch; min-height: 0; display: flex; flex-direction: column; }
+  .app-shell[data-current-screen="leagues"] .ranking-section .section-heading { margin: 0 0 10px; }
+  .app-shell[data-current-screen="leagues"] .league-ladder { grid-column: 2; grid-row: 1; margin: 0; padding-top: 8px; } /* espaço pro contorno do troféu */
+  .app-shell[data-current-screen="leagues"] .league-status { grid-column: 2; grid-row: 2; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; margin: 0; }
+  .app-shell[data-current-screen="leagues"] .league-status .button-3d { grid-column: 1 / -1; }
+  .app-shell[data-current-screen="leagues"] .league-status-place { width: 64px; height: 64px; }
+  .app-shell[data-current-screen="leagues"] .safety-note { grid-column: 2; grid-row: 3; margin: 0; }
+  .app-shell[data-current-screen="leagues"] .desk-columns .demo-disclaimer { grid-column: 2; grid-row: 4; margin: 0; }
+  .app-shell[data-current-screen="leagues"] .league-step .league-badge { width: 46px; height: 46px; font-size: 20px; }
+  .app-shell[data-current-screen="leagues"] .league-step.is-current .league-badge { width: 52px; height: 52px; font-size: 24px; }
+  .app-shell[data-current-screen="leagues"] .league-step:not(:last-child)::after { top: 20px; }
+  /* Linhas do ranking mais baixas: cabem mais alunos (e você aparece sem rolar) */
+  .app-shell[data-current-screen="leagues"] .ranking-list { position: relative; gap: 6px; }
+  .app-shell[data-current-screen="leagues"] .ranking-row { grid-template-columns: 32px 36px minmax(0, 1fr) auto; padding: 6px 14px; border-radius: 14px; }
+  .app-shell[data-current-screen="leagues"] .ranking-avatar { width: 36px; height: 36px; }
+  .app-shell[data-current-screen="leagues"] .ranking-medal { width: 28px; height: 28px; font-size: 13px; }
+  .app-shell[data-current-screen="leagues"] .ranking-divider { margin: 2px 0; }
+
   /* Configurações: a coluna das preferências é um pouco mais larga (os botões de escolha ocupam espaço) */
   .app-shell[data-current-screen="more"] .desk-columns { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
   /* Perfil: estatísticas em duas por linha, para os números e nomes não ficarem apertados */
   .desk-col .profile-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* Telas entre 1000 e 1200px (tablet deitado, notebook pequeno): Ligas e Perfil
+   já ficam em duas colunas, mas Configurações fica numa coluna só (os botões de
+   escolha não cabem lado a lado) e a página rola, como antes. */
+@media (min-width: 1001px) and (max-width: 1199px) {
+  .app-shell[data-current-screen="more"] .screen-root { height: auto; display: block; }
+  .app-shell[data-current-screen="more"] .desk-columns,
+  .app-shell[data-current-screen="more"] .desk-col { display: contents; }
+  .app-shell[data-current-screen="more"] .settings-group { margin-top: 26px; }
+}
+
 /* Celular: o aviso de segurança e a nota das ligas continuam embaixo do ranking,
    como antes (no computador eles ficam na coluna da esquerda). */
-@media (max-width: 1199px) {
+@media (max-width: 1000px) {
   .app-shell[data-current-screen="leagues"] .screen-root { display: flex; flex-direction: column; }
   .app-shell[data-current-screen="leagues"] .screen-root > * { flex: none; }
   .app-shell[data-current-screen="leagues"] .desk-col .safety-note,
   .app-shell[data-current-screen="leagues"] .desk-col .demo-disclaimer { order: 1; }
+}
+
+/* ----- Centralizado, como no Duolingo -----
+   No computador, as abas não esticam até a borda: o conteúdo fica numa
+   largura confortável, no meio. As laterais ficam livres (e vão receber o
+   fundo com sinais). A Home e a atividade continuam largas: a trilha e os
+   vídeos precisam de espaço. */
+@media (min-width: 1001px) {
+  .app-shell:not([data-current-screen="trail"]):not([data-current-screen="lesson"]) .screen-root { width: min(1040px, 100%); }
+  .app-shell.app-shell[data-current-screen="missions"] .screen-root { width: min(780px, 100%); } /* uma coluna só: mais estreita ("app-shell" duas vezes = regra mais forte que a de cima) */
+}
+
+/* ----- No PC, a página não rola (Dicionário, Missões e Lojinha) -----
+   O cartão de cima fica parado e o resto rola dentro de um quadro
+   (.screen-scroll). No celular a caixa "some" e a página rola com o dedo,
+   como antes: lá rolar é natural. */
+.screen-scroll { display: contents; }
+
+@media (min-width: 1001px) {
+  .app-shell:is([data-current-screen="signs"], [data-current-screen="missions"], [data-current-screen="shop"]) .screen-root {
+    flex: none;
+    height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 18px;
+  }
+  .app-shell:is([data-current-screen="signs"], [data-current-screen="missions"], [data-current-screen="shop"]) .screen-root > :not(.screen-scroll) { flex: none; } /* o cartão de cima não encolhe; o quadro sim */
+  .screen-root > .screen-scroll {
+    flex: 1;
+    min-height: 0;
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0 -8px; /* espaço para a sombra 3D dos cartões */
+    padding: 0 8px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+}
+
+/* ----- Guarda-roupa no PC: a página não rola -----
+   O mascote fica parado do lado e só a grade de itens rola, por dentro. */
+@media (min-width: 1001px) {
+  .app-shell[data-current-screen="mascot"] .screen-root {
+    flex: none;
+    height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 18px;
+  }
+  .app-shell[data-current-screen="mascot"] .screen-root > * { flex: none; }
+  .app-shell[data-current-screen="mascot"] .screen-root > .mascot-editor { flex: 1; min-height: 0; align-items: stretch; }
+  .app-shell[data-current-screen="mascot"] .wardrobe-stage { align-self: start; max-height: 100%; overflow-y: auto; scrollbar-width: thin; }
+  .app-shell[data-current-screen="mascot"] .mascot-wardrobe { min-height: 0; display: flex; flex-direction: column; }
+  .app-shell[data-current-screen="mascot"] .mascot-wardrobe > * { flex: none; }
+  .app-shell[data-current-screen="mascot"] .mascot-options {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    align-content: start;
+    margin: -6px;
+    padding: 6px; /* espaço para o contorno e a sombra dos cartões */
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
 }

@@ -596,7 +596,9 @@ function renderHomeLeague() {
   }
   const league = LEAGUES[state.league];
   const { position, me, zone, missing } = myLeagueStanding();
-  const progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;
+  let progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;
+  if (me.xp === 0) progress = "faça uma atividade para entrar na disputa";
+  else if (state.league === LEAGUES.length - 1 && zone !== "demotion") progress = "na liga mais alta!";
   const detail = `${me.xp} XP na semana · ${progress}`;
   return `
     <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Liga ${league.name}, ${position}º lugar. ${detail}. Abrir ligas">

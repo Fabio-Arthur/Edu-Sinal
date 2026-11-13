@@ -285,6 +285,8 @@ function renderSigns() {
       <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
       <div class="dictionary-categories" role="group" aria-label="Categorias do dicionário">${chips}</div>
     </div>
+    <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>
-    <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>`;
+    <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>
+    </div>`;
 }
