@@ -362,7 +362,7 @@
 .buy-confirm { position: relative; overflow: hidden; }
 .buy-confirm > span { position: relative; } /* o texto fica por cima da barrinha */
 .buy-price { white-space: nowrap; } /* a moedinha e o preço nunca se separam */
-.buy-confirm.is-waiting::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--yellow); opacity: 0.45; animation: buy-fill 3s linear forwards; }
+.buy-confirm.is-waiting::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--yellow); opacity: 0.45; animation: buy-fill 2s linear forwards; /* mesmo tempo do BUY_WAIT_MS */ }
 @keyframes buy-fill { to { width: 100%; } }
 .shop-item-owned { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12px; font-weight: 700; }
 
@@ -530,6 +530,10 @@
 .word-card strong { font-family: "Manrope", sans-serif; font-size: 16px; font-weight: 800; }
 .word-card small { color: var(--muted); font-size: 12px; }
 .word-card .word-seen { position: absolute; top: 8px; right: 10px; color: var(--accent); font-size: 11px; font-weight: 800; }
+/* Palavra ainda bloqueada (abre ao concluir a atividade da trilha que ensina o sinal) */
+.word-card.is-locked { border-style: dashed; background: var(--surface-soft); box-shadow: none; }
+.word-card.is-locked strong { color: var(--muted); }
+.word-card.is-locked .word-card-play { background: var(--surface); color: var(--muted); }
 
 .word-detail {
   position: sticky;
@@ -698,3 +702,26 @@
   .dictionary-hero-stat { width: 100%; grid-auto-flow: column; justify-content: center; align-items: baseline; gap: 6px; }
   .dictionary-hero-stat strong { font-size: 22px; }
 }
+
+/* Desafia-me no celular: botão redondo no canto que abre o cartão numa janelinha
+   (no PC o cartão continua no lugar de sempre). */
+.challenge-fab, .challenge-sheet { display: none; }
+@media (max-width: 1000px) {
+  .dictionary-hero + .challenge-card { display: none; }
+  .challenge-fab {
+    position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 15;
+    display: grid; place-items: center; width: 58px; height: 58px; padding: 0;
+    border: 3px solid var(--surface); border-radius: 50%;
+    background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color: #ffffff; font-size: 26px;
+    box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22);
+  }
+  .challenge-fab.is-gold { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
+  .challenge-fab.is-locked { background: var(--surface-soft); color: var(--muted); box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
+  .challenge-fab:active { transform: translateY(3px); }
+  .challenge-sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
+  .challenge-sheet-backdrop { position: absolute; inset: 0; border: 0; background: rgba(10, 20, 40, 0.45); cursor: default; }
+  .challenge-sheet-box { position: relative; width: 100%; animation: challenge-sheet-in 0.18s ease-out; }
+  .challenge-sheet .challenge-card { margin: 0; }
+}
+@keyframes challenge-sheet-in { from { opacity: 0; transform: translateY(16px); } }
+@media (prefers-reduced-motion: reduce) { .challenge-sheet-box { animation: none; } }

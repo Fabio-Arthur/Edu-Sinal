@@ -1,7 +1,7 @@
 // CADASTRO E LOGIN
-// Telas de cadastro e entrada, e a validação dos dados. Tudo demonstrativo:
-// o perfil fica só neste navegador e nenhuma senha é salva ou enviada.
-// Entrar = voltar ao perfil salvo aqui, usando o mesmo e-mail do cadastro.
+// Telas de cadastro e entrada, e a validação dos dados. A conta fica no
+// servidor (POST /auth/cadastro e /auth/login, ver js/api.js). A senha só
+// passa pela memória do app até ser enviada: nunca é salva no navegador.
 //
 // Cadastro e login são por etapas, uma pergunta por tela (como nos exercícios):
 //   cadastro: apelido → e-mail → senha → meta diária → "Tudo pronto!";
@@ -11,12 +11,22 @@
 
 const WELCOME_COINS = 20; // moedas de boas-vindas de um perfil novo
 
-function hasStrongPassword(password) {
-  return password.length >= 8
-    && /[a-z]/.test(password)
-    && /[A-Z]/.test(password)
-    && /\d/.test(password)
-    && /[^A-Za-z0-9]/.test(password);
+// Senha no estilo do Duolingo: simples de criar, sem obrigar maiúscula,
+// número e símbolo. Vale o tamanho mínimo e não pode ser uma senha óbvia.
+// (O servidor confere a mesma coisa em senha_service.py.)
+const PASSWORD_MIN_LENGTH = 8;
+const OBVIOUS_PASSWORDS = ["12345678", "123456789", "1234567890", "87654321", "11111111", "00000000",
+  "senha123", "senha1234", "password", "qwertyui", "abcdefgh", "abc12345", "edusinal", "libras123"];
+
+// Devolve o problema da senha (para mostrar ao aluno) ou "" se está tudo certo.
+function passwordProblem(password, nickname = "", email = "") {
+  const lower = password.toLowerCase();
+  if (password.length < PASSWORD_MIN_LENGTH) return `A senha precisa ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+  if (OBVIOUS_PASSWORDS.includes(lower) || new Set(lower).size === 1) return "Essa senha é fácil demais de adivinhar. Tente outra.";
+  if ((nickname && lower === nickname.toLowerCase()) || (email && lower === email.split("@")[0].toLowerCase())) {
+    return "A senha não pode ser igual ao seu apelido ou e-mail.";
+  }
+  return "";
 }
 
 // ----- Cadastro por etapas -----
@@ -29,10 +39,11 @@ const GOAL_OPTIONS = [
 ];
 
 // Respostas enquanto o cadastro não termina (a senha nunca fica guardada).
-let signup = { step: 0, nickname: "", email: "", goal: DAILY_GOAL, done: false };
+// keptProgress: era visitante e a conta guardou o progresso que ele já tinha.
+let signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
 
 function resetSignup() {
-  signup = { step: 0, nickname: "", email: "", goal: DAILY_GOAL, done: false };
+  signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
 }
 
 // O que cada etapa pergunta e mostra.
@@ -56,7 +67,8 @@ function signupStepHtml(stepName) {
       question: "Agora crie uma senha.",
       body: `<label class="field-label" for="signup-password">Senha<input id="signup-password" name="password" type="password" autocomplete="new-password" placeholder="Crie uma senha" /></label>
         <label class="field-label" for="signup-confirm-password">Confirme a senha<input id="signup-confirm-password" name="passwordConfirmation" type="password" autocomplete="new-password" placeholder="Digite a senha de novo" /></label>
-        <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres, com letra maiúscula, minúscula, número e símbolo.</p>`,
+        <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres. Dica: uma frase curta que só você conhece é fácil de lembrar e difícil de adivinhar.</p>
+        <p class="signup-terms">Ao criar a conta, você concorda com os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button>.</p>`,
     };
   }
   return {
@@ -113,19 +125,22 @@ function renderSignup() {
 // Fim do cadastro: confirma que a conta foi criada (antes ia direto para a Home).
 function renderSignupDone() {
   const goal = GOAL_OPTIONS.find((option) => option.value === state.dailyGoal) || GOAL_OPTIONS[1];
+  const text = signup.keptProgress
+    ? `Sua conta foi criada e <strong>todo o seu progresso foi salvo</strong>. Sua meta é <strong>${goal.text}</strong>.`
+    : `Sua conta foi criada. Você ganhou <strong>${WELCOME_COINS} moedas</strong> de boas-vindas e sua meta é <strong>${goal.text}</strong>.`;
   return `
     <section class="onboard onboard-done" aria-labelledby="done-title">
       <button class="welcome-mascot mascot-backdrop" type="button" data-action="mascot-react" aria-label="Mascote do EduSinal">${mascotSvg(state.mascot, "full", "", { animated: true })}</button>
       <h2 id="done-title">Tudo pronto, ${escapeHtml(state.name)}!</h2>
-      <p>Sua conta foi criada. Você ganhou <strong>${WELCOME_COINS} moedas</strong> de boas-vindas e sua meta é <strong>${goal.text}</strong>.</p>
-      <button class="button-3d button-3d-primary onboard-next" type="button" data-action="signup-start">Começar a primeira etapa</button>
+      <p>${text}</p>
+      <button class="button-3d button-3d-primary onboard-next" type="button" data-action="signup-start">${signup.keptProgress ? "Continuar de onde parei" : "Começar a primeira etapa"}</button>
     </section>`;
 }
 
-// Volta uma etapa (na primeira, volta para a tela inicial).
+// Volta uma etapa (na primeira, volta para a tela inicial, ou para o Perfil do visitante).
 function signupBack() {
   if (signup.step === 0) {
-    setScreen("intro");
+    setScreen(state.isGuest ? "profile" : "intro");
     return;
   }
   signup.step -= 1;
@@ -172,7 +187,7 @@ function renderLogin() {
     body: isEmail
       ? `<label class="field-label" for="login-email">E-mail<input id="login-email" name="email" type="email" value="${escapeHtml(login.email)}" autocomplete="username" placeholder="voce@email.com" /></label>`
       : `<label class="field-label" for="login-password">Senha<input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" /></label>
-        <p class="field-hint">${icon("info-circle-fill")} Demonstração: sem servidor, a senha não é conferida.</p>`,
+`,
     error: login.error,
     footerExtra: isEmail ? '<p class="onboard-login">Ainda não tem conta? <button class="text-button" type="button" data-screen="signup">Criar conta</button></p>' : "",
     submitLabel: isEmail ? "Continuar" : "Entrar",
@@ -213,12 +228,6 @@ function loginBack() {
   focusSignupField();
 }
 
-// O e-mail e a senha batem com o perfil salvo neste navegador?
-function isKnownLogin(email) {
-  if (!hasSavedProfile()) return false;
-  return !state.email || state.email === email; // perfis antigos ainda não guardavam o e-mail
-}
-
 // Confere a etapa atual do cadastro. Devolve o texto do erro, ou "" quando está tudo certo.
 function validateSignupStep(form) {
   const stepName = SIGNUP_STEPS[signup.step];
@@ -230,52 +239,14 @@ function validateSignupStep(form) {
   if (stepName === "email" && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) return "Informe um e-mail válido.";
   if (stepName === "password") {
     const password = form.elements.password.value;
-    if (!hasStrongPassword(password)) return "A senha precisa ter 8 caracteres, maiúscula, minúscula, número e símbolo.";
+    const problem = passwordProblem(password, signup.nickname, signup.email);
+    if (problem) return problem;
     if (password !== form.elements.passwordConfirmation.value) return "As senhas não conferem.";
   }
   return "";
 }
 
-// Existe um perfil criado neste navegador? (mesmo que a pessoa tenha saído)
-function hasSavedProfile() {
-  const saved = JSON.parse(localStorage.getItem("edusinal-prototype") || "{}");
-  return Boolean(saved.email || saved.isRegistered || saved.role);
-}
-
-// Perfil novo começa do zero. Só as preferências de tela (tema, texto, animações) continuam.
-function startNewProfile(name, email, dailyGoal) {
-  Object.assign(state, {
-    name,
-    email,
-    dailyGoal,
-    isRegistered: true,
-    xp: 0,
-    coins: WELCOME_COINS,
-    streak: 0,
-    lastActiveDate: null,
-    streakFreezes: 0,
-    practiceDays: [],
-    frozenDays: [],
-    league: 0,
-    lives: MAX_LIVES,
-    nextLifeAt: null,
-    energy: MAX_ENERGY,
-    nextEnergyAt: null,
-    energyRefillDate: null,
-    alphabetChallengeDate: null,
-    unlockedItems: [],
-    mascot: { ...DEFAULT_LOOK },
-    hasFirstActivityReward: false,
-    completedLessons: [],
-    trailVersion: TRAIL_VERSION,
-    signsSeen: [],
-    daily: emptyDay(),
-    week: { key: weekKey(), xp: 0, claimed: [] },
-  });
-  persist();
-}
-
-function handleLoginSubmit(form) {
+async function handleLoginSubmit(form) {
   const isEmail = LOGIN_STEPS[login.step] === "email";
   let error = "";
   if (isEmail && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) error = "Informe um e-mail válido.";
@@ -292,31 +263,39 @@ function handleLoginSubmit(form) {
     return;
   }
 
-  // senha preenchida: o mascote "pensa" um pouquinho e responde
+  // senha preenchida: o mascote "pensa" enquanto o servidor confere
+  const password = form.elements.password.value;
   login.status = "checking";
   render();
   playMascotReaction();
   setTimeout(playMascotReaction, 800);
-  setTimeout(() => {
-    if (state.screen !== "login") return; // a pessoa saiu da tela no meio
-    if (!isKnownLogin(login.email)) {
-      login = { step: 0, email: login.email, status: "ask", error: "Não consegui lembrar de você… Confere o e-mail e a senha, ou crie uma conta." };
-      render();
-      focusSignupField();
-      return;
-    }
-    if (!state.email) state.email = login.email;
-    state.isRegistered = true;
-    persist();
-    login.status = "done";
+  const thinking = new Promise((resolve) => setTimeout(resolve, LOGIN_THINK_MS)); // o mascote pensa pelo menos um pouquinho
+  let estado = null;
+  let loginError = null;
+  try {
+    estado = await api("POST", "/auth/login", { email: login.email, senha: password });
+  } catch (caught) {
+    loginError = caught;
+  }
+  await thinking;
+  if (state.screen !== "login") return; // a pessoa saiu da tela no meio
+  if (loginError) {
+    // e-mail ou senha errados: a mesma mensagem para os dois (o servidor não diz qual)
+    const message = loginError.status === 401 ? "Não consegui lembrar de você… Confere o e-mail e a senha, ou crie uma conta." : loginError.message;
+    login = { step: 0, email: login.email, status: "ask", error: message };
     render();
-    playMascotReaction();
-  }, LOGIN_THINK_MS);
+    focusSignupField();
+    return;
+  }
+  applyServerState(estado);
+  login.status = "done";
+  render();
+  playMascotReaction();
 }
 
 // "Continuar" de cada etapa: guarda a resposta e vai para a próxima.
 // Na última, cria o perfil e mostra o "Tudo pronto!".
-function handleSignupSubmit(form) {
+async function handleSignupSubmit(form) {
   const errorBox = document.getElementById("form-error");
   const error = validateSignupStep(form);
   errorBox.textContent = error;
@@ -325,6 +304,7 @@ function handleSignupSubmit(form) {
   const stepName = SIGNUP_STEPS[signup.step];
   if (stepName === "nickname") signup.nickname = form.elements.nickname.value.trim().replace(/\s+/g, " ");
   if (stepName === "email") signup.email = form.elements.email.value.trim().toLowerCase();
+  if (stepName === "password") signup.password = form.elements.password.value;
   if (signup.step < SIGNUP_STEPS.length - 1) {
     signup.step += 1;
     render();
@@ -332,19 +312,31 @@ function handleSignupSubmit(form) {
     return;
   }
 
-  const create = () => {
-    startNewProfile(signup.nickname, signup.email, signup.goal);
-    signup.done = true;
-    render();
-    playMascotReaction(); // comemoração: cutucada na cabeça
-  };
-  if (!hasSavedProfile()) {
-    create();
+  // Última etapa: cria a conta no servidor (que já deixa logado).
+  // Visitante: a conta de visitante ganha e-mail e senha e guarda o progresso.
+  const wasGuest = state.isGuest;
+  try {
+    applyServerState(await api("POST", wasGuest ? "/auth/visitante/conta" : "/auth/cadastro", {
+      apelido: signup.nickname,
+      email: signup.email,
+      senha: signup.password,
+      meta_diaria: signup.goal,
+    }));
+  } catch (error) {
+    // E-mail já cadastrado: volta para a etapa do e-mail com o aviso.
+    if (error.status === 409) {
+      signup.step = SIGNUP_STEPS.indexOf("email");
+      render();
+      document.getElementById("form-error").textContent = error.message;
+      focusSignupField();
+    } else {
+      errorBox.textContent = error.message;
+    }
     return;
   }
-  askConfirm({
-    title: "Criar um novo perfil?",
-    text: `Já existe o perfil de ${state.name} neste navegador. Criar um novo apaga esse progresso.`,
-    confirmLabel: "Criar novo perfil",
-  }, create);
+  signup.password = ""; // a senha sai da memória assim que a conta foi criada
+  signup.done = true;
+  signup.keptProgress = wasGuest;
+  render();
+  playMascotReaction(); // comemoração: cutucada na cabeça
 }

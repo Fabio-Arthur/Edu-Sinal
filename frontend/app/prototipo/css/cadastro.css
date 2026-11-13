@@ -6,7 +6,7 @@
    =================================================================== */
 /* Tela cheia como a atividade: barra de progresso em cima, o mascote
    "perguntando" num balão, o campo e o botão grande embaixo. */
-.onboard { display: grid; grid-template-rows: auto 1fr; max-width: 640px; min-height: calc(100vh - 120px); margin: 0 auto; }
+.onboard { display: grid; grid-template-rows: auto 1fr; max-width: 640px; min-height: calc(100vh / var(--zoom) - 120px); margin: 0 auto; } /* "/ zoom": em monitor grande a tela é ampliada (escala), e sem isso o botão Continuar fica abaixo da tela */
 .onboard-top { display: flex; align-items: center; gap: 14px; padding: 4px 0 18px; }
 .onboard-top small { color: var(--muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
 .onboard-progress { flex: 1; height: 16px; overflow: hidden; border-radius: 99px; background: var(--surface-soft); }
@@ -81,7 +81,7 @@
 
 @media (max-width: 1000px) {
   /* altura da tela menos o respiro da tela (40px) e o rodapé (45px), para não rolar */
-  .onboard { min-height: calc(100dvh - 40px - 45px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .onboard { min-height: calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 85px); }
   .onboard-ask { align-items: flex-start; margin-top: 4px; }
   .onboard-mascot { width: 64px; height: 64px; border-width: 3px; box-shadow: 0 4px 0 var(--hero-shadow); }
   .onboard-bubble { padding: 12px 16px; font-size: 19px; }

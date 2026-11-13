@@ -12,21 +12,58 @@
 //   (menos na prova final e no Desafia-me, que têm limite de erros).
 //   O exercício é concluído se chegar ao fim com vidas. Na prova final, além
 //   disso, pode errar no máximo FINAL_MAX_MISTAKES vezes.
+//
+// Quem confere as respostas e dá as recompensas é o servidor (ver js/api.js):
+//   começar → POST /atividades/{código}/comecar
+//   conferir → POST /atividades/{código}/respostas (o servidor diz se acertou)
+//   concluir → POST /atividades/{código}/concluir (XP, moedas, energia, ofensiva)
 
-function startBranch(topicId, branchId) {
+async function startBranch(topicId, branchId) {
   const index = learningTopics[topicId].branches.findIndex((branch) => branch.id === branchId);
   if (branchId !== "final" && !isBranchUnlocked(topicId, index)) return; // fora de ordem: não começa
   if (branchId === "final" && !isFinalUnlocked(topicId)) return;
-  state.currentLesson = {
+  await beginLesson({
     topicId,
     branchId,
     kind: activityKind(topicId, branchId),
-    steps: stepsFor(topicId, branchId), // cartões ou perguntas
-    index: 0,        // passo atual
-    mistakes: 0,     // quantas erradas até agora
-    outOfLives: false,
-  };
+    steps: numberQuestions(stepsFor(topicId, branchId)), // cartões ou perguntas
+  });
+}
+
+// Código da atividade para a API: "numeros:pratica-um-a-cinco", "alfabeto:A"...
+function lessonCode(lesson = state.currentLesson) {
+  return encodeURIComponent(`${lesson.topicId}:${lesson.branchId}`);
+}
+
+// Cada pergunta ganha o seu número (a primeira é 0), sem contar os cartões.
+// É por esse número que a API sabe qual pergunta o aluno respondeu.
+function numberQuestions(steps) {
+  let number = 0;
+  return steps.map((step) => (isCardStep(step) ? step : { ...step, questionIndex: number++ }));
+}
+
+// Começa a atividade: confere no app (energia e vidas), avisa o servidor
+// e abre a tela. Devolve a resposta da API (o Desafia-me usa as perguntas dela).
+async function beginLesson(lesson) {
+  const reason = activityBlockReason(lesson.topicId, lesson.branchId, lesson.kind);
+  if (reason) {
+    state.currentLesson = lesson;
+    setScreen("lesson"); // o setScreen mostra o aviso de energia ou vidas e não abre
+    return null;
+  }
+  let result;
+  try {
+    result = await api("POST", `/atividades/${lessonCode(lesson)}/comecar`);
+  } catch (error) {
+    showApiError(error);
+    return null;
+  }
+  applyServerState(result.estado);
+  hideToast();
+  state.currentLesson = { ...lesson, index: 0, mistakes: 0, outOfLives: false };
+  if (result.perguntas.length) state.currentLesson.steps = lesson.makeSteps(result.perguntas);
   setScreen("lesson");
+  return result;
 }
 
 function currentStep() {
@@ -69,17 +106,12 @@ function signVideoHtml(sign, size = "large") {
 
 // ----- Respostas -----
 
-// Posição da resposta certa (no verdadeiro ou falso: 0 = Verdadeiro, 1 = Falso).
-function correctOption(question) {
-  if (question.type === "vf") return question.answer ? 0 : 1;
-  return question.answer;
-}
-
 // Nome da resposta certa, para a mensagem depois de conferir.
-function correctAnswerLabel(question) {
-  if (question.type === "vf") return question.answer ? "Verdadeiro" : "Falso";
-  if (question.type === "palavra-video") return `o vídeo ${optionLetter(question.answer)}`;
-  return `“${question.options[question.answer]}”`;
+// "position" é a posição da certa, que vem do servidor (no verdadeiro ou falso: 0 = Verdadeiro).
+function correctAnswerLabel(question, position) {
+  if (question.type === "vf") return position === 0 ? "Verdadeiro" : "Falso";
+  if (question.type === "palavra-video") return `o vídeo ${optionLetter(position)}`;
+  return `“${question.options[position]}”`;
 }
 
 function optionLetter(position) {
@@ -130,8 +162,7 @@ function questionBodyHtml(question) {
 function lessonKicker() {
   const lesson = state.currentLesson;
   const position = `${lesson.index + 1} de ${lesson.steps.length}`;
-  if (lesson.isChallenge) return `Alfabeto manual · Desafia-me · ${position}`;
-  if (lesson.topicId === ALPHABET_TOPIC) return `Alfabeto manual · Letra ${lesson.branchId} · ${position}`;
+  if (lesson.isChallenge) return `Dicionário · Desafia-me · ${position}`;
   const topic = learningTopics[lesson.topicId];
   const name = isFinalExam() ? "Prova final" : topic.branches.find((branch) => branch.id === lesson.branchId).label;
   return `${topic.title} · ${name} · ${position}`;
@@ -198,21 +229,34 @@ function selectAnswer(clickedButton) {
 // Frases de "acertou", variando a cada pergunta.
 const CORRECT_TITLES = ["Muito bem!", "Isso aí!", "Mandou bem!", "Certinho!"];
 
-// 2º passo: "Conferir" mostra se acertou e decide o que vem depois.
-function checkAnswer() {
+// 2º passo: "Conferir" pergunta ao servidor se acertou e decide o que vem depois.
+async function checkAnswer() {
   const lesson = state.currentLesson;
   const chosen = document.querySelector(".answer-option.is-selected");
   if (state.answered || !chosen) return;
-  state.answered = true;
+  state.answered = true; // trava o botão enquanto o servidor responde (nada de clique duplo)
 
   const question = currentStep();
-  const rightOption = correctOption(question);
-  const isCorrect = Number(chosen.dataset.option) === rightOption;
+  let result;
+  try {
+    result = await api("POST", `/atividades/${lessonCode()}/respostas`, {
+      pergunta: question.questionIndex,
+      resposta: Number(chosen.dataset.option),
+      rodada: question.isRetry ? 2 : 1, // 2 = a segunda chance da mesma pergunta
+    });
+  } catch (error) {
+    state.answered = false; // deu erro: deixa tentar de novo
+    showApiError(error);
+    return;
+  }
+  applyServerState(result.estado); // as vidas já vêm certas do servidor
+
+  const rightOption = result.resposta_certa;
+  const isCorrect = result.correta;
   const getsRetry = !isCorrect && !question.isRetry && !hasMistakeLimit();
   if (getsRetry) lesson.steps.push({ ...question, isRetry: true }); // volta no fim, uma vez só
   if (!isCorrect) {
     lesson.mistakes += 1;
-    loseLife();
     const lives = document.querySelector(".lesson-lives");
     lives.querySelector("strong").textContent = state.lives;
     lives.setAttribute("aria-label", `${state.lives} de ${MAX_LIVES} vidas`);
@@ -228,7 +272,7 @@ function checkAnswer() {
 
   // Faixa de baixo: verde-turquesa se acertou, coral se errou
   document.getElementById("lesson-footer").classList.add(isCorrect ? "is-correct" : "is-incorrect");
-  let title = isCorrect ? CORRECT_TITLES[lesson.index % CORRECT_TITLES.length] : `Quase! A resposta certa é ${correctAnswerLabel(question)}.`;
+  let title = isCorrect ? CORRECT_TITLES[lesson.index % CORRECT_TITLES.length] : `Quase! A resposta certa é ${correctAnswerLabel(question, rightOption)}.`;
   if (isCorrect && question.isRetry) title = "Agora foi!";
   const retryNote = getsRetry ? " Ela volta no final para você tentar de novo." : "";
   document.getElementById("answer-feedback").innerHTML = `
@@ -266,8 +310,8 @@ function nextQuestion() {
 // Depois da atividade: volta direto para a árvore da etapa (sem a animação de
 // abrir, que é só a partir da Home) ou, nas letras, para o alfabeto do dicionário.
 function returnFromLesson(lesson) {
-  if (lesson.topicId === ALPHABET_TOPIC) {
-    showAlphabet();
+  if (lesson.topicId === DICTIONARY_TOPIC) {
+    setScreen("signs"); // o Desafia-me volta para o dicionário
     return;
   }
   setScreen("trail");
@@ -276,30 +320,59 @@ function returnFromLesson(lesson) {
 }
 
 // Fim da atividade: conclui (e premia na 1ª vez) ou explica por que não passou.
-function finishLesson() {
+async function finishLesson() {
   const lesson = state.currentLesson;
   const failedExam = hasMistakeLimit(lesson) && lesson.mistakes > FINAL_MAX_MISTAKES;
 
+  // Sem vidas ou reprovado: nem pergunta ao servidor (não tem prêmio).
   if (lesson.outOfLives) {
     showToast("Suas vidas acabaram. Elas voltam com o tempo; enquanto isso, revise no dicionário.");
-  } else if (failedExam) {
-    showToast(`Você errou ${lesson.mistakes}. ${lesson.isChallenge ? "No desafio" : "Na prova"}, pode errar no máximo ${FINAL_MAX_MISTAKES}. Tente de novo!`);
-  } else if (lesson.isChallenge) {
-    finishAlphabetChallenge();
-  } else if (markLessonDone(lesson.topicId, lesson.branchId)) {
-    giveActivityReward();
-    if (lesson.topicId === ALPHABET_TOPIC && nextLetter()) {
-      showToast(`Letra ${lesson.branchId} aprendida! A letra ${nextLetter()} foi liberada. +${XP_PER_EXERCISE} XP`);
-    }
-    if (isFinalExam(lesson)) {
-      const next = TOPIC_ORDER[TOPIC_ORDER.indexOf(lesson.topicId) + 1];
-      showToast(next ? `Etapa concluída! “${learningTopics[next].title}” foi liberada. +${XP_PER_EXERCISE} XP` : `Etapa concluída! +${XP_PER_EXERCISE} XP`);
-    }
-    if (state.energy === 0) showToast(`Atividade concluída! Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`);
-  } else {
-    showToast("Revisão concluída!");
+    returnFromLesson(lesson);
+    return;
   }
+  if (failedExam) {
+    showToast(`Você errou ${lesson.mistakes}. ${lesson.isChallenge ? "No desafio" : "Na prova"}, pode errar no máximo ${FINAL_MAX_MISTAKES}. Tente de novo!`);
+    returnFromLesson(lesson);
+    return;
+  }
+
+  let result;
+  try {
+    result = await api("POST", `/atividades/${lessonCode(lesson)}/concluir`);
+  } catch (error) {
+    showApiError(error);
+    returnFromLesson(lesson);
+    return;
+  }
+  applyServerState(result.estado);
+  showToast(finishMessage(lesson, result) + guestReminder());
   returnFromLesson(lesson);
+}
+
+// Visitante: na primeira atividade concluída, lembra de criar a conta.
+let guestReminded = false;
+function guestReminder() {
+  if (!state.isGuest || guestReminded) return "";
+  guestReminded = true;
+  return " Crie uma conta no Perfil para não perder seu progresso.";
+}
+
+// A mensagem do fim da atividade, com o que o servidor deu de prêmio.
+function finishMessage(lesson, result) {
+  const prize = `+${result.xp_ganho} XP e +${result.moedas_ganhas} moedas`;
+  if (lesson.isChallenge) {
+    return result.primeira_vez
+      ? `Desafio vencido! ${prize}.`
+      : "Desafio vencido! O prêmio de hoje você já ganhou: volte amanhã para outro.";
+  }
+  if (!result.primeira_vez) return "Revisão concluída!";
+  if (result.item_ganho) return `Primeira atividade concluída: ${prize} e um broche para o mascote!`;
+  if (isFinalExam(lesson)) {
+    const next = TOPIC_ORDER[TOPIC_ORDER.indexOf(lesson.topicId) + 1];
+    return next ? `Etapa concluída! “${learningTopics[next].title}” foi liberada. ${prize}.` : `Etapa concluída! ${prize}.`;
+  }
+  if (state.energy === 0) return `Atividade concluída! Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`;
+  return `Atividade concluída: ${prize} e −1 de energia.`;
 }
 
 // Sair no meio: volta para a árvore sem concluir (vidas perdidas não voltam).

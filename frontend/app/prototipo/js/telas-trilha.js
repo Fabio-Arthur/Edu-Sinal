@@ -23,6 +23,7 @@ function renderIntro() {
           <button class="button-3d button-3d-primary" type="button" data-screen="signup">Começar agora</button>
           <button class="button-3d button-3d-outline" type="button" data-screen="login">Já tenho conta</button>
         </div>
+        <button class="welcome-guest" type="button" data-action="guest-start">${icon("eye-fill")} Só quero experimentar, sem criar conta</button>
         <a class="welcome-link" href="../../landing/index.html?v=2">${icon("info-circle-fill")} Conhecer o projeto</a>
       </div>
     </section>
@@ -404,7 +405,7 @@ function renderTrailWave() {
 }
 
 function renderTrailMap() {
-  const sizes = `--step-w:${trailStepWidth}px;--edge:${TRAIL_EDGE}px;--route-top:${TRAIL_ROUTE_TOP}px;--wave-size:${TRAIL_WAVE}px`;
+  const sizes = `--step-w:${trailStepWidth}px;--edge:${TRAIL_EDGE}px;--wave-size:${TRAIL_WAVE}px`; // --route-top fica no css/home.css
   return `
     <section class="home-map" aria-label="Sua trilha">
       <div class="trail-frame">
@@ -441,6 +442,7 @@ function offsetInTrack(element, side) {
 function layoutTrail(scroller) {
   if (isMobileLayout()) scroller.scrollLeft = 0;
   else scroller.scrollTop = 0;
+  zoomTrail(scroller); // antes de medir: o zoom muda a largura que a trilha "enxerga"
   trailStepWidth = Math.max(TRAIL_MIN_STEP, Math.floor((scroller.clientWidth - TRAIL_EDGE * 2) / 4));
   const track = scroller.querySelector(".trail-track");
   track.style.setProperty("--step-w", `${trailStepWidth}px`);
@@ -450,6 +452,28 @@ function layoutTrail(scroller) {
 
 // Vigia o tamanho do quadro da trilha (ver setupTrailScroll).
 let trailResizeWatcher = null;
+
+// Lupa da trilha (computador): as bolinhas, a faixa da unidade e os nomes
+// crescem conforme o espaço do cartão, em qualquer tela. O tamanho "certo" da
+// trilha é uns 400px de altura (faixa + bolinhas + nomes, com um respiro) e uns
+// 760px de largura (4 etapas sem apertar). O zoom é o maior possível sem passar
+// de nenhum dos dois, entre 1 (normal) e 1.6. No celular, nada muda.
+const TRAIL_IDEAL_HEIGHT = 400;
+const TRAIL_IDEAL_WIDTH = 760;
+const TRAIL_MAX_ZOOM = 1.6;
+
+function zoomTrail(scroller) {
+  const frame = scroller.closest(".trail-frame");
+  const map = scroller.closest(".home-map");
+  if (isMobileLayout()) {
+    frame.style.zoom = "";
+    return;
+  }
+  const style = getComputedStyle(map);
+  const height = map.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  const zoom = Math.min(height / TRAIL_IDEAL_HEIGHT, map.clientWidth / TRAIL_IDEAL_WIDTH, TRAIL_MAX_ZOOM);
+  frame.style.zoom = Math.max(1, Math.round(zoom * 100) / 100); // nunca menor que o normal
+}
 
 // Depois de desenhar a Home: ajusta as medidas, posiciona a trilha e liga as setas.
 function setupTrailScroll() {
@@ -562,9 +586,19 @@ function renderDailyGoal() {
 // Cartão da liga (lateral da Home no computador): troféu, posição, XP da semana e
 // quanto falta para subir. Leva para a tela de Ligas.
 function renderHomeLeague() {
+  if (state.isGuest) {
+    return `
+    <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Ligas: crie uma conta para competir">
+      <span class="league-badge ${LEAGUES[0].className}">${icon("lock-fill")}</span>
+      <span class="home-league-copy"><strong>Ligas</strong><small>Crie uma conta para competir</small></span>
+      ${icon("chevron-right")}
+    </button>`;
+  }
   const league = LEAGUES[state.league];
   const { position, me, zone, missing } = myLeagueStanding();
-  const progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;
+  let progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;
+  if (me.xp === 0) progress = "faça uma atividade para entrar na disputa";
+  else if (state.league === LEAGUES.length - 1 && zone !== "demotion") progress = "na liga mais alta!";
   const detail = `${me.xp} XP na semana · ${progress}`;
   return `
     <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Liga ${league.name}, ${position}º lugar. ${detail}. Abrir ligas">
@@ -605,5 +639,5 @@ function renderTrail() {
         ${renderHomeLeague()}
       </aside>
     </div>
-    <p class="demo-disclaimer">Pontos, sequência e conteúdo exibidos são dados demonstrativos deste protótipo.</p>`;
+    <p class="demo-disclaimer">O conteúdo das etapas ainda é provisório e será revisado por pessoas surdas fluentes em Libras.</p>`;
 }

@@ -1,11 +1,10 @@
 # Testes das regras que não dependem do banco:
-# energia (gastar), senha, missões, lojinha, ligas, dicionário, desafio e conteúdo.
+# energia (gastar), senha, missões, lojinha, ligas, dicionário e desafio.
 
 import unittest
 from datetime import date, datetime, timedelta
 
 from src.services import (
-    conteudo_service,
     desafio_service,
     dicionario_service,
     energia_service,
@@ -29,8 +28,16 @@ class SenhaTests(unittest.TestCase):
     def test_senha_forte_passa(self):
         self.assertIsNone(senha_service.problema_na_senha("Exemplo#2026"))
 
-    def test_senha_sem_simbolo_nao_passa(self):
-        self.assertIsNotNone(senha_service.problema_na_senha("Exemplo2026"))
+    def test_senha_simples_e_comprida_passa(self):
+        # Como no Duolingo: não precisa de maiúscula, número nem símbolo.
+        self.assertIsNone(senha_service.problema_na_senha("gato de botas"))
+
+    def test_senha_obvia_nao_passa(self):
+        self.assertIsNotNone(senha_service.problema_na_senha("12345678"))
+        self.assertIsNotNone(senha_service.problema_na_senha("aaaaaaaa"))
+
+    def test_senha_igual_ao_apelido_nao_passa(self):
+        self.assertIsNotNone(senha_service.problema_na_senha("marinaaa", apelido="Marinaaa"))
 
     def test_senha_curta_nao_passa(self):
         self.assertIsNotNone(senha_service.problema_na_senha("Ex#1"))
@@ -64,17 +71,35 @@ class MissoesTests(unittest.TestCase):
         self.assertFalse(missoes_service.pode_resgatar(missao, ["dicionario"]))
 
 
+# Os itens vendidos por moedas, na mesma ordem do app e do banco.
+ITENS_A_VENDA = [
+    {"id": codigo, "parte": parte, "jeito": "moedas", "preco": preco}
+    for codigo, parte, preco in [
+        ("camiseta-coral", "Roupa", 20), ("camiseta-amarela", "Roupa", 20), ("camiseta-listrada", "Roupa", 35),
+        ("chapeu-festa", "Chapeu", 30), ("tiara-flores", "Chapeu", 40), ("oculos-sol", "Rosto", 30),
+        ("estrela-coral", "Peito", 25), ("flor-amarela", "Peito", 40), ("folha-azul", "Peito", 60),
+        ("fundo-ceu", "Fundo", 20), ("fundo-mar", "Fundo", 30), ("fundo-por-do-sol", "Fundo", 30), ("fundo-sol", "Fundo", 30),
+    ]
+]
+
+
 class LojinhaTests(unittest.TestCase):
+    def test_vitrine_igual_a_do_app(self):
+        # O app (js/telas-lojinha.js) mostra estes 3 itens em 01/11/2026.
+        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 1), ITENS_A_VENDA)
+
+        self.assertEqual([item["id"] for item in vitrine], ["fundo-mar", "oculos-sol", "estrela-coral"])
+
     def test_vitrine_tem_tres_itens_de_partes_diferentes(self):
-        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
+        vitrine = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
         partes = [item["parte"] for item in vitrine]
 
         self.assertEqual(len(vitrine), 3)
         self.assertEqual(len(set(partes)), 3)
 
     def test_vitrine_e_igual_no_mesmo_dia(self):
-        primeira = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
-        segunda = lojinha_service.vitrine_do_dia(date(2026, 11, 8), conteudo_service.ITENS)
+        primeira = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
+        segunda = lojinha_service.vitrine_do_dia(date(2026, 11, 8), ITENS_A_VENDA)
 
         self.assertEqual(primeira, segunda)
 
@@ -95,6 +120,35 @@ class LojinhaTests(unittest.TestCase):
 
 
 class LigasTests(unittest.TestCase):
+    def test_broches_vem_das_conquistas(self):
+        # primeiro exercício, 5 exercícios, 10 sinais vistos e 3 itens
+        self.assertTrue(ligas_service.conquista_liberada("primeiro", 0, 0, 0, exercicios=1))
+        self.assertFalse(ligas_service.conquista_liberada("cinco", 0, 0, 0, exercicios=4))
+        self.assertTrue(ligas_service.conquista_liberada("cinco", 0, 0, 0, exercicios=5))
+        self.assertFalse(ligas_service.conquista_liberada("explorador", 0, 0, 0, sinais_vistos=9))
+        self.assertTrue(ligas_service.conquista_liberada("colecionador", 0, 0, 0, itens=3))
+
+    def test_na_bronze_ninguem_desce(self):
+        self.assertEqual(ligas_service.zona(10, 10, liga=0), "fica")
+        self.assertEqual(ligas_service.zona(10, 10, liga=1), "desce")
+        self.assertEqual(ligas_service.nova_liga(0, 10, 10), 0)
+
+    def test_no_diamante_ninguem_sobe(self):
+        self.assertEqual(ligas_service.zona(1, 10, liga=4), "fica")
+        self.assertEqual(ligas_service.zona(1, 10, liga=3), "sobe")
+
+    def test_primeiro_aluno_abre_o_grupo_1(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({}), 1)
+
+    def test_entra_no_grupo_que_tem_vaga(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 10, 2: 7}), 2)
+
+    def test_grupos_cheios_abrem_um_novo(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 10, 2: 10}), 3)
+
+    def test_vaga_que_abriu_num_grupo_antigo_e_usada_primeiro(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 9, 2: 10}), 1)
+
     def test_ranking_ordena_pelo_xp(self):
         ranking = ligas_service.montar_ranking([
             {"id_aluno": 1, "apelido": "Ana", "xp": 40},
@@ -120,54 +174,32 @@ class LigasTests(unittest.TestCase):
 
 class DicionarioTests(unittest.TestCase):
     def test_alfabeto_sempre_aberto(self):
-        self.assertTrue(dicionario_service.sinal_aberto("Letra Z", []))
+        self.assertTrue(dicionario_service.sinal_aberto("letra-z", []))
+        self.assertTrue(dicionario_service.sinal_aberto("Letra-A", []))
 
-    def test_palavra_abre_depois_da_atividade_de_aprender(self):
-        sinais = {"numeros:um-a-cinco": ["1", "2"]}
-
-        self.assertEqual(dicionario_service.sinais_desbloqueados([], sinais), [])
-        self.assertEqual(dicionario_service.sinais_desbloqueados(["numeros:um-a-cinco"], sinais), ["1", "2"])
+    def test_palavra_so_abre_depois_de_desbloqueada(self):
+        self.assertFalse(dicionario_service.sinal_aberto("bom-dia", []))
+        self.assertTrue(dicionario_service.sinal_aberto("bom-dia", ["bom-dia"]))
 
 
 class DesafioTests(unittest.TestCase):
-    def test_precisa_de_cinco_sinais(self):
-        self.assertFalse(desafio_service.desafio_liberado(["A", "B", "C", "D"]))
-        self.assertTrue(desafio_service.desafio_liberado(["A", "B", "C", "D", "E"]))
+    def test_abre_com_um_exercicio_concluido(self):
+        self.assertFalse(desafio_service.desafio_liberado(4))
+        self.assertTrue(desafio_service.desafio_liberado(5))
 
-    def test_perguntas_sorteadas_tem_a_resposta_certa_nas_opcoes(self):
-        sinais = ["Letra A", "Letra E", "Letra I", "Letra O", "Letra U"]
-        nomes = {sinal: sinal.replace("Letra ", "") for sinal in sinais}
-        perguntas = desafio_service.sortear_perguntas(sinais, nomes)
+    def test_sorteio_igual_com_a_mesma_semente(self):
+        perguntas = [{"id_pergunta": numero} for numero in range(20)]
 
-        self.assertEqual(len(perguntas), 5)
-        for pergunta in perguntas:
-            certa = pergunta["opcoes"][pergunta["resposta_certa"]]
-            self.assertEqual(certa, nomes[pergunta["sinal"]])
+        primeiro = desafio_service.sortear_perguntas(perguntas, semente=7)
+        segundo = desafio_service.sortear_perguntas(perguntas, semente=7)
+
+        self.assertEqual(primeiro, segundo)
+        self.assertEqual(len(primeiro), 5)
 
     def test_premio_so_uma_vez_por_dia(self):
         self.assertTrue(desafio_service.ganhou_premio(erros=1, ja_ganhou_hoje=False))
         self.assertFalse(desafio_service.ganhou_premio(erros=1, ja_ganhou_hoje=True))
         self.assertFalse(desafio_service.ganhou_premio(erros=2, ja_ganhou_hoje=False))
-
-
-class ConteudoTests(unittest.TestCase):
-    def test_trilha_tem_oito_etapas_com_cinco_atividades(self):
-        self.assertEqual(len(conteudo_service.ETAPAS), 8)
-        for etapa in conteudo_service.ETAPAS:
-            self.assertEqual(len(etapa["atividades"]), 5)
-
-    def test_prova_tem_seis_perguntas(self):
-        prova = conteudo_service.buscar_atividade("numeros:final")
-
-        self.assertEqual(len(prova["perguntas"]), 6)
-
-    def test_app_nao_recebe_o_gabarito(self):
-        atividade = conteudo_service.buscar_atividade("numeros:pratica-um-a-cinco")
-        seguras = conteudo_service.perguntas_sem_gabarito(atividade["perguntas"])
-
-        for pergunta in seguras:
-            self.assertNotIn("resposta_certa", pergunta)
-        self.assertIn("resposta_certa", atividade["perguntas"][0])  # o original não muda
 
 
 if __name__ == "__main__":

@@ -28,27 +28,23 @@ def problema_no_apelido(apelido: str) -> str | None:
     return None
 
 
-def problema_na_senha(senha: str) -> str | None:
-    # Mesmas regras do app: 8 caracteres, maiúscula, minúscula, número e símbolo.
-    tem_maiuscula = False
-    tem_minuscula = False
-    tem_numero = False
-    tem_simbolo = False
+# Senhas óbvias demais: as primeiras que alguém tentaria.
+SENHAS_OBVIAS = [
+    "12345678", "123456789", "1234567890", "87654321", "11111111", "00000000",
+    "senha123", "senha1234", "password", "qwertyui", "abcdefgh", "abc12345", "edusinal", "libras123",
+]
 
-    for letra in senha:
-        if letra.isupper():
-            tem_maiuscula = True
-        elif letra.islower():
-            tem_minuscula = True
-        elif letra.isdigit():
-            tem_numero = True
-        else:
-            tem_simbolo = True
 
+def problema_na_senha(senha: str, apelido: str = "", email: str = "") -> str | None:
+    # No estilo do Duolingo: não obriga maiúscula, número e símbolo (isso só
+    # deixa a senha difícil de lembrar). Vale o tamanho e não ser óbvia.
+    minuscula = senha.lower()
     if len(senha) < SENHA_MINIMA:
         return f"A senha precisa ter pelo menos {SENHA_MINIMA} caracteres."
-    if not (tem_maiuscula and tem_minuscula and tem_numero and tem_simbolo):
-        return "A senha precisa ter letra maiúscula, letra minúscula, número e símbolo."
+    if minuscula in SENHAS_OBVIAS or len(set(minuscula)) == 1:  # ex.: "aaaaaaaa"
+        return "Essa senha é fácil demais de adivinhar. Tente outra."
+    if minuscula == apelido.strip().lower() or (email and minuscula == email.split("@")[0].lower()):
+        return "A senha não pode ser igual ao seu apelido ou e-mail."
     return None
 
 
@@ -61,7 +57,10 @@ def gerar_hash(senha: str) -> str:
 
 def conferir_senha(senha: str, hash_guardado: str) -> bool:
     # Embaralha a senha digitada com o mesmo sal e compara com o que está guardado.
-    _, sal, embaralhada_guardada = hash_guardado.split("$")
+    partes = hash_guardado.split("$")
+    if len(partes) != 3 or partes[0] != "scrypt":
+        return False  # hash num formato que não é o nosso (ex.: dados de teste)
+    _, sal, embaralhada_guardada = partes
     embaralhada = hashlib.scrypt(senha.encode(), salt=bytes.fromhex(sal), n=2**14, r=8, p=1)
 
     # compare_digest compara sem "vazar" pelo tempo quantas letras acertou.

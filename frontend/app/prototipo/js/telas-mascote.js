@@ -47,10 +47,11 @@ const MASCOT_ITEMS = [
 
   // Broches (os mesmos ids e preços da lojinha antiga, para ninguém perder o que comprou)
   { id: "", slot: "chest", name: "Nada", unlock: { type: "free" } },
-  { id: "broche-sinal", slot: "chest", name: "Broche de sinais", unlock: { type: "reward" } },
-  { id: "estrela-coral", slot: "chest", name: "Estrela coral", description: "Pra quem brilha nos estudos", unlock: { type: "coins", cost: 25 } },
-  { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "coins", cost: 40 } },
-  { id: "folha-azul", slot: "chest", name: "Folha azul", description: "A mais rara da vitrine", unlock: { type: "coins", cost: 60 } },
+  // Broches: só por conquista (cada conquista do Perfil dá um prêmio)
+  { id: "broche-sinal", slot: "chest", name: "Broche de sinais", unlock: { type: "achievement", id: "primeiro" } },
+  { id: "estrela-coral", slot: "chest", name: "Estrela coral", description: "Pra quem brilha nos estudos", unlock: { type: "achievement", id: "cinco" } },
+  { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "achievement", id: "colecionador" } },
+  { id: "folha-azul", slot: "chest", name: "Folha azul", description: "Pra quem explora o dicionário", unlock: { type: "achievement", id: "explorador" } },
 
   // Fundos (cor atrás do mascote)
   { id: "", slot: "background", name: "Azul da logo", unlock: { type: "free" } },
@@ -86,7 +87,10 @@ function unlockLabel(item) {
   const unlock = item.unlock;
   if (unlock.type === "coins") return `${unlock.cost} ${icon("coin")}`;
   if (unlock.type === "reward") return "1ª atividade";
-  if (unlock.type === "achievement") return `Conquista: ${ACHIEVEMENTS.find((entry) => entry.id === unlock.id).title}`;
+  if (unlock.type === "achievement") {
+    const achievement = ACHIEVEMENTS.find((entry) => entry.id === unlock.id);
+    return isAchievementVisible(achievement) ? `Conquista: ${achievement.title}` : "Conquista escondida";
+  }
   return "Grátis";
 }
 
@@ -109,7 +113,10 @@ function chooseMascotItem(slot, id) {
 
   if (!isMascotItemOwned(item)) {
     if (item.unlock.type === "achievement") {
-      showToast(`Complete a conquista “${ACHIEVEMENTS.find((entry) => entry.id === item.unlock.id).title}” no perfil para liberar.`);
+      const achievement = ACHIEVEMENTS.find((entry) => entry.id === item.unlock.id);
+      showToast(isAchievementVisible(achievement)
+        ? `Complete a conquista “${achievement.title}” no perfil para liberar.`
+        : "Esse item vem de uma conquista escondida. Complete as conquistas do Perfil para descobrir qual!");
       return;
     }
     if (item.unlock.type === "reward") {
@@ -125,9 +132,13 @@ function chooseMascotItem(slot, id) {
       return;
     }
     // Compra só depois de confirmar, pra ninguém gastar moedas sem querer.
-    askToBuy(item, () => {
-      state.coins -= item.unlock.cost;
-      state.unlockedItems.push(item.id);
+    askToBuy(item, async () => {
+      try {
+        applyServerState(await api("POST", "/lojinha/compras", { id: item.id }));
+      } catch (error) {
+        showApiError(error);
+        return;
+      }
       showToast(`${item.name} comprado: −${item.unlock.cost} moedas.`);
       wearMascotItem(slot, id);
     });
@@ -137,9 +148,9 @@ function chooseMascotItem(slot, id) {
   wearMascotItem(slot, id);
 }
 
-// Na janela de compra, o botão Comprar fica travado por 3 s (a barrinha vai enchendo)
+// Na janela de compra, o botão Comprar fica travado por 2 s (a barrinha vai enchendo)
 // antes de liberar, pra ninguém comprar sem querer. Cancelar funciona na hora.
-const BUY_WAIT_MS = 3000;
+const BUY_WAIT_MS = 2000;
 let buyCountdown = null;
 
 // Janela de compra (Modal do Bootstrap): o mascote já com o item, o preço e
@@ -182,11 +193,15 @@ function askToBuy(item, onConfirm) {
   modal.show();
 }
 
-// Veste o item (já comprado) no mascote.
-function wearMascotItem(slot, id) {
+// Veste o item (já comprado) no mascote. O servidor confere se o item é do aluno.
+async function wearMascotItem(slot, id) {
   const changed = state.mascot[slot] !== id;
-  state.mascot[slot] = id;
-  persist();
+  try {
+    applyServerState(await api("PUT", "/mascote", { parte: MASCOT_SLOT_NAMES[slot], id_item: id }));
+  } catch (error) {
+    showApiError(error);
+    return;
+  }
   render();
   if (changed) playMascotReaction(); // roupa nova: "tive uma ideia!"
 }
@@ -197,9 +212,15 @@ function chooseMascotTab(slot) {
 }
 
 // Volta para o visual da logo (os itens comprados continuam do aluno).
-function resetMascotLook() {
-  state.mascot = { ...DEFAULT_LOOK };
-  persist();
+async function resetMascotLook() {
+  try {
+    // Uma parte de cada vez (o servidor guarda uma peça por parte).
+    for (const [slot, id] of Object.entries(DEFAULT_LOOK)) {
+      applyServerState(await api("PUT", "/mascote", { parte: MASCOT_SLOT_NAMES[slot], id_item: id }));
+    }
+  } catch (error) {
+    showApiError(error);
+  }
   render();
   showToast("Visual da logo restaurado. Seus itens continuam guardados.");
 }
@@ -258,5 +279,5 @@ function renderMascotEditor() {
         <p class="wardrobe-hint">${icon("bag-heart-fill")} Itens com preço só podem ser comprados no dia em que estão na <button class="text-button" type="button" data-screen="shop">vitrine da Lojinha</button>. Os com cadeado vêm de conquistas do Perfil.</p>
       </section>
     </div>
-    <p class="demo-disclaimer">As moedas são de demonstração e os itens ficam salvos somente neste navegador.</p>`;
+    <p class="demo-disclaimer">As moedas são do jogo: não há compras com dinheiro real.</p>`;
 }

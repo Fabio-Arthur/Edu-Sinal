@@ -156,13 +156,16 @@
   /* espaço para o conteúdo não ficar atrás da barra de baixo */
   .workspace { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   /* Sem barras na apresentação, no login, no cadastro, na atividade e no modo foco */
-  .app-shell:is([data-current-screen="intro"], [data-current-screen="login"], [data-current-screen="signup"], [data-current-screen="lesson"], [data-focus="on"]) :is(.mobile-topbar, .bottom-nav, .app-footer) { display: none; }
-  .app-shell:is([data-current-screen="intro"], [data-current-screen="login"], [data-current-screen="signup"], [data-current-screen="lesson"], [data-focus="on"]) .workspace { padding-bottom: env(safe-area-inset-bottom); }
+  .app-shell:is([data-current-screen="intro"], [data-current-screen="login"], [data-current-screen="signup"], [data-current-screen="terms"], [data-current-screen="lesson"], [data-focus="on"]) :is(.mobile-topbar, .bottom-nav, .app-footer) { display: none; }
+  .app-shell:is([data-current-screen="intro"], [data-current-screen="login"], [data-current-screen="signup"], [data-current-screen="terms"], [data-current-screen="lesson"], [data-focus="on"]) .workspace { padding-bottom: env(safe-area-inset-bottom); }
   .app-shell:is([data-current-screen="intro"], [data-current-screen="login"], [data-current-screen="signup"]) .app-footer { display: flex; min-height: 45px; } /* 45px: o cadastro.css desconta essa altura */
   .app-footer { display: none; }
 
   /* ----- Tamanhos de texto e de toque (mínimo de 12px e 44px) ----- */
   .screen-root { padding: 18px 16px 24px; }
+  .terms { height: calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--zoom) - 42px); }
+  .terms-header h2 { font-size: 20px; }
+  .terms-text { padding: 2px 14px 14px; }
   .eyebrow { font-size: 11px; }
   .demo-disclaimer { font-size: 11px; }
   .button { min-height: 46px; padding: 0 16px; font-size: 14px; }

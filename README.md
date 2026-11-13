@@ -11,7 +11,7 @@ Plataforma demonstrativa para aprendizagem de Libras. O protótipo é a experiê
 - **Vidas:** 3 vidas; cada resposta errada consome uma e uma vida se recupera a cada 30 minutos. Revisar o dicionário continua livre.
 - **Energia:** limita quantas atividades novas o aluno faz seguidas, para estudar com calma. São 5 de energia; concluir uma atividade nova (aprender, exercício, prova, letra ou o prêmio do Desafia-me) gasta 1, e 1 volta a cada 3 horas. Refazer o que já foi concluído (revisão) não gasta e não é bloqueado. Na lojinha dá para encher a energia uma vez por dia. Os números ficam em `MAX_ENERGY` e `ENERGY_RECHARGE_MS`, em `js/estado.js`.
 - **Recompensas demonstrativas:** uma atividade nova correta concede 20 XP. A primeira dá 15 moedas e libera um broche local no protótipo; cada atividade nova seguinte dá 5 moedas. O inventário ainda não está na API.
-- **Alfabeto manual:** fica no Dicionário, como uma trilha de 26 letras. Só a A começa liberada; cada letra é uma mini atividade (um cartão para aprender e duas perguntas: vídeo → letra e letra → vídeo) e, ao concluir, libera a próxima, em ordem. Letras já aprendidas podem ser revistas e praticadas de novo (revisão, sem XP). Com 5 letras aprendidas abre o **Desafia-me** (opcional, não trava as próximas letras): 5 perguntas sorteadas misturando todas as letras já aprendidas; quem errar no máximo 1 ganha +20 XP e +10 moedas, uma vez por dia (gasta 1 de energia). No resto do dia, refazer é treino livre. O progresso fica salvo como `alfabeto:A`, `alfabeto:B`... (código em `js/telas-dicionario.js`).
+- **Dicionário (álbum de sinais):** o alfabeto manual fica todo aberto, para consultar as 26 letras. As palavras vêm das atividades de aprender da trilha: começam bloqueadas e abrem quando o aluno conclui a atividade que ensina o sinal. O **Desafia-me** (opcional) sorteia 5 perguntas dos exercícios já concluídos; quem errar no máximo 1 ganha +20 XP e +10 moedas, uma vez por dia (gasta 1 de energia). Código em `js/telas-dicionario.js`.
 - **Abas do aluno:** dicionário com busca e categorias (revisar é livre); ligas semanais com colegas fictícios (os 3 primeiros sobem, os 2 últimos descem); missões do dia e da semana que dão moedas; lojinha com ajudas (recarga de energia, recarga de vidas, protetor de ofensiva) e uma vitrine do dia com 3 itens do mascote, sorteados pela data, que trocam à meia-noite (um item com preço só pode ser comprado no dia em que está na vitrine); perfil com estatísticas e conquistas (as que dão roupa ao mascote mostram o prêmio); guarda-roupa do mascote (tocar no mascote do Perfil abre); e Configurações (engrenagem) com tema, tamanho do texto, animações reduzidas, ajuda, privacidade e conta.
 - **Ofensiva:** conta os dias seguidos com pelo menos um exercício novo. Se o aluno ficar dias sem praticar, ela zera, a não ser que tenha protetores de ofensiva. Tocar no foguinho (barra de cima do celular, quadradinho da ofensiva na Home do computador ou quadradinho da ofensiva no Perfil) abre o calendário do mês, com os dias praticados e os salvos pelo protetor.
 - **Segurança para menores:** não há chat nem mensagens entre alunos, e as ligas mostram só apelidos.
@@ -19,7 +19,7 @@ Plataforma demonstrativa para aprendizagem de Libras. O protótipo é a experiê
 - **Árvore de exercícios:** os 5 exercícios de cada etapa seguem uma ordem (o 2 abre depois do 1, e assim por diante) e a prova final vem por último. No computador eles ficam em espiral, com a prova no centro; no celular, num caminho ondulado só com os ícones: tocar num ícone mostra o título e o botão para começar. A árvore inteira cabe na tela sem rolar (a altura acompanha a tela), e em cima fica uma faixa só, com a flechinha de voltar para a Home, o nome da etapa no meio e, à direita, o progresso, as vidas e a energia (uma bateria com 5 tracinhos). Ao abrir uma etapa, uma animação (View Transitions do navegador) transforma o destaque da Home na faixa da etapa, leva a bolinha da etapa até o centro (o troféu da prova final) e os exercícios saem dela até a espiral; ao voltar, faz o caminho inverso. Com "animações reduzidas" ligado, a troca é direta.
 - **Etapas com conteúdo (provisório, para testar a organização):** 8 etapas em 2 unidades. **Unidade 01 · Primeiros passos:** 01 Alfabeto, 02 Números, 03 Apresentação e 04 Cumprimentos. **Unidade 02 · Sinais do dia a dia:** 05 Em casa, 06 Na escola, 07 No trabalho e 08 Na rua. Cada etapa tem 5 atividades: a 1ª e a 3ª são para **aprender** (cartões com sinais novos) e a 2ª, a 4ª e a 5ª são **exercícios** com 5 perguntas; depois vem a prova final, com 6 perguntas tiradas dos exercícios. Uma etapa só abre depois da prova da anterior. **Segunda chance:** nos exercícios (e nas letras do alfabeto), a pergunta errada volta uma vez no fim da atividade; na prova final e no Desafia-me não, porque lá o limite de erros é a regra.
 - **Atividade:** tela cheia (o menu lateral some), com barra de progresso, vidas e uma faixa fixa embaixo, no estilo do Duolingo. **Aprender:** um cartão por sinal (vídeo, nome e dica de uso); não tem certo ou errado e não gasta vidas, então dá para aprender mesmo sem vidas. **Exercícios:** 4 tipos de pergunta: vídeo → palavra, palavra → vídeo, situação (texto) e verdadeiro ou falso. O aluno escolhe e toca em "Conferir" (ou usa as teclas 1 a 4 e Enter); a faixa fica turquesa se acertou e coral se errou, com a explicação. Errar gasta uma vida. Na prova final, pode errar no máximo 1. Refazer algo já concluído é revisão, sem XP.
-- **Importante:** o frontend ainda não está conectado à API. Não há autenticação de verdade (a senha não é conferida nem salva) e o cadastro não pede idade. A loja não usa dinheiro real.
+- **Conta e progresso no servidor:** o app usa a API (`backend/`) para cadastro, login e todo o progresso; no navegador ficam só as preferências de tela. O cadastro não pede idade (ver LGPD no planejamento). A loja não usa dinheiro real.
 
 ## Estrutura de pastas
 
@@ -159,17 +159,11 @@ python -m uvicorn src.app:app --reload
 
 Abra <http://127.0.0.1:8000/docs> para explorar a documentação automática da API.
 
-## Rotas atuais da API
+## Rotas da API
 
-| Método | Rota | Para que serve |
-| --- | --- | --- |
-| `GET`, `POST`, `PUT`, `DELETE` | `/alunos` | CRUD de alunos |
-| `GET`, `POST`, `PUT`, `DELETE` | `/professores` | CRUD administrativo de perfis de professor |
-| `GET`, `POST`, `PUT`, `DELETE` | `/administradores` | CRUD de administradores |
-| `GET` | `/alunos/{id_aluno}/progresso` | Consulta XP, moedas, vidas e ofensiva |
-| `POST` | `/alunos/{id_aluno}/atividades/{id_atividade}/respostas` | Registra uma resposta de atividade |
+A lista completa das rotas, com exemplos e as regras do visitante, está no [backend/README.md](backend/README.md#rotas). Todas as rotas também aparecem, para testar, em <http://127.0.0.1:8000/docs>.
 
-O envio da resposta usa `id_tentativa` (UUID) e `id_resposta`. O servidor consulta o gabarito no MySQL; o cliente não pode declarar que acertou. O mesmo `id_tentativa` torna uma repetição segura contra recompensa duplicada.
+O servidor descobre quem está logado pelo cookie da sessão, nunca por um número no endereço. Ele mesmo confere as respostas no banco: o app não consegue dizer que acertou.
 
 ## Testes do backend
 
@@ -179,7 +173,7 @@ Com o ambiente virtual ativado e dentro da pasta da API:
 python -m unittest discover -s tests -v
 ```
 
-Os testes cobrem recuperação de vidas, consumo por erro, recompensa única e bloqueio de tentativa pontuada ao zerar. Eles não substituem um teste integrado com MySQL.
+Os testes cobrem as regras do jogo (vidas, energia, ofensiva, trilha, senha, missões, lojinha, ligas, dicionário e Desafia-me), sem precisar do banco.
 
 ## Organização do código
 
