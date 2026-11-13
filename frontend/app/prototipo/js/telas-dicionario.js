@@ -140,6 +140,7 @@ function challengeSteps(questions) {
 
 function startAlphabetChallenge() {
   if (!isChallengeUnlocked()) return;
+  state.challengeSheetOpen = false;
   beginLesson({
     topicId: DICTIONARY_TOPIC,
     branchId: CHALLENGE_ID,
@@ -177,6 +178,26 @@ function renderAlphabetChallenge() {
       <div class="challenge-copy"><h3>Desafia-me</h3><p>${text}</p><div class="challenge-prizes">${prize}</div></div>
       ${button}
     </section>`;
+}
+
+// No celular, o cartão do Desafia-me sai do meio da tela (ficava grudado na
+// busca) e vira um botão redondo no canto, que abre o cartão numa janelinha.
+function toggleChallengeSheet() {
+  state.challengeSheetOpen = !state.challengeSheetOpen;
+  render();
+}
+
+function renderChallengeFab() {
+  const unlocked = isChallengeUnlocked();
+  const gold = unlocked && isChallengeRewardAvailable();
+  const look = gold ? " is-gold" : unlocked ? "" : " is-locked";
+  const fab = `<button class="challenge-fab${look}" type="button" data-action="toggle-challenge-sheet" aria-label="Abrir o Desafia-me" aria-expanded="${state.challengeSheetOpen}">${icon(unlocked ? "lightning-charge-fill" : "lock-fill")}</button>`;
+  if (!state.challengeSheetOpen) return fab;
+  return `${fab}
+    <div class="challenge-sheet">
+      <button class="challenge-sheet-backdrop" type="button" data-action="toggle-challenge-sheet" aria-label="Fechar o Desafia-me"></button>
+      <div class="challenge-sheet-box">${renderAlphabetChallenge()}</div>
+    </div>`;
 }
 
 // ----- Alfabeto: todas as letras abertas, só para consultar -----
@@ -288,5 +309,6 @@ function renderSigns() {
     <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>
     <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>
-    </div>`;
+    </div>
+    ${renderChallengeFab()}`;
 }

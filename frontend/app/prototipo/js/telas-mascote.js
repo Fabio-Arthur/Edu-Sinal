@@ -148,9 +148,9 @@ function chooseMascotItem(slot, id) {
   wearMascotItem(slot, id);
 }
 
-// Na janela de compra, o botão Comprar fica travado por 3 s (a barrinha vai enchendo)
+// Na janela de compra, o botão Comprar fica travado por 2 s (a barrinha vai enchendo)
 // antes de liberar, pra ninguém comprar sem querer. Cancelar funciona na hora.
-const BUY_WAIT_MS = 3000;
+const BUY_WAIT_MS = 2000;
 let buyCountdown = null;
 
 // Janela de compra (Modal do Bootstrap): o mascote já com o item, o preço e

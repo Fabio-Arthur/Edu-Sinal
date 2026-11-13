@@ -258,6 +258,7 @@ document.addEventListener("click", (event) => {
   else if (action === "dictionary-category") chooseDictionaryCategory(data.category);
   else if (action === "select-word") selectWord(data.word);
   else if (action === "start-challenge") startAlphabetChallenge();
+  else if (action === "toggle-challenge-sheet") toggleChallengeSheet();
   else if (action === "mascot-react") playMascotReaction();
   // Missões e lojinha
   else if (action === "claim-mission") claimMission(data.scope, data.mission);
