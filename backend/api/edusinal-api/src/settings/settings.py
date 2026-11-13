@@ -19,6 +19,9 @@ class Settings:
         self.db_user = os.getenv("DB_USER")
         self.db_password = os.getenv("DB_PASS")
         self.db_name = os.getenv("DB_NAME", "edu_sinal")
+        # Banco na nuvem (TiDB Cloud) só aceita conexão criptografada (TLS).
+        # No computador fica false; publicado, true.
+        self.db_ssl = os.getenv("DB_SSL", "false").lower() == "true"
 
         # Endereços do app que podem chamar a API (separados por vírgula).
         origens = os.getenv("ORIGENS_PERMITIDAS", "http://127.0.0.1:5500,http://localhost:5500")

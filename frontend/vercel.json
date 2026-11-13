@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/:caminho*", "destination": "https://edusinal-api.onrender.com/:caminho*" }
+  ]
+}
