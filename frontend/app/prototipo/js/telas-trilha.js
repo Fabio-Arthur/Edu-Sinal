@@ -23,6 +23,7 @@ function renderIntro() {
           <button class="button-3d button-3d-primary" type="button" data-screen="signup">Começar agora</button>
           <button class="button-3d button-3d-outline" type="button" data-screen="login">Já tenho conta</button>
         </div>
+        <button class="welcome-guest" type="button" data-action="guest-start">${icon("eye-fill")} Só quero experimentar, sem criar conta</button>
         <a class="welcome-link" href="../../landing/index.html?v=2">${icon("info-circle-fill")} Conhecer o projeto</a>
       </div>
     </section>
@@ -585,6 +586,14 @@ function renderDailyGoal() {
 // Cartão da liga (lateral da Home no computador): troféu, posição, XP da semana e
 // quanto falta para subir. Leva para a tela de Ligas.
 function renderHomeLeague() {
+  if (state.isGuest) {
+    return `
+    <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Ligas: crie uma conta para competir">
+      <span class="league-badge ${LEAGUES[0].className}">${icon("lock-fill")}</span>
+      <span class="home-league-copy"><strong>Ligas</strong><small>Crie uma conta para competir</small></span>
+      ${icon("chevron-right")}
+    </button>`;
+  }
   const league = LEAGUES[state.league];
   const { position, me, zone, missing } = myLeagueStanding();
   const progress = zone === "promotion" ? "na zona de promoção!" : `faltam ${missing} para subir`;

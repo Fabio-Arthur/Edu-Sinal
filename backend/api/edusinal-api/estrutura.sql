@@ -13,8 +13,10 @@ SET default_storage_engine = InnoDB;
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(20) NOT NULL, -- apelido, de 2 a 20 letras
-    email VARCHAR(150) NOT NULL UNIQUE,
-    senha_hash VARCHAR(255) NOT NULL, -- a senha embaralhada (hash), nunca a senha de verdade
+    -- Visitante: conta sem e-mail e sem senha (NULL), para experimentar o app.
+    -- Ela se apaga sozinha depois de 7 dias, a não ser que vire uma conta de verdade.
+    email VARCHAR(150) NULL UNIQUE,
+    senha_hash VARCHAR(255) NULL, -- a senha embaralhada (hash), nunca a senha de verdade
 
     meta_diaria INT NOT NULL DEFAULT 3, -- atividades por dia: 1, 3 ou 5
 
@@ -511,6 +513,7 @@ CREATE TABLE xp_semanal (
     id_usuario INT NOT NULL,
     data_semana DATE NOT NULL, -- a segunda-feira da semana
     id_liga INT NOT NULL, -- a liga em que ele jogou nessa semana
+    grupo INT NOT NULL DEFAULT 1, -- cada liga tem grupos de até 20 alunos; o ranking é só do grupo
 
     xp INT NOT NULL DEFAULT 0,
 
@@ -528,6 +531,8 @@ CREATE TABLE xp_semanal (
 
     FOREIGN KEY (id_liga)
         REFERENCES ligas(id_liga),
+
+    INDEX (data_semana, id_liga, grupo),
 
     CHECK (xp >= 0)
 );

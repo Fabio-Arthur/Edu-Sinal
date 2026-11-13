@@ -4,7 +4,7 @@
 // mesmo sem estar logado.
 // RASCUNHO do TCC: revisar com o orientador antes de publicar de verdade.
 
-const TERMS_UPDATED_AT = "11/11/2026";
+const TERMS_UPDATED_AT = "12/11/2026";
 
 // Cada parte: [título, parágrafos]. Para mudar o texto, é só editar aqui.
 const TERMS_SECTIONS = [
@@ -19,6 +19,7 @@ const TERMS_SECTIONS = [
     "Para criar a conta, pedimos só um apelido, um e-mail e uma senha.",
     "Use um apelido, e não o seu nome completo. Apelidos com palavrões ou ofensas podem ser trocados ou bloqueados.",
     "Não conte a sua senha para ninguém. Cada pessoa usa a própria conta.",
+    "Também dá para experimentar como visitante, sem e-mail e sem senha. O visitante não entra nas ligas, e o progresso dele é apagado depois de 7 dias, ou quando você sai. Se criar a conta antes disso, o progresso vai junto.",
   ]],
   ["Quais dados guardamos", [
     "Apelido, e-mail, a senha embaralhada (ninguém consegue ler a senha, nem a equipe), a meta diária e o seu progresso: atividades feitas, XP, moedas, vidas, energia, ofensiva, itens do mascote e sinais vistos no dicionário.",

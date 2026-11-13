@@ -23,6 +23,37 @@ def cadastrar(conexao, nome: str, email: str, senha_hash: str, meta_diaria: int)
     return id_usuario
 
 
+# ----- Visitantes (conta sem e-mail e sem senha) -----
+
+def cadastrar_visitante(conexao, nome: str) -> int:
+    with conexao.cursor() as cursor:
+        cursor.execute("INSERT INTO usuarios (nome) VALUES (%s)", (nome,))
+        id_usuario = cursor.lastrowid
+        cursor.execute("INSERT INTO progresso_usuario (id_usuario) VALUES (%s)", (id_usuario,))
+    return id_usuario
+
+
+def virar_conta(conexao, id_usuario: int, nome: str, email: str, senha_hash: str, meta_diaria: int) -> bool:
+    # O visitante ganha e-mail e senha e continua com todo o progresso.
+    # O "email IS NULL" garante que só um visitante vira conta (e só uma vez).
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            """UPDATE usuarios SET nome = %s, email = %s, senha_hash = %s, meta_diaria = %s
+               WHERE id_usuario = %s AND email IS NULL""",
+            (nome, email, senha_hash, meta_diaria, id_usuario),
+        )
+        return cursor.rowcount == 1
+
+
+def apagar_visitantes_antigos(conexao, criados_antes_de: datetime) -> None:
+    # Visitantes com mais de 7 dias somem (com tudo deles, pelo CASCADE).
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM usuarios WHERE email IS NULL AND data_cadastro < %s",
+            (criados_antes_de,),
+        )
+
+
 def buscar_por_email(conexao, email: str) -> dict | None:
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(

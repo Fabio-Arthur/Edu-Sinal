@@ -13,6 +13,7 @@ const LEAGUES = [
 ];
 
 const PROMOTION_SPOTS = 3; // quantos sobem
+const GROUP_SIZE = 20; // alunos por grupo da liga (o servidor separa os grupos)
 const DEMOTION_SPOTS = 2;  // quantos descem
 
 // Dia da semana: segunda = 1 ... domingo = 7.
@@ -27,14 +28,19 @@ function weekDayNumber() {
 function buildRanking() {
   if (!state.leagueRanking) return [{ name: state.name, xp: state.week.xp, isMe: true }];
   return state.leagueRanking
-    .map((player) => ({ name: player.sou_eu ? state.name : player.apelido, xp: player.sou_eu ? state.week.xp : player.xp, isMe: player.sou_eu }))
+    .map((player) => ({
+      name: player.sou_eu ? state.name : player.apelido,
+      xp: player.sou_eu ? state.week.xp : player.xp,
+      look: player.sou_eu ? state.mascot : lookFromServer(player.mascote), // o mascote de cada um é a "foto"
+      isMe: player.sou_eu,
+    }))
     .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
 }
 
 // Busca o ranking na API (no máximo uma vez por minuto) e redesenha a tela.
 let leagueRankingLoadedAt = 0;
 async function refreshLeagueRanking() {
-  if (!state.isRegistered || Date.now() - leagueRankingLoadedAt < 60000) return;
+  if (!state.isRegistered || state.isGuest || Date.now() - leagueRankingLoadedAt < 60000) return;
   leagueRankingLoadedAt = Date.now();
   try {
     const result = await api("GET", "/ligas/semana");
@@ -99,13 +105,13 @@ function renderRankingRow(player, position, total) {
   const place = position <= 3
     ? `<span class="ranking-position ranking-medal medal-${position}" aria-label="${position}º lugar">${position}</span>`
     : `<span class="ranking-position">${position}</span>`;
-  const avatar = player.isMe
-    ? `<span class="ranking-avatar is-me ${backdropClass()}" aria-hidden="true">${mascotSvg(state.mascot, "avatar", "")}</span>`
-    : `<span class="ranking-avatar avatar-tone-${position % 4}" aria-hidden="true">${escapeHtml(player.name.slice(0, 1))}</span>`;
+  const look = player.look || state.mascot;
+  const avatar = `<span class="ranking-avatar${player.isMe ? " is-me" : ""} ${backdropClass(look)}" aria-hidden="true">${mascotSvg(look, "avatar", "")}</span>`;
   return `<li class="ranking-row zone-${zone}${player.isMe ? " is-me" : ""}">${place}${avatar}<strong>${escapeHtml(player.name)}${youLabel}</strong><span class="ranking-points">${player.xp} XP</span></li>`;
 }
 
 function renderLeagues() {
+  if (state.isGuest) return renderLeaguesForGuest();
   const league = LEAGUES[state.league];
   const ranking = buildRanking();
 
@@ -140,12 +146,43 @@ function renderLeagues() {
       </div>
       <span class="league-timer">${icon("clock-fill")} Termina em <strong>${leagueTimeLeft()}</strong></span>
     </section>
+    <div class="desk-columns">
+    <div class="desk-col">
     <ol class="league-ladder" aria-label="Ligas, da primeira à última">${ladder}</ol>
     ${renderLeagueStatus(ranking)}
-    <section aria-labelledby="ranking-title">
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>
+    <p class="demo-disclaimer">Cada liga é dividida em grupos de até ${GROUP_SIZE} alunos. Aqui aparece o seu grupo: quem ganhou XP nesta semana.</p>
+    </div>
+    <div class="desk-col desk-col-fill">
+    <section class="ranking-section" aria-labelledby="ranking-title">
       <div class="section-heading"><div><p class="eyebrow">CLASSIFICAÇÃO</p><h2 id="ranking-title">Ranking da semana</h2></div></div>
       <ol class="ranking-list">${rows.join("")}</ol>
     </section>
-    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>
-    <p class="demo-disclaimer">Aparecem os alunos da sua liga que ganharam XP nesta semana.</p>`;
+    </div>
+    </div>`;
+}
+
+// Visitante não entra na liga: em vez do ranking, mostra como as ligas
+// funcionam e o convite para criar a conta (o progresso vai junto).
+function renderLeaguesForGuest() {
+  const ladder = LEAGUES.map((item, index) => `<li class="league-step ${item.className} is-locked"><span class="league-badge">${icon(index === 0 ? "trophy-fill" : "lock-fill")}</span><small>${item.name}</small></li>`).join("");
+  return `
+    <section class="league-hero" aria-labelledby="league-title">
+      <span class="league-badge league-badge-large ${LEAGUES[0].className}">${icon("trophy-fill")}</span>
+      <div class="league-hero-copy">
+        <small>LIGAS</small>
+        <h2 id="league-title">Compita com outros alunos</h2>
+        <p>Toda semana, quem ganha mais XP sobe de liga. Dá para chegar até o Diamante!</p>
+      </div>
+    </section>
+    <ol class="league-ladder" aria-label="Ligas, da primeira à última">${ladder}</ol>
+    <section class="guest-card" aria-labelledby="guest-league-title">
+      <span class="guest-card-icon">${icon("lock-fill")}</span>
+      <div>
+        <h2 id="guest-league-title">As ligas são para quem tem conta</h2>
+        <p>Crie uma conta para entrar na Liga Bronze. É rapidinho, e tudo o que você já fez vai junto.</p>
+      </div>
+      <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
+    </section>
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>`;
 }

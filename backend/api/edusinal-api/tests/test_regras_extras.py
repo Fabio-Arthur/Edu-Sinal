@@ -120,6 +120,18 @@ class LojinhaTests(unittest.TestCase):
 
 
 class LigasTests(unittest.TestCase):
+    def test_primeiro_aluno_abre_o_grupo_1(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({}), 1)
+
+    def test_entra_no_grupo_que_tem_vaga(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 20, 2: 7}), 2)
+
+    def test_grupos_cheios_abrem_um_novo(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 20, 2: 20}), 3)
+
+    def test_vaga_que_abriu_num_grupo_antigo_e_usada_primeiro(self):
+        self.assertEqual(ligas_service.grupo_com_vaga({1: 19, 2: 20}), 1)
+
     def test_ranking_ordena_pelo_xp(self):
         ranking = ligas_service.montar_ranking([
             {"id_aluno": 1, "apelido": "Ana", "xp": 40},

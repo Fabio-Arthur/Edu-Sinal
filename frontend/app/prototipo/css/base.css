@@ -757,3 +757,62 @@ body.is-loading::before {
 .terms-section h3 { margin: 18px 0 6px; font-size: 17px; }
 .terms-section p { margin: 0 0 8px; color: var(--text); font-size: 15px; line-height: 1.6; }
 .signup-terms { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
+/* ----- Duas colunas no computador (Ligas, Perfil e Configurações) -----
+   O cartão de cima fica igual e o resto vira duas colunas que ocupam a altura
+   da tela: a página não rola. Se uma coluna tiver mais coisa do que cabe, ela
+   rola sozinha, por dentro (no ranking, só a lista rola).
+   No celular e em telas estreitas, as caixas "somem" (display: contents) e
+   tudo fica numa coluna, na mesma ordem de antes. */
+.desk-columns,
+.desk-col { display: contents; }
+
+@media (min-width: 1200px) {
+  .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"]) .screen-root {
+    flex: none; /* sem isso, a área cresce junto com o conteúdo e a altura não vale */
+    height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 18px;
+  }
+  .desk-columns {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px;
+    margin-top: 24px;
+  }
+  .desk-col {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: -8px -6px 0; /* espaço para a sombra 3D e o contorno dos cartões não serem cortados */
+    padding: 8px 6px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+  .desk-columns > .desk-col > * { flex: none; margin-top: 0; margin-bottom: 0; } /* mais forte que o margin-top das seções */
+
+  /* Ligas: a coluna do ranking não rola inteira, só a lista */
+  .desk-col-fill { overflow: hidden; }
+  .desk-col-fill > .ranking-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .ranking-section .ranking-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; margin: 0 -6px; padding: 2px 6px 8px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+  /* Configurações: a coluna das preferências é um pouco mais larga (os botões de escolha ocupam espaço) */
+  .app-shell[data-current-screen="more"] .desk-columns { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  /* Perfil: estatísticas em duas por linha, para os números e nomes não ficarem apertados */
+  .desk-col .profile-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Celular: o aviso de segurança e a nota das ligas continuam embaixo do ranking,
+   como antes (no computador eles ficam na coluna da esquerda). */
+@media (max-width: 1199px) {
+  .app-shell[data-current-screen="leagues"] .screen-root { display: flex; flex-direction: column; }
+  .app-shell[data-current-screen="leagues"] .screen-root > * { flex: none; }
+  .app-shell[data-current-screen="leagues"] .desk-col .safety-note,
+  .app-shell[data-current-screen="leagues"] .desk-col .demo-disclaimer { order: 1; }
+}

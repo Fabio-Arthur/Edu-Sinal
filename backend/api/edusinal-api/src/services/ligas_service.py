@@ -1,14 +1,26 @@
 # Regras das ligas e do mascote (as duas usam conquistas).
 #
 # Ligas em ordem: Bronze, Prata, Ouro, Safira e Diamante.
-# O ranking é pelo XP da semana, entre quem está na mesma liga.
-# Na virada da semana (segunda-feira), os 3 primeiros sobem de liga
-# e os 2 últimos descem. No ranking aparecem só o apelido e o XP.
+# Cada liga é dividida em grupos de até 20 alunos (como no Duolingo):
+# o ranking é pelo XP da semana, só entre quem está no mesmo grupo.
+# Na virada da semana (segunda-feira), os 3 primeiros do grupo sobem de
+# liga e os 2 últimos descem. No ranking aparecem só o apelido e o XP.
 
 
 LIGAS = ["Bronze", "Prata", "Ouro", "Safira", "Diamante"]
 SOBEM = 3
 DESCEM = 2
+TAMANHO_DO_GRUPO = 20
+
+
+def grupo_com_vaga(alunos_por_grupo: dict[int, int]) -> int:
+    # Em qual grupo entra quem ganhou o primeiro XP da semana.
+    # alunos_por_grupo = {1: 20, 2: 7} → o grupo 1 está cheio, entra no 2.
+    # Todos cheios (ou nenhum ainda): abre um grupo novo.
+    for grupo in sorted(alunos_por_grupo):
+        if alunos_por_grupo[grupo] < TAMANHO_DO_GRUPO:
+            return grupo
+    return max(alunos_por_grupo, default=0) + 1
 
 
 def montar_ranking(jogadores: list[dict]) -> list[dict]:

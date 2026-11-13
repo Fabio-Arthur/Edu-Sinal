@@ -345,8 +345,16 @@ async function finishLesson() {
     return;
   }
   applyServerState(result.estado);
-  showToast(finishMessage(lesson, result));
+  showToast(finishMessage(lesson, result) + guestReminder());
   returnFromLesson(lesson);
+}
+
+// Visitante: na primeira atividade concluída, lembra de criar a conta.
+let guestReminded = false;
+function guestReminder() {
+  if (!state.isGuest || guestReminded) return "";
+  guestReminded = true;
+  return " Crie uma conta no Perfil para não perder seu progresso.";
 }
 
 // A mensagem do fim da atividade, com o que o servidor deu de prêmio.

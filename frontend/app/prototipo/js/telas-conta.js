@@ -39,10 +39,11 @@ const GOAL_OPTIONS = [
 ];
 
 // Respostas enquanto o cadastro não termina (a senha nunca fica guardada).
-let signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false };
+// keptProgress: era visitante e a conta guardou o progresso que ele já tinha.
+let signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
 
 function resetSignup() {
-  signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false };
+  signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
 }
 
 // O que cada etapa pergunta e mostra.
@@ -124,19 +125,22 @@ function renderSignup() {
 // Fim do cadastro: confirma que a conta foi criada (antes ia direto para a Home).
 function renderSignupDone() {
   const goal = GOAL_OPTIONS.find((option) => option.value === state.dailyGoal) || GOAL_OPTIONS[1];
+  const text = signup.keptProgress
+    ? `Sua conta foi criada e <strong>todo o seu progresso foi salvo</strong>. Sua meta é <strong>${goal.text}</strong>.`
+    : `Sua conta foi criada. Você ganhou <strong>${WELCOME_COINS} moedas</strong> de boas-vindas e sua meta é <strong>${goal.text}</strong>.`;
   return `
     <section class="onboard onboard-done" aria-labelledby="done-title">
       <button class="welcome-mascot mascot-backdrop" type="button" data-action="mascot-react" aria-label="Mascote do EduSinal">${mascotSvg(state.mascot, "full", "", { animated: true })}</button>
       <h2 id="done-title">Tudo pronto, ${escapeHtml(state.name)}!</h2>
-      <p>Sua conta foi criada. Você ganhou <strong>${WELCOME_COINS} moedas</strong> de boas-vindas e sua meta é <strong>${goal.text}</strong>.</p>
-      <button class="button-3d button-3d-primary onboard-next" type="button" data-action="signup-start">Começar a primeira etapa</button>
+      <p>${text}</p>
+      <button class="button-3d button-3d-primary onboard-next" type="button" data-action="signup-start">${signup.keptProgress ? "Continuar de onde parei" : "Começar a primeira etapa"}</button>
     </section>`;
 }
 
-// Volta uma etapa (na primeira, volta para a tela inicial).
+// Volta uma etapa (na primeira, volta para a tela inicial, ou para o Perfil do visitante).
 function signupBack() {
   if (signup.step === 0) {
-    setScreen("intro");
+    setScreen(state.isGuest ? "profile" : "intro");
     return;
   }
   signup.step -= 1;
@@ -309,8 +313,10 @@ async function handleSignupSubmit(form) {
   }
 
   // Última etapa: cria a conta no servidor (que já deixa logado).
+  // Visitante: a conta de visitante ganha e-mail e senha e guarda o progresso.
+  const wasGuest = state.isGuest;
   try {
-    applyServerState(await api("POST", "/auth/cadastro", {
+    applyServerState(await api("POST", wasGuest ? "/auth/visitante/conta" : "/auth/cadastro", {
       apelido: signup.nickname,
       email: signup.email,
       senha: signup.password,
@@ -330,6 +336,7 @@ async function handleSignupSubmit(form) {
   }
   signup.password = ""; // a senha sai da memória assim que a conta foi criada
   signup.done = true;
+  signup.keptProgress = wasGuest;
   render();
   playMascotReaction(); // comemoração: cutucada na cabeça
 }

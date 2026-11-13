@@ -181,7 +181,7 @@ h3 { font-size: 1.17em; }
 
 @media (max-width: 1000px) {
   .sidebar { display: none; } /* no celular: barra de baixo + engrenagem */
-  .app-toast-area { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); left: 16px; }
+  .app-toast-area { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); left: 16px; width: auto; }
   .app-toast { --bs-toast-max-width: none; width: 100%; }
   .app-shell[data-focus="on"] ~ .app-toast-area { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .app-shell[data-current-screen="lesson"] ~ .app-toast-area { bottom: calc(150px + env(safe-area-inset-bottom)); }

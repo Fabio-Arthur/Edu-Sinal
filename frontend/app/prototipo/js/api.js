@@ -75,6 +75,7 @@ function applyServerState(estado) {
     isRegistered: true,
     name: estado.apelido,
     email: estado.email,
+    isGuest: estado.visitante,
     dailyGoal: estado.meta_diaria,
     xp: estado.xp,
     coins: estado.moedas,
@@ -91,13 +92,7 @@ function applyServerState(estado) {
     hasFirstActivityReward: estado.ganhou_bonus_primeira,
     completedLessons: estado.concluidas,
     unlockedItems: estado.itens,
-    mascot: {
-      shirt: estado.mascote.roupa,
-      head: estado.mascote.chapeu,
-      face: estado.mascote.rosto,
-      chest: estado.mascote.peito,
-      background: estado.mascote.fundo,
-    },
+    mascot: lookFromServer(estado.mascote),
     practiceDays: estado.dias_praticados,
     frozenDays: estado.dias_salvos,
     signsSeen: estado.sinais_vistos,
@@ -116,8 +111,32 @@ function applyServerState(estado) {
   });
 }
 
+// O visual do mascote, do formato da API para o do app.
+function lookFromServer(mascote) {
+  return {
+    shirt: mascote.roupa,
+    head: mascote.chapeu,
+    face: mascote.rosto,
+    chest: mascote.peito,
+    background: mascote.fundo,
+  };
+}
+
 // Partes do mascote: nome no app → nome na API.
 const MASCOT_SLOT_NAMES = { shirt: "roupa", head: "chapeu", face: "rosto", chest: "peito", background: "fundo" };
+
+// Entrar como visitante: o servidor cria uma conta sem e-mail e senha,
+// para experimentar o app (ex.: quem escaneia o QR code na apresentação).
+async function startAsGuest() {
+  try {
+    applyServerState(await api("POST", "/auth/visitante"));
+  } catch (error) {
+    showToast(error.message);
+    return;
+  }
+  setScreen("trail");
+  showToast("Você está como visitante. Crie uma conta no Perfil quando quiser salvar seu progresso.");
+}
 
 // Ao abrir o app: se a sessão ainda vale, carrega o progresso. Senão, mostra a apresentação.
 async function loadSession() {

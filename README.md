@@ -159,17 +159,11 @@ python -m uvicorn src.app:app --reload
 
 Abra <http://127.0.0.1:8000/docs> para explorar a documentação automática da API.
 
-## Rotas atuais da API
+## Rotas da API
 
-| Método | Rota | Para que serve |
-| --- | --- | --- |
-| `GET`, `POST`, `PUT`, `DELETE` | `/alunos` | CRUD de alunos |
-| `GET`, `POST`, `PUT`, `DELETE` | `/professores` | CRUD administrativo de perfis de professor |
-| `GET`, `POST`, `PUT`, `DELETE` | `/administradores` | CRUD de administradores |
-| `GET` | `/alunos/{id_aluno}/progresso` | Consulta XP, moedas, vidas e ofensiva |
-| `POST` | `/alunos/{id_aluno}/atividades/{id_atividade}/respostas` | Registra uma resposta de atividade |
+A lista completa das rotas, com exemplos e as regras do visitante, está no [backend/README.md](backend/README.md#rotas). Todas as rotas também aparecem, para testar, em <http://127.0.0.1:8000/docs>.
 
-O envio da resposta usa `id_tentativa` (UUID) e `id_resposta`. O servidor consulta o gabarito no MySQL; o cliente não pode declarar que acertou. O mesmo `id_tentativa` torna uma repetição segura contra recompensa duplicada.
+O servidor descobre quem está logado pelo cookie da sessão, nunca por um número no endereço. Ele mesmo confere as respostas no banco: o app não consegue dizer que acertou.
 
 ## Testes do backend
 
@@ -179,7 +173,7 @@ Com o ambiente virtual ativado e dentro da pasta da API:
 python -m unittest discover -s tests -v
 ```
 
-Os testes cobrem recuperação de vidas, consumo por erro, recompensa única e bloqueio de tentativa pontuada ao zerar. Eles não substituem um teste integrado com MySQL.
+Os testes cobrem as regras do jogo (vidas, energia, ofensiva, trilha, senha, missões, lojinha, ligas, dicionário e Desafia-me), sem precisar do banco.
 
 ## Organização do código
 

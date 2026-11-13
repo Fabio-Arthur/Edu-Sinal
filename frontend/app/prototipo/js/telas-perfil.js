@@ -100,7 +100,20 @@ function deleteAccount() {
 }
 
 // Sair: o servidor apaga a sessão (o cookie deixa de valer).
-async function logout() {
+// Visitante não tem senha para voltar depois: sair apaga o progresso dele.
+function logout() {
+  if (!state.isGuest) {
+    finishLogout("Você saiu. Seu progresso continua guardado na sua conta.");
+    return;
+  }
+  askConfirm({
+    title: "Sair do modo visitante?",
+    text: "Como você não criou uma conta, seu progresso (XP, moedas e mascote) vai ser apagado.",
+    confirmLabel: "Sair e apagar",
+  }, () => finishLogout("Você saiu. Volte quando quiser!"));
+}
+
+async function finishLogout(message) {
   try {
     await api("POST", "/auth/sair");
   } catch (error) {
@@ -108,8 +121,9 @@ async function logout() {
     return;
   }
   state.isRegistered = false;
+  state.isGuest = false;
   setScreen("intro");
-  showToast("Você saiu. Seu progresso continua guardado na sua conta.");
+  showToast(message);
 }
 
 // ----- Telas -----
@@ -183,17 +197,36 @@ function renderProfile() {
         ${state.editingName ? "" : `<button class="button-3d button-3d-light" type="button" data-screen="mascot">${icon("palette-fill")} Personalizar mascote</button>`}
       </div>
     </section>
+    <div class="desk-columns">
+    <div class="desk-col">
+    ${state.isGuest ? renderGuestCard() : ""}
 
     <section class="profile-group" aria-labelledby="profile-stats-title">
       <div class="mission-heading"><h2 id="profile-stats-title">Estatísticas</h2></div>
       <div class="profile-tiles">${tiles.map(renderProfileTile).join("")}</div>
     </section>
+    </div>
+    <div class="desk-col">
 
     <section class="profile-group" aria-labelledby="achievements-title">
       <div class="mission-heading"><h2 id="achievements-title">Conquistas</h2><span class="mission-timer">${icon("award-fill")} ${doneCount} de ${ACHIEVEMENTS.length}</span></div>
       <div class="badge-grid">${ACHIEVEMENTS.map(renderAchievement).join("")}</div>
     </section>
-    <p class="demo-disclaimer">Este perfil é local e não representa uma conta autenticada.</p>`;
+    </div>
+    </div>`;
+}
+
+// Convite para o visitante criar a conta (e não perder o que já fez).
+function renderGuestCard() {
+  return `
+    <section class="guest-card" aria-labelledby="guest-title">
+      <span class="guest-card-icon">${icon("cloud-arrow-up-fill")}</span>
+      <div>
+        <h2 id="guest-title">Você está como visitante</h2>
+        <p>Seu progresso fica guardado só por 7 dias. Crie uma conta para salvar tudo o que você já fez.</p>
+      </div>
+      <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
+    </section>`;
 }
 
 // Interruptor com as opções lado a lado (ex.: Claro | Escuro).
@@ -253,6 +286,8 @@ function renderMore() {
       </div>
     </section>
 
+    <div class="desk-columns">
+    <div class="desk-col">
     <section class="settings-group" aria-labelledby="settings-prefs-title">
       <h2 class="settings-heading" id="settings-prefs-title">Preferências</h2>
       <div class="settings-card">
@@ -267,6 +302,8 @@ function renderMore() {
       <h2 class="settings-heading" id="settings-help-title">Ajuda</h2>
       <div class="settings-card settings-faq">${faq}</div>
     </section>
+    </div>
+    <div class="desk-col">
 
     <section class="settings-group" aria-labelledby="settings-privacy-title">
       <h2 class="settings-heading" id="settings-privacy-title">Segurança e privacidade</h2>
@@ -277,8 +314,11 @@ function renderMore() {
     <section class="settings-group" aria-labelledby="settings-account-title">
       <h2 class="settings-heading" id="settings-account-title">Conta</h2>
       <div class="settings-card">
-        ${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
-        ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}
+        ${state.isGuest
+          ? `${renderSettingRow("cloud-arrow-up-fill", "teal", "Criar conta", "Salva o progresso que você fez como visitante.", '<button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>')}
+        ${renderSettingRow("box-arrow-right", "blue", "Sair do modo visitante", "Apaga o progresso de visitante.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`
+          : `${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
+        ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`}
       </div>
     </section>
 
@@ -286,5 +326,7 @@ function renderMore() {
       <img src="icones/icone-192.png" alt="" width="56" height="56" />
       <div><strong>EduSinal</strong><p>Aprender Libras de forma visual e no seu ritmo, com trilha, exercícios e dicionário.</p></div>
       <a class="text-button" href="../../landing/index.html?v=2">Conhecer o projeto ${icon("box-arrow-up-right")}</a>
-    </section>`;
+    </section>
+    </div>
+    </div>`;
 }

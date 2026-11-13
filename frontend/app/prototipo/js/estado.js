@@ -86,6 +86,7 @@ const state = {
   name: "",
   email: "",
   isRegistered: false,          // logado na API?
+  isGuest: false,               // entrou como visitante (sem e-mail e senha)?
   dailyGoal: DAILY_GOAL,        // atividades por dia na meta da Home
   unlockedItems: [],            // itens do mascote comprados ou ganhos
   mascot: { shirt: "camiseta-branca", head: "", face: "", chest: "", background: "" },

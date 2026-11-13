@@ -90,7 +90,7 @@ def liga_depois_da_virada(conexao, id_usuario: int, id_liga: int, hoje) -> int:
         return id_liga
 
     # Jogou: vê a posição dele no ranking da semana passada.
-    jogadores = progresso_repository.ranking(conexao, semana_passada, jogou["id_liga"])
+    jogadores = progresso_repository.ranking(conexao, semana_passada, jogou["id_liga"], jogou["grupo"], id_usuario)
     ranking = ligas_service.montar_ranking(
         [{"id_aluno": j["id_usuario"], "apelido": j["nome"], "xp": j["xp"]} for j in jogadores]
     )
@@ -104,6 +104,15 @@ def liga_depois_da_virada(conexao, id_usuario: int, id_liga: int, hoje) -> int:
     resultado = "Subiu" if nova > jogou["id_liga"] else "Desceu" if nova < jogou["id_liga"] else "Ficou"
     progresso_repository.fechar_semana(conexao, id_usuario, semana_passada, resultado)
     return nova
+
+
+def grupo_da_semana(conexao, id_usuario: int, segunda, id_liga: int) -> int:
+    # O grupo da liga em que o aluno está nesta semana. Se ainda não ganhou XP
+    # na semana, é o grupo em que ele vai entrar (o primeiro que tiver vaga).
+    semana = progresso_repository.ler_semana(conexao, id_usuario, segunda)
+    if semana is not None:
+        return semana["grupo"]
+    return ligas_service.grupo_com_vaga(progresso_repository.alunos_por_grupo(conexao, segunda, id_liga))
 
 
 def salvar_progresso(conexao, id_usuario: int, progresso: dict) -> None:
@@ -131,13 +140,10 @@ def montar_estado(conexao, id_usuario: int, progresso: dict, agora) -> dict:
         else:
             dias_praticados.append(linha["data_atividade"])
 
-    mascote = dict(VISUAL_PADRAO)
-    for tipo, codigo in extras_repository.visual(conexao, id_usuario).items():
-        mascote[PARTES_DO_MASCOTE[tipo]] = codigo
-
     return {
         "apelido": usuario["nome"],
         "email": usuario["email"],
+        "visitante": usuario["email"] is None,  # conta de visitante: sem e-mail e sem senha
         "meta_diaria": usuario["meta_diaria"],
         "xp": progresso["xp"],
         "moedas": progresso["moedas"],
@@ -154,7 +160,7 @@ def montar_estado(conexao, id_usuario: int, progresso: dict, agora) -> dict:
         "ganhou_bonus_primeira": bool(progresso["ganhou_bonus_primeira"]),
         "concluidas": trilha_repository.concluidas(conexao, id_usuario),
         "itens": extras_repository.itens_do_usuario(conexao, id_usuario),
-        "mascote": mascote,
+        "mascote": mascote_do_usuario(conexao, id_usuario),
         "dias_praticados": dias_praticados,
         "dias_salvos": dias_salvos,
         "sinais_vistos": extras_repository.vistas(conexao, id_usuario),
@@ -171,6 +177,14 @@ def montar_estado(conexao, id_usuario: int, progresso: dict, agora) -> dict:
             "missoes_resgatadas": missoes_para_o_app(extras_repository.missoes_resgatadas(conexao, id_usuario, segunda)),
         },
     }
+
+
+def mascote_do_usuario(conexao, id_usuario: int) -> dict:
+    # O que o mascote está vestindo, no formato do app: {"roupa": "camiseta-azul", "chapeu": "", ...}
+    mascote = dict(VISUAL_PADRAO)
+    for tipo, codigo in extras_repository.visual(conexao, id_usuario).items():
+        mascote[PARTES_DO_MASCOTE[tipo]] = codigo
+    return mascote
 
 
 # Missões: número no banco ↔ nome no app.

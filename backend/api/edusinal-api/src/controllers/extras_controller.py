@@ -9,12 +9,14 @@ from src.controllers.comum import (
     MISSOES,
     PARTES_DO_MASCOTE,
     carregar_progresso,
+    grupo_da_semana,
+    mascote_do_usuario,
     montar_estado,
     salvar_progresso,
     usuario_logado,
 )
 from src.database.conexao import conectar
-from src.repositories import extras_repository, progresso_repository, trilha_repository
+from src.repositories import extras_repository, progresso_repository, trilha_repository, usuarios_repository
 from src.schemas.entradas import Compra, Visual
 from src.services import (
     datas_service,
@@ -179,9 +181,15 @@ def vestir(visual: Visual, id_usuario: int = Depends(usuario_logado)):
 def ver_ranking(id_usuario: int = Depends(usuario_logado)):
     agora = datas_service.agora_utc()
     with conectar() as conexao:
+        # Visitante não entra na liga: precisa criar a conta antes.
+        if usuarios_repository.buscar_por_id(conexao, id_usuario)["email"] is None:
+            raise HTTPException(status_code=403, detail="Crie uma conta para entrar na liga.")
         progresso = carregar_progresso(conexao, id_usuario, agora)
         segunda = datas_service.segunda_da_semana(datas_service.dia_em_brasilia(agora))
-        jogadores = progresso_repository.ranking(conexao, segunda, progresso["id_liga"])
+        grupo = grupo_da_semana(conexao, id_usuario, segunda, progresso["id_liga"])
+        jogadores = progresso_repository.ranking(conexao, segunda, progresso["id_liga"], grupo, id_usuario)
+        # O mascote de cada um vira a "foto" no ranking (é só o visual, nenhum dado pessoal).
+        mascotes = {j["id_usuario"]: mascote_do_usuario(conexao, j["id_usuario"]) for j in jogadores}
         estado = finalizar(conexao, id_usuario, progresso, agora)
 
     # Quem ainda não ganhou XP nesta semana aparece com 0, no fim da lista.
@@ -194,6 +202,7 @@ def ver_ranking(id_usuario: int = Depends(usuario_logado)):
         "liga": progresso["id_liga"] - 1,
         "termina_em": segunda + timedelta(days=7),
         "ranking": [{"posicao": jogador["posicao"], "apelido": jogador["apelido"], "xp": jogador["xp"],
+                     "mascote": mascotes.get(jogador["id_aluno"], estado["mascote"]),
                      "sou_eu": jogador["id_aluno"] == id_usuario,  # o id dos outros não sai daqui
                      "zona": ligas_service.zona(jogador["posicao"], len(ranking))}
                     for jogador in ranking],

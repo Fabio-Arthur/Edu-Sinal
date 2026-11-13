@@ -264,3 +264,26 @@
   .streak-content { padding: 14px; }
   .calendar-card { padding: 10px; }
 }
+
+/* Visitante: convite para criar a conta e guardar o progresso */
+.guest-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 2px solid var(--accent);
+  border-radius: 20px;
+  background: var(--accent-soft);
+  box-shadow: 0 4px 0 var(--accent);
+}
+.guest-card > div { flex: 1; min-width: 0; }
+.guest-card h2 { margin: 0 0 4px; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
+.guest-card p { margin: 0; color: var(--text); font-size: 14px; line-height: 1.5; }
+.guest-card .button-3d { flex: none; }
+.guest-card-icon { width: 46px; height: 46px; flex: none; display: grid; place-items: center; border-radius: 14px; background: var(--accent); color: #fff; font-size: 22px; }
+
+@media (max-width: 700px) {
+  .guest-card { flex-wrap: wrap; }
+  .guest-card .button-3d { width: 100%; }
+}

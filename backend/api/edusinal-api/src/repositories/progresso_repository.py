@@ -83,19 +83,34 @@ def todos_os_dias(conexao, id_usuario: int) -> list[dict]:
 def ler_semana(conexao, id_usuario: int, segunda: date) -> dict | None:
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(
-            "SELECT id_liga, xp, resultado FROM xp_semanal WHERE id_usuario = %s AND data_semana = %s",
+            "SELECT id_liga, grupo, xp, resultado FROM xp_semanal WHERE id_usuario = %s AND data_semana = %s",
             (id_usuario, segunda),
         )
         return cursor.fetchone()
 
 
-def somar_na_semana(conexao, id_usuario: int, segunda: date, id_liga: int, xp: int) -> None:
-    # Só entra no ranking da semana quem ganhou XP nela.
+def alunos_por_grupo(conexao, segunda: date, id_liga: int) -> dict[int, int]:
+    # Quantos alunos cada grupo da liga já tem nesta semana: {1: 20, 2: 7}.
+    # Visitantes não ocupam vaga (eles não aparecem no ranking).
     with conexao.cursor() as cursor:
         cursor.execute(
-            """INSERT INTO xp_semanal (id_usuario, data_semana, id_liga, xp) VALUES (%s, %s, %s, %s)
+            """SELECT xp_semanal.grupo, COUNT(*) FROM xp_semanal
+               JOIN usuarios ON usuarios.id_usuario = xp_semanal.id_usuario
+               WHERE xp_semanal.data_semana = %s AND xp_semanal.id_liga = %s AND usuarios.email IS NOT NULL
+               GROUP BY xp_semanal.grupo""",
+            (segunda, id_liga),
+        )
+        return {grupo: total for grupo, total in cursor.fetchall()}
+
+
+def somar_na_semana(conexao, id_usuario: int, segunda: date, id_liga: int, grupo: int, xp: int) -> None:
+    # Só entra no ranking da semana quem ganhou XP nela. O grupo só vale
+    # no primeiro XP da semana: depois, o aluno fica no mesmo grupo.
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            """INSERT INTO xp_semanal (id_usuario, data_semana, id_liga, grupo, xp) VALUES (%s, %s, %s, %s, %s)
                ON DUPLICATE KEY UPDATE xp = xp + VALUES(xp)""",
-            (id_usuario, segunda, id_liga, xp),
+            (id_usuario, segunda, id_liga, grupo, xp),
         )
 
 
@@ -107,14 +122,17 @@ def fechar_semana(conexao, id_usuario: int, segunda: date, resultado: str) -> No
         )
 
 
-def ranking(conexao, segunda: date, id_liga: int) -> list[dict]:
-    # Todo mundo que jogou nessa liga nessa semana. Só o apelido sai daqui:
+def ranking(conexao, segunda: date, id_liga: int, grupo: int, id_usuario: int) -> list[dict]:
+    # Todo mundo que jogou nesse grupo da liga nessa semana. Só o apelido sai daqui:
     # nada de e-mail ou outro dado pessoal.
+    # Visitantes (email NULL) não entram no ranking dos outros: cada visitante
+    # vê só a si mesmo junto com os alunos de verdade.
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(
             """SELECT usuarios.id_usuario, usuarios.nome, xp_semanal.xp
                FROM xp_semanal JOIN usuarios ON usuarios.id_usuario = xp_semanal.id_usuario
-               WHERE xp_semanal.data_semana = %s AND xp_semanal.id_liga = %s""",
-            (segunda, id_liga),
+               WHERE xp_semanal.data_semana = %s AND xp_semanal.id_liga = %s AND xp_semanal.grupo = %s
+                 AND (usuarios.email IS NOT NULL OR usuarios.id_usuario = %s)""",
+            (segunda, id_liga, grupo, id_usuario),
         )
         return cursor.fetchall()

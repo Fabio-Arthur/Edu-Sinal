@@ -11,7 +11,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.controllers.comum import carregar_progresso, montar_estado, salvar_progresso, usuario_logado
+from src.controllers.comum import carregar_progresso, grupo_da_semana, montar_estado, salvar_progresso, usuario_logado
 from src.database.conexao import conectar
 from src.repositories import extras_repository, progresso_repository, trilha_repository
 from src.schemas.entradas import Resposta
@@ -93,7 +93,9 @@ def registrar_pratica(conexao, id_usuario: int, progresso: dict, xp: int, agora)
         progresso["sequencia_dias"], progresso["data_ultima_atividade"], hoje
     )
     progresso_repository.somar_no_dia(conexao, id_usuario, hoje, 1, xp)
-    progresso_repository.somar_na_semana(conexao, id_usuario, datas_service.segunda_da_semana(hoje), progresso["id_liga"], xp)
+    segunda = datas_service.segunda_da_semana(hoje)
+    grupo = grupo_da_semana(conexao, id_usuario, segunda, progresso["id_liga"])
+    progresso_repository.somar_na_semana(conexao, id_usuario, segunda, progresso["id_liga"], grupo, xp)
 
 
 # ----- Rotas -----

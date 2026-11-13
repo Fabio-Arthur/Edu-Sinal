@@ -144,6 +144,7 @@ function setScreen(screen) {
       return;
     }
   }
+  if (screen === "signup" || screen === "login") hideToast(); // o aviso cobriria o botão "Continuar"
   if (screen === "signup" && state.screen !== "signup") resetSignup(); // cadastro novo começa da 1ª etapa
   if (screen === "login" && state.screen !== "login") resetLogin();
   state.screen = screen;
@@ -281,6 +282,7 @@ document.addEventListener("click", (event) => {
   else if (action === "open-terms") openTerms();
   else if (action === "close-terms") closeTerms();
   else if (action === "logout") logout();
+  else if (action === "guest-start") startAsGuest();
   // Calendário da ofensiva
   else if (action === "open-streak") openStreakCalendar();
   else if (action === "calendar-month") changeCalendarMonth(Number(data.step));

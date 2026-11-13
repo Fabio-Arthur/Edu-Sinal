@@ -29,13 +29,15 @@ app (js/api.js) → controllers → services → repositories → MySQL
 
 ## Rotas
 
-Todas, menos cadastro e login, exigem estar logado. Sem sessão, a resposta é 401.
+Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a resposta é 401.
 
 | Método | Rota | Para que serve |
 | --- | --- | --- |
 | `POST` | `/auth/cadastro` | Criar a conta (apelido, e-mail, senha, meta diária). Já sai logado |
 | `POST` | `/auth/login` | Entrar. E-mail ou senha errados recebem a mesma resposta. Limite de 5 tentativas por minuto |
-| `POST` | `/auth/sair` | Sair |
+| `POST` | `/auth/visitante` | Entrar como visitante, sem e-mail e senha. Já sai logado |
+| `POST` | `/auth/visitante/conta` | O visitante cria a conta (apelido, e-mail, senha, meta) e mantém o progresso |
+| `POST` | `/auth/sair` | Sair. Se for visitante, a conta dele é apagada |
 | `GET` | `/eu` | O estado do aluno (o app chama ao abrir) |
 | `PUT` | `/eu` | Mudar o apelido e a meta diária |
 | `DELETE` | `/eu` | Apagar a conta e todos os dados dela |
@@ -46,7 +48,7 @@ Todas, menos cadastro e login, exigem estar logado. Sem sessão, a resposta é 4
 | `GET` | `/lojinha` | Ajudas e vitrine do dia |
 | `POST` | `/lojinha/compras` | Comprar uma ajuda ou um item da vitrine |
 | `PUT` | `/mascote` | Vestir um item numa parte do mascote |
-| `GET` | `/ligas/semana` | Ranking da semana, com os alunos da mesma liga |
+| `GET` | `/ligas/semana` | Ranking da semana do seu grupo da liga (até 20 alunos), com o mascote de cada um como foto (visitante recebe 403) |
 | `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário). Letras sempre abertas; palavras só depois de desbloqueadas |
 
 O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final` e o Desafia-me `dicionario:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.
@@ -60,6 +62,29 @@ POST /atividades/numeros:pratica-um-a-cinco/respostas
 ```
 
 `pergunta` e `resposta` são posições, e a primeira é 0. O banco guarda as alternativas na mesma ordem das opções do app. `rodada: 2` é a "segunda chance" da mesma pergunta. Se a mesma resposta chegar duas vezes (internet ruim), ela só conta uma.
+
+## Visitante
+
+Para quem só quer experimentar (por exemplo, quem escaneia o QR code na apresentação), o app tem o botão **"Só quero experimentar, sem criar conta"**. A API cria uma conta de visitante: uma linha em `usuarios` com `email` e `senha_hash` vazios (`NULL`) e o apelido "Visitante 1234".
+
+- O visitante pode usar trilha, dicionário, missões, lojinha e mascote.
+- A única coisa bloqueada é a **liga**: no lugar do ranking, aparece o convite para criar a conta (`GET /ligas/semana` responde 403). Ele também não aparece no ranking dos outros.
+- Se criar a conta (`/auth/visitante/conta`), a mesma linha ganha e-mail e senha, e o progresso continua.
+- Se sair, a conta de visitante é apagada. As que ficam esquecidas são apagadas depois de 7 dias, sempre que entra um visitante novo.
+
+## Grupos da liga
+
+Como no Duolingo, cada liga é dividida em **grupos de até 20 alunos**, e o ranking mostra só o seu grupo. Quando o aluno ganha o primeiro XP da semana, ele entra no primeiro grupo da liga que tiver vaga; se todos estiverem cheios, abre um grupo novo (`grupo_com_vaga`, em `ligas_service.py`). Na virada da semana, os 3 primeiros do grupo sobem e os 2 últimos descem. O tamanho é a constante `TAMANHO_DO_GRUPO`.
+
+## Banco criado antes destas mudanças
+
+Se o seu banco foi criado antes do visitante e dos grupos, rode isto uma vez no MySQL:
+
+```sql
+USE edu_sinal;
+ALTER TABLE usuarios MODIFY email VARCHAR(150) NULL, MODIFY senha_hash VARCHAR(255) NULL;
+ALTER TABLE xp_semanal ADD grupo INT NOT NULL DEFAULT 1 AFTER id_liga, ADD INDEX (data_semana, id_liga, grupo);
+```
 
 ## Rodar no computador
 
