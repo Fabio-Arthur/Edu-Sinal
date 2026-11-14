@@ -361,8 +361,11 @@ function greetDevelopers() {
 // O HTML nasce vazio; desenhamos a primeira tela aqui. Antes, perguntamos à
 // API se a pessoa ainda está logada (o cookie da sessão vale 7 dias).
 async function startApp() {
+  // A tela de abertura já usa o tema da pessoa (sem piscar claro no modo escuro).
+  document.documentElement.dataset.theme = currentTheme();
   // Os termos abrem direto, sem precisar de conta.
   if (state.screen === "terms") {
+    document.getElementById("app-splash")?.remove();
     render();
     return;
   }
@@ -377,6 +380,7 @@ async function startApp() {
   clearTimeout(slowTimer);
   if (loggedIn && wantsLoginScreen) state.screen = "trail";
   if (!loggedIn && !wantsLoginScreen) state.screen = "intro";
+  document.getElementById("app-splash")?.remove(); // tira a tela de abertura
   render();
 }
 
