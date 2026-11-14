@@ -219,3 +219,21 @@ def test_cadastro_exige_aceitar_os_termos():
     with pytest.raises(HTTPException):
         conferir_cadastro(Cadastro(**dados))  # sem marcar a caixinha
     conferir_cadastro(Cadastro(**dados, aceitou_termos=True))  # marcada: passa
+
+
+# ----- Cartão do aluno na liga -----
+
+def test_conquistas_ganhas_conta_as_sete_regras():
+    # Nada feito: nenhuma conquista.
+    assert ligas_service.conquistas_ganhas(0, 0, 0, 0, 0, 0) == 0
+    # 1 exercício e 3 itens: "primeiro" e "colecionador".
+    assert ligas_service.conquistas_ganhas(0, 0, 0, 1, 0, 3) == 2
+    # Tudo cumprido: as 7.
+    assert ligas_service.conquistas_ganhas(1, 7, 1, 5, 10, 3) == 7
+
+
+def test_etapa_atual_e_a_primeira_sem_prova_final():
+    etapas = ["alfabeto-manual", "numeros", "apresentacoes"]
+    assert ligas_service.etapa_atual(etapas, []) == "alfabeto-manual"
+    assert ligas_service.etapa_atual(etapas, ["alfabeto-manual:vogais", "alfabeto-manual:final"]) == "numeros"
+    assert ligas_service.etapa_atual(etapas, [f"{e}:final" for e in etapas]) is None

@@ -49,6 +49,7 @@ Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a re
 | `POST` | `/lojinha/compras` | Comprar uma ajuda ou um item da vitrine |
 | `PUT` | `/mascote` | Vestir um item numa parte do mascote |
 | `GET` | `/ligas/semana` | Ranking da semana do seu grupo da liga (até 10 alunos), com o mascote de cada um como foto (visitante recebe 403) |
+| `GET` | `/ligas/semana/{posicao}?apelido=` | Cartão de um aluno da **sua** salinha (abre ao tocar no ranking): mascote, ofensiva, XP, liga, etapas, conquistas, etapa atual e mês em que entrou. Nunca o e-mail. Fora da salinha: 404; visitante: 403 |
 | `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário). Letras sempre abertas; palavras só depois de desbloqueadas |
 
 O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final` e o Desafia-me `dicionario:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.

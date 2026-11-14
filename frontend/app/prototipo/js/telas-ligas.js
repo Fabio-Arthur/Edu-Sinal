@@ -2,7 +2,9 @@
 // Ranking semanal com os alunos de verdade da mesma liga (vem da API:
 // GET /ligas/semana). Os 3 primeiros sobem de liga e os 2 últimos descem quando
 // a semana vira (segunda-feira); quem decide isso é o servidor.
-// Pensado para menores: só apelidos e avatares, sem chat e sem perfil aberto.
+// Pensado para menores: só apelidos, mascotes e números do jogo, sem chat.
+// Tocando num aluno do ranking abre o "cartão" dele (GET /ligas/semana/{posição}),
+// só com dados do jogo: nunca o e-mail.
 
 const LEAGUES = [
   { name: "Bronze", className: "league-bronze" },
@@ -33,6 +35,7 @@ function buildRanking() {
       xp: player.sou_eu ? state.week.xp : player.xp,
       look: player.sou_eu ? state.mascot : lookFromServer(player.mascote), // o mascote de cada um é a "foto"
       isMe: player.sou_eu,
+      serverPosition: player.posicao, // para abrir o cartão do aluno
     }))
     .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
 }
@@ -131,7 +134,8 @@ function renderRankingRow(player, position, total) {
     : `<span class="ranking-position">${position}</span>`;
   const look = player.look || state.mascot;
   const avatar = `<span class="ranking-avatar${player.isMe ? " is-me" : ""} ${backdropClass(look)}" aria-hidden="true">${mascotSvg(look, "avatar", "")}</span>`;
-  return `<li class="ranking-row zone-${zone}${player.isMe ? " is-me" : ""}">${place}${avatar}<strong>${escapeHtml(player.name)}${youLabel}</strong><span class="ranking-points">${player.xp} XP</span></li>`;
+  // A linha inteira é um botão: abre o cartão do aluno.
+  return `<li><button class="ranking-row zone-${zone}${player.isMe ? " is-me" : ""}" type="button" data-action="open-player" data-position="${player.serverPosition || 0}" data-name="${escapeHtml(player.name)}" aria-label="Ver o perfil de ${escapeHtml(player.name)}">${place}${avatar}<strong>${escapeHtml(player.name)}${youLabel}</strong><span class="ranking-points">${player.xp} XP</span></button></li>`;
 }
 
 function renderLeagues() {
@@ -174,7 +178,7 @@ function renderLeagues() {
     <div class="desk-col">
     <ol class="league-ladder" aria-label="Ligas, da primeira à última">${ladder}</ol>
     ${renderLeagueStatus(ranking)}
-    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Toque em um aluno para ver o perfil dele. Aparecem só o apelido, o mascote e números do jogo: nada de e-mail, chat ou mensagens.</p>
     <p class="demo-disclaimer">Cada liga é dividida em grupos de até ${GROUP_SIZE} alunos. Aqui aparece o seu grupo: quem ganhou XP nesta semana.</p>
     </div>
     <div class="desk-col desk-col-fill">
@@ -209,4 +213,68 @@ function renderLeaguesForGuest() {
       <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
     </section>
     <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>`;
+}
+
+
+// ----- Cartão do aluno (janela que abre ao tocar no ranking) -----
+
+const SHORT_MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+// "Unidade 01 · Etapa 02 · Números" (ou "Trilha completa").
+function playerStageLabel(topicId) {
+  if (!topicId || !learningTopics[topicId]) return `${icon("stars")} Trilha completa!`;
+  const topic = learningTopics[topicId];
+  const unit = TRAIL_UNITS.find((item) => item.topics.includes(topicId));
+  return `${icon("signpost-2-fill")} ${unit ? `Unidade ${unit.number} · ` : ""}Etapa ${topic.number} · ${topic.title}`;
+}
+
+function playerTile(iconName, color, value, label) {
+  return `<div class="player-tile"><span class="player-tile-icon is-${color}">${icon(iconName)}</span><strong>${value}</strong><small>${label}</small></div>`;
+}
+
+// Topo da janela (já aparece antes da API responder: nome e mascote estão no ranking).
+function renderPlayerTop(name, look, kicker, stage) {
+  return `
+    <div class="player-hero">
+      <span class="player-avatar ${backdropClass(look)}" aria-hidden="true">${mascotSvg(look, "avatar", "")}</span>
+      <div class="player-hero-copy">
+        <small>${kicker}</small>
+        <h2 id="player-title">${escapeHtml(name)}</h2>
+        <span class="player-stage">${stage}</span>
+      </div>
+    </div>`;
+}
+
+function renderPlayerCard(data) {
+  const look = data.sou_eu ? state.mascot : lookFromServer(data.mascote);
+  const since = new Date(`${data.aluno_desde}T12:00:00`);
+  const league = LEAGUES[data.liga] || LEAGUES[0];
+  const kicker = data.sou_eu ? `VOCÊ · ${data.posicao}º LUGAR NA SALINHA` : `${data.posicao}º LUGAR NA SALINHA`;
+  return `
+    ${renderPlayerTop(data.apelido, look, kicker, playerStageLabel(data.etapa_atual))}
+    <div class="player-grid">
+      ${playerTile("fire", "fire", data.ofensiva, data.ofensiva === 1 ? "dia de ofensiva" : "dias de ofensiva")}
+      ${playerTile("lightning-charge-fill", "xp", data.xp, "XP no total")}
+      ${playerTile("trophy-fill", `league ${league.className}`, league.name, "liga atual")}
+      ${playerTile("flag-fill", "stage", `${data.etapas}/${TOPIC_ORDER.length}`, data.etapas === 1 ? "etapa concluída" : "etapas concluídas")}
+      ${playerTile("award-fill", "medal", `${data.conquistas}/${data.total_conquistas}`, "conquistas")}
+      ${playerTile("calendar-heart-fill", "since", `${SHORT_MONTHS[since.getMonth()]}/${since.getFullYear()}`, "aluno desde")}
+    </div>`;
+}
+
+async function openPlayerCard(position, name) {
+  if (!window.bootstrap) return;
+  const body = document.getElementById("player-body");
+  const fromRanking = buildRanking().find((player) => player.name === name) || {};
+  // Enquanto a API responde: o topo com o que já sabemos e os cartões "carregando".
+  body.innerHTML = `${renderPlayerTop(name, fromRanking.look || state.mascot, "CARREGANDO…", `${icon("hourglass-split")} Buscando o perfil`)}
+    <div class="player-grid is-loading">${'<div class="player-tile"></div>'.repeat(6)}</div>`;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("player-modal")).show();
+  try {
+    const data = await api("GET", `/ligas/semana/${position}?apelido=${encodeURIComponent(name)}`);
+    body.innerHTML = renderPlayerCard(data);
+  } catch (error) {
+    body.innerHTML = `${renderPlayerTop(name, fromRanking.look || state.mascot, "OPS", `${icon("exclamation-circle-fill")} Não deu para abrir`)}
+      <p class="player-error">${escapeHtml(error.message)}</p>`;
+  }
 }

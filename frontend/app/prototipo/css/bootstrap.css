@@ -186,3 +186,86 @@ h3 { font-size: 1.17em; }
   .app-shell[data-focus="on"] ~ .app-toast-area { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .app-shell[data-current-screen="lesson"] ~ .app-toast-area { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
+
+/* ----- Cartão do aluno da liga (abre ao tocar numa linha do ranking) ----- */
+button.ranking-row { width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform 0.12s; }
+button.ranking-row:hover { transform: translateY(-1px); }
+button.ranking-row:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+button.ranking-row:focus-visible { outline: 3px solid var(--primary-soft); outline-offset: 2px; }
+
+.player-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 56px 24px 24px;
+  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
+  color: #ffffff;
+}
+.player-avatar {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 5px 0 var(--hero-shadow);
+}
+.player-avatar svg { width: 100%; height: 100%; }
+.player-hero-copy { min-width: 0; }
+.player-hero small { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; opacity: 0.85; }
+.player-hero h2 { margin: 0; font-family: "Manrope", sans-serif; font-size: 24px; font-weight: 800; overflow-wrap: anywhere; }
+.player-stage { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.22); font-size: 12px; font-weight: 800; }
+
+.player-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 18px; }
+.player-tile {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  min-height: 108px;
+  padding: 12px 6px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 3px 0 var(--line);
+  text-align: center;
+  container-type: inline-size; /* o número abaixo diminui se o cartão for estreito */
+}
+.player-tile-icon { width: 36px; height: 36px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 50%; color: #ffffff; font-size: 17px; }
+.player-tile-icon.is-fire { background: linear-gradient(160deg, #ffb057 0%, #f0743a 100%); }
+.player-tile-icon.is-xp { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); }
+.player-tile-icon.is-league { background: var(--league-color); }
+.player-tile-icon.is-stage { background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); }
+.player-tile-icon.is-medal { background: linear-gradient(160deg, #b693f5 0%, #7c5ae0 100%); }
+.player-tile-icon.is-since { background: linear-gradient(160deg, #4fd1c5 0%, #19a7a1 100%); }
+.player-tile strong { font-family: "Manrope", sans-serif; font-size: min(20px, 19cqi); font-weight: 800; line-height: 1.1; white-space: nowrap; }
+.player-tile small { color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.25; }
+.player-grid.is-loading .player-tile { background: var(--surface-soft); animation: player-loading 1s ease-in-out infinite alternate; }
+@keyframes player-loading { to { opacity: 0.5; } }
+.player-error { margin: 0; padding: 18px 24px 24px; color: var(--muted); font-size: 15px; }
+
+@media (max-width: 420px) {
+  .player-hero { gap: 12px; padding: 18px 48px 18px 16px; }
+  .player-avatar { width: 68px; height: 68px; }
+  .player-hero h2 { font-size: 21px; }
+  .player-grid { gap: 8px; padding: 14px; }
+  .player-tile { min-height: 96px; padding: 10px 4px; }
+  .player-tile small { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.ranking-row, .player-grid.is-loading .player-tile { transition: none; animation: none; }
+}
+
+/* Janelas (calendário, compra, cartão do aluno...) crescem junto com o app em
+   monitor grande e com o texto grande. Elas ficam fora do .app-shell, por isso
+   repetem aqui a mesma escala do base.css. */
+.modal { --escala-janela: 1; }
+@media (min-width: 1500px) and (min-height: 820px) { .modal { --escala-janela: 1.12; } }
+@media (min-width: 1800px) and (min-height: 900px) { .modal { --escala-janela: 1.25; } }
+@media (min-width: 2300px) and (min-height: 1200px) { .modal { --escala-janela: 1.6; } }
+@media (min-width: 3400px) and (min-height: 1900px) { .modal { --escala-janela: 2.2; } }
+@media (min-width: 1001px) { /* no celular a janela já ocupa a largura toda */
+  body:has(.app-shell[data-text-size="large"]) .modal-dialog { --texto-janela: 1.15; }
+}
+.modal-dialog { zoom: calc(var(--escala-janela) * var(--texto-janela, 1)); }

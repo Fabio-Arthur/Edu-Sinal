@@ -25,6 +25,7 @@ from src.services import (
     ligas_service,
     lojinha_service,
     missoes_service,
+    ofensiva_service,
     vidas_service,
 )
 
@@ -189,26 +190,37 @@ def vestir(visual: Visual, id_usuario: int = Depends(usuario_logado)):
 
 # ----- Liga -----
 
+def ranking_do_grupo(conexao, id_usuario: int, id_liga: int, apelido: str, agora) -> list[dict]:
+    # A salinha do aluno nesta semana, já em ordem: [{"id_aluno", "apelido", "xp", "posicao"}].
+    segunda = datas_service.segunda_da_semana(datas_service.dia_em_brasilia(agora))
+    grupo = grupo_da_semana(conexao, id_usuario, segunda, id_liga)
+    jogadores = progresso_repository.ranking(conexao, segunda, id_liga, grupo, id_usuario)
+    # Quem ainda não ganhou XP nesta semana aparece com 0, no fim da lista.
+    lista = [{"id_aluno": j["id_usuario"], "apelido": j["nome"], "xp": j["xp"]} for j in jogadores]
+    if not any(jogador["id_aluno"] == id_usuario for jogador in lista):
+        lista.append({"id_aluno": id_usuario, "apelido": apelido, "xp": 0})
+    return ligas_service.montar_ranking(lista)
+
+
+def barrar_visitante(conexao, id_usuario: int) -> dict:
+    # Visitante não entra na liga: precisa criar a conta antes.
+    usuario = usuarios_repository.buscar_por_id(conexao, id_usuario)
+    if usuario["email"] is None:
+        raise HTTPException(status_code=403, detail="Crie uma conta para entrar na liga.")
+    return usuario
+
+
 @router.get("/ligas/semana")
 def ver_ranking(id_usuario: int = Depends(usuario_logado)):
     agora = datas_service.agora_utc()
     with conectar() as conexao:
-        # Visitante não entra na liga: precisa criar a conta antes.
-        if usuarios_repository.buscar_por_id(conexao, id_usuario)["email"] is None:
-            raise HTTPException(status_code=403, detail="Crie uma conta para entrar na liga.")
+        usuario = barrar_visitante(conexao, id_usuario)
         progresso = carregar_progresso(conexao, id_usuario, agora)
         segunda = datas_service.segunda_da_semana(datas_service.dia_em_brasilia(agora))
-        grupo = grupo_da_semana(conexao, id_usuario, segunda, progresso["id_liga"])
-        jogadores = progresso_repository.ranking(conexao, segunda, progresso["id_liga"], grupo, id_usuario)
+        ranking = ranking_do_grupo(conexao, id_usuario, progresso["id_liga"], usuario["nome"], agora)
         # O mascote de cada um vira a "foto" no ranking (é só o visual, nenhum dado pessoal).
-        mascotes = {j["id_usuario"]: mascote_do_usuario(conexao, j["id_usuario"]) for j in jogadores}
+        mascotes = {j["id_aluno"]: mascote_do_usuario(conexao, j["id_aluno"]) for j in ranking}
         estado = finalizar(conexao, id_usuario, progresso, agora)
-
-    # Quem ainda não ganhou XP nesta semana aparece com 0, no fim da lista.
-    lista = [{"id_aluno": j["id_usuario"], "apelido": j["nome"], "xp": j["xp"]} for j in jogadores]
-    if not any(jogador["id_aluno"] == id_usuario for jogador in lista):
-        lista.append({"id_aluno": id_usuario, "apelido": estado["apelido"], "xp": 0})
-    ranking = ligas_service.montar_ranking(lista)
 
     return {
         "liga": progresso["id_liga"] - 1,
@@ -220,6 +232,57 @@ def ver_ranking(id_usuario: int = Depends(usuario_logado)):
                     for jogador in ranking],
         "estado": estado,
     }
+
+
+@router.get("/ligas/semana/{posicao}")
+def ver_aluno_da_liga(posicao: int, apelido: str = "", id_usuario: int = Depends(usuario_logado)):
+    # O "cartão" de um aluno da SUA salinha (quem você já vê no ranking).
+    # O app manda a posição e o apelido; se o ranking mudou nesse meio-tempo,
+    # procura pelo apelido. Só dados do jogo: nada de e-mail.
+    agora = datas_service.agora_utc()
+    with conectar() as conexao:
+        usuario = barrar_visitante(conexao, id_usuario)
+        progresso = carregar_progresso(conexao, id_usuario, agora)
+        ranking = ranking_do_grupo(conexao, id_usuario, progresso["id_liga"], usuario["nome"], agora)
+        jogador = next((j for j in ranking if j["posicao"] == posicao and (not apelido or j["apelido"] == apelido)), None)
+        jogador = jogador or next((j for j in ranking if apelido and j["apelido"] == apelido), None)
+        if jogador is None:
+            raise HTTPException(status_code=404, detail="Esse aluno não está mais na sua salinha. Atualize a liga.")
+
+        id_aluno = jogador["id_aluno"]
+        perfil = usuarios_repository.perfil_publico(conexao, id_aluno)
+        # Ofensiva de hoje (se ele perdeu um dia, já aparece zerada), sem mudar nada no banco.
+        ofensiva = ofensiva_service.conferir_ofensiva(
+            perfil["sequencia_dias"], perfil["protetores"], perfil["data_ultima_atividade"],
+            datas_service.dia_em_brasilia(agora),
+        ).ofensiva
+        concluidas = trilha_repository.concluidas(conexao, id_aluno)
+        etapas = len([codigo for codigo in concluidas if codigo.endswith(":final")])
+        liga = perfil["id_liga"] - 1
+        conquistas = ligas_service.conquistas_ganhas(
+            etapas, ofensiva, liga,
+            exercicios=len(concluidas) - etapas,
+            sinais_vistos=len(extras_repository.vistas(conexao, id_aluno)),
+            itens=len(extras_repository.itens_do_usuario(conexao, id_aluno)),
+        )
+        resposta = {
+            "apelido": perfil["nome"],
+            "sou_eu": id_aluno == id_usuario,
+            "mascote": mascote_do_usuario(conexao, id_aluno),
+            "posicao": jogador["posicao"],
+            "xp_semana": jogador["xp"],
+            "xp": perfil["xp"],
+            "ofensiva": ofensiva,
+            "liga": liga,
+            "etapas": etapas,
+            "exercicios": len(concluidas) - etapas,
+            "conquistas": conquistas,
+            "total_conquistas": len(ligas_service.TODAS_AS_CONQUISTAS),
+            "etapa_atual": ligas_service.etapa_atual(trilha_repository.etapas_da_trilha(conexao), concluidas),
+            "aluno_desde": perfil["data_cadastro"].date(),
+        }
+        conexao.rollback()  # só leitura: nada muda no banco
+    return resposta
 
 
 # ----- Dicionário -----

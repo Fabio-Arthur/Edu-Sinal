@@ -4,7 +4,7 @@
 // mesmo sem estar logado.
 // RASCUNHO do TCC: revisar com o orientador antes de publicar de verdade.
 
-const TERMS_UPDATED_AT = "12/11/2026";
+const TERMS_UPDATED_AT = "13/11/2026";
 
 // Cada parte: [título, parágrafos]. Para mudar o texto, é só editar aqui.
 const TERMS_SECTIONS = [
@@ -30,7 +30,7 @@ const TERMS_SECTIONS = [
     "Não vendemos nem passamos os seus dados para ninguém, e não usamos para propaganda.",
   ]],
   ["Quem vê o quê", [
-    "Nas ligas, os outros alunos veem só o seu apelido e o XP da semana. O seu e-mail nunca aparece para ninguém.",
+    "Nas ligas, os alunos da sua salinha veem o seu apelido, o seu mascote e números do jogo (XP, ofensiva, liga, etapa da trilha, conquistas e o mês em que você entrou). O seu e-mail nunca aparece para ninguém.",
     "Não existe chat nem mensagens entre alunos.",
   ]],
   ["Cookies", [

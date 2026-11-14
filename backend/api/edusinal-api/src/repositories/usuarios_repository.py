@@ -72,6 +72,21 @@ def buscar_por_id(conexao, id_usuario: int) -> dict | None:
         return cursor.fetchone()
 
 
+def perfil_publico(conexao, id_usuario: int) -> dict | None:
+    # O que aparece quando outro aluno toca no seu nome na liga.
+    # Só dados do jogo: o e-mail NÃO entra aqui.
+    with conexao.cursor(dictionary=True) as cursor:
+        cursor.execute(
+            """SELECT usuarios.nome, usuarios.data_cadastro, progresso_usuario.xp,
+                      progresso_usuario.sequencia_dias, progresso_usuario.protetores,
+                      progresso_usuario.data_ultima_atividade, progresso_usuario.id_liga
+               FROM usuarios JOIN progresso_usuario ON progresso_usuario.id_usuario = usuarios.id_usuario
+               WHERE usuarios.id_usuario = %s""",
+            (id_usuario,),
+        )
+        return cursor.fetchone()
+
+
 def mudar_perfil(conexao, id_usuario: int, nome: str, meta_diaria: int) -> None:
     with conexao.cursor() as cursor:
         cursor.execute(

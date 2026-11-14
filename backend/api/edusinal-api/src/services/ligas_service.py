@@ -89,3 +89,22 @@ def conquista_liberada(
     if conquista == "liga":
         return liga >= 1
     return False
+
+
+# ----- Perfil de um aluno da salinha (janela que abre ao tocar no ranking) -----
+
+TODAS_AS_CONQUISTAS = ["primeiro", "cinco", "etapa", "ofensiva", "explorador", "colecionador", "liga"]
+
+
+def conquistas_ganhas(etapas: int, ofensiva: int, liga: int, exercicios: int, sinais_vistos: int, itens: int) -> int:
+    # Quantas das 7 conquistas o aluno já tem (as mesmas regras do Perfil).
+    return sum(
+        1 for conquista in TODAS_AS_CONQUISTAS
+        if conquista_liberada(conquista, etapas, ofensiva, liga, exercicios, sinais_vistos, itens)
+    )
+
+
+def etapa_atual(etapas_em_ordem: list[str], concluidas: list[str]) -> str | None:
+    # A etapa em que o aluno está: a primeira cuja prova final ainda não foi feita.
+    # None = já terminou a trilha toda.
+    return next((etapa for etapa in etapas_em_ordem if f"{etapa}:final" not in concluidas), None)
