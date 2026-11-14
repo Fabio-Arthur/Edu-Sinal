@@ -31,6 +31,23 @@ function passwordProblem(password, nickname = "", email = "") {
 
 // ----- Cadastro por etapas -----
 
+// Campo de senha com o botão de olhinho para mostrar/esconder o que foi digitado.
+function passwordField(id, name, label, autocomplete, placeholder) {
+  return `<label class="field-label" for="${id}">${label}<span class="password-field"><input id="${id}" name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}" /><button class="password-toggle" type="button" data-action="toggle-password" data-target="${id}" aria-label="Mostrar a senha" aria-pressed="false">${icon("eye-fill")}</button></span></label>`;
+}
+
+// Mostra ou esconde a senha sem redesenhar a tela (o que já foi digitado fica).
+function togglePassword(button) {
+  const input = document.getElementById(button.dataset.target);
+  if (!input) return;
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  button.setAttribute("aria-pressed", String(show));
+  button.setAttribute("aria-label", show ? "Esconder a senha" : "Mostrar a senha");
+  button.innerHTML = icon(show ? "eye-slash-fill" : "eye-fill");
+  input.focus();
+}
+
 const SIGNUP_STEPS = ["nickname", "email", "password", "goal"];
 const GOAL_OPTIONS = [
   { value: 1, title: "Leve", text: "1 atividade por dia", icon: "cup-hot-fill" },
@@ -40,10 +57,10 @@ const GOAL_OPTIONS = [
 
 // Respostas enquanto o cadastro não termina (a senha nunca fica guardada).
 // keptProgress: era visitante e a conta guardou o progresso que ele já tinha.
-let signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
+let signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 
 function resetSignup() {
-  signup = { step: 0, nickname: "", email: "", password: "", goal: DAILY_GOAL, done: false, keptProgress: false };
+  signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 }
 
 // O que cada etapa pergunta e mostra.
@@ -65,10 +82,10 @@ function signupStepHtml(stepName) {
   if (stepName === "password") {
     return {
       question: "Agora crie uma senha.",
-      body: `<label class="field-label" for="signup-password">Senha<input id="signup-password" name="password" type="password" autocomplete="new-password" placeholder="Crie uma senha" /></label>
-        <label class="field-label" for="signup-confirm-password">Confirme a senha<input id="signup-confirm-password" name="passwordConfirmation" type="password" autocomplete="new-password" placeholder="Digite a senha de novo" /></label>
+      body: `${passwordField("signup-password", "password", "Senha", "new-password", "Crie uma senha")}
+        ${passwordField("signup-confirm-password", "passwordConfirmation", "Confirme a senha", "new-password", "Digite a senha de novo")}
         <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres. Dica: uma frase curta que só você conhece é fácil de lembrar e difícil de adivinhar.</p>
-        <p class="signup-terms">Ao criar a conta, você concorda com os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button>.</p>`,
+        <label class="signup-terms"><input type="checkbox" name="acceptedTerms"${signup.acceptedTerms ? " checked" : ""} /><span>Li e aceito os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button> do EduSinal.</span></label>`,
     };
   }
   return {
@@ -186,8 +203,7 @@ function renderLogin() {
     question: isEmail ? "Oi de novo! Qual é o seu e-mail?" : "Agora a senha.",
     body: isEmail
       ? `<label class="field-label" for="login-email">E-mail<input id="login-email" name="email" type="email" value="${escapeHtml(login.email)}" autocomplete="username" placeholder="voce@email.com" /></label>`
-      : `<label class="field-label" for="login-password">Senha<input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" /></label>
-`,
+      : passwordField("login-password", "password", "Senha", "current-password", "Sua senha"),
     error: login.error,
     footerExtra: isEmail ? '<p class="onboard-login">Ainda não tem conta? <button class="text-button" type="button" data-screen="signup">Criar conta</button></p>' : "",
     submitLabel: isEmail ? "Continuar" : "Entrar",
@@ -242,6 +258,7 @@ function validateSignupStep(form) {
     const problem = passwordProblem(password, signup.nickname, signup.email);
     if (problem) return problem;
     if (password !== form.elements.passwordConfirmation.value) return "As senhas não conferem.";
+    if (!form.elements.acceptedTerms.checked) return "Para criar a conta, marque que leu e aceita os termos de uso.";
   }
   return "";
 }
@@ -304,7 +321,10 @@ async function handleSignupSubmit(form) {
   const stepName = SIGNUP_STEPS[signup.step];
   if (stepName === "nickname") signup.nickname = form.elements.nickname.value.trim().replace(/\s+/g, " ");
   if (stepName === "email") signup.email = form.elements.email.value.trim().toLowerCase();
-  if (stepName === "password") signup.password = form.elements.password.value;
+  if (stepName === "password") {
+    signup.password = form.elements.password.value;
+    signup.acceptedTerms = true;
+  }
   if (signup.step < SIGNUP_STEPS.length - 1) {
     signup.step += 1;
     render();
@@ -321,6 +341,7 @@ async function handleSignupSubmit(form) {
       email: signup.email,
       senha: signup.password,
       meta_diaria: signup.goal,
+      aceitou_termos: signup.acceptedTerms,
     }));
   } catch (error) {
     // E-mail já cadastrado: volta para a etapa do e-mail com o aviso.

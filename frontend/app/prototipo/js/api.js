@@ -139,6 +139,17 @@ async function startAsGuest() {
 }
 
 // Ao abrir o app: se a sessão ainda vale, carrega o progresso. Senão, mostra a apresentação.
+// Igual ao loadSession, mas sem aviso de erro: usado nas telas de entrada,
+// só para descobrir se a pessoa já está logada.
+async function hasSession() {
+  try {
+    applyServerState(await api("GET", "/eu"));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function loadSession() {
   try {
     applyServerState(await api("GET", "/eu"));

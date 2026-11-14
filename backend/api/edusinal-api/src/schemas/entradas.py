@@ -12,6 +12,7 @@ class Cadastro(BaseModel):
     email: EmailStr
     senha: str = Field(max_length=128)
     meta_diaria: int = 3
+    aceitou_termos: bool = False  # a caixinha "Li e aceito os termos de uso"
 
 
 class Login(BaseModel):

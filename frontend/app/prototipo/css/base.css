@@ -757,7 +757,9 @@ body.is-loading::before {
 .terms-text { flex: 1; min-height: 0; overflow-y: auto; scrollbar-color: var(--line) transparent; padding: 4px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
 .terms-section h3 { margin: 18px 0 6px; font-size: 17px; }
 .terms-section p { margin: 0 0 8px; color: var(--text); font-size: 15px; line-height: 1.6; }
-.signup-terms { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.signup-terms { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; color: var(--text); font-size: 14px; line-height: 1.45; cursor: pointer; }
+.signup-terms input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--hero-from); cursor: pointer; }
+.signup-terms .text-button { display: inline; min-height: 0; padding: 0; font-size: inherit; line-height: inherit; vertical-align: baseline; }
 
 /* ----- Duas colunas no computador (Ligas, Perfil e Configurações) -----
    O cartão de cima fica igual e o resto vira duas colunas que ocupam a altura

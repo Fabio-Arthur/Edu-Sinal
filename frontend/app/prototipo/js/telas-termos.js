@@ -61,6 +61,9 @@ const TERMS_SECTIONS = [
 let termsReturnScreen = "more";
 
 function openTerms() {
+  // Saindo do cadastro para ler os termos: lembra se a caixinha estava marcada.
+  const acceptBox = document.querySelector('input[name="acceptedTerms"]');
+  if (acceptBox) signup.acceptedTerms = acceptBox.checked;
   termsReturnScreen = state.screen === "terms" ? termsReturnScreen : state.screen;
   setScreen("terms");
 }

@@ -4,6 +4,8 @@
 import unittest
 from datetime import date, datetime, timedelta
 
+import pytest
+
 from src.services import (
     desafio_service,
     dicionario_service,
@@ -204,3 +206,16 @@ class DesafioTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ----- Cadastro: a caixinha "Li e aceito os termos de uso" -----
+
+def test_cadastro_exige_aceitar_os_termos():
+    from fastapi import HTTPException
+    from src.controllers.auth_controller import conferir_cadastro
+    from src.schemas.entradas import Cadastro
+
+    dados = {"apelido": "Teste", "email": "teste@exemplo.com", "senha": "uma frase longa aqui"}
+    with pytest.raises(HTTPException):
+        conferir_cadastro(Cadastro(**dados))  # sem marcar a caixinha
+    conferir_cadastro(Cadastro(**dados, aceitou_termos=True))  # marcada: passa

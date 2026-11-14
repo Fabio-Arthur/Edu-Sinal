@@ -1,5 +1,15 @@
 {
   "rewrites": [
     { "source": "/api/:caminho*", "destination": "https://edusinal-api.onrender.com/:caminho*" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+    },
+    {
+      "source": "/app/prototipo/(js|css|icones)/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
   ]
 }

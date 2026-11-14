@@ -57,6 +57,8 @@ def conferir_cadastro(dados: Cadastro) -> None:
         raise HTTPException(status_code=400, detail=problema)
     if dados.meta_diaria not in senha_service.METAS_DIARIAS:
         raise HTTPException(status_code=400, detail="A meta diária precisa ser 1, 3 ou 5.")
+    if not dados.aceitou_termos:
+        raise HTTPException(status_code=400, detail="Para criar a conta, aceite os termos de uso e privacidade.")
 
 
 def abrir_sessao(conexao, resposta: Response, id_usuario: int) -> None:

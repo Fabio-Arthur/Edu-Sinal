@@ -282,6 +282,7 @@ document.addEventListener("click", (event) => {
   else if (action === "login-start") setScreen("trail");
   else if (action === "delete-account") deleteAccount();
   else if (action === "open-terms") openTerms();
+  else if (action === "toggle-password") togglePassword(actionButton);
   else if (action === "close-terms") closeTerms();
   else if (action === "logout") logout();
   else if (action === "guest-start") startAsGuest();
@@ -360,10 +361,18 @@ function greetDevelopers() {
 // API se a pessoa ainda está logada (o cookie da sessão vale 7 dias).
 async function startApp() {
   const publicScreens = ["intro", "login", "signup", "terms"];
-  if (!publicScreens.includes(state.screen)) {
-    const loggedIn = await loadSession();
-    if (!loggedIn) state.screen = "intro";
+  if (publicScreens.includes(state.screen)) {
+    render(); // a tela pública aparece na hora...
+    // ...mas, se a pessoa já está logada (ex.: recarregou a página com
+    // ?tela=cadastro no endereço depois de criar a conta), vai para a Home.
+    const loginScreens = ["intro", "login", "signup"];
+    if (loginScreens.includes(state.screen) && await hasSession() && loginScreens.includes(state.screen)) {
+      setScreen("trail");
+    }
+    return;
   }
+  const loggedIn = await loadSession();
+  if (!loggedIn) state.screen = "intro";
   render();
 }
 
