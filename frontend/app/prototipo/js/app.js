@@ -360,19 +360,22 @@ function greetDevelopers() {
 // O HTML nasce vazio; desenhamos a primeira tela aqui. Antes, perguntamos à
 // API se a pessoa ainda está logada (o cookie da sessão vale 7 dias).
 async function startApp() {
-  const publicScreens = ["intro", "login", "signup", "terms"];
-  if (publicScreens.includes(state.screen)) {
-    render(); // a tela pública aparece na hora...
-    // ...mas, se a pessoa já está logada (ex.: recarregou a página com
-    // ?tela=cadastro no endereço depois de criar a conta), vai para a Home.
-    const loginScreens = ["intro", "login", "signup"];
-    if (loginScreens.includes(state.screen) && await hasSession() && loginScreens.includes(state.screen)) {
-      setScreen("trail");
-    }
+  // Os termos abrem direto, sem precisar de conta.
+  if (state.screen === "terms") {
+    render();
     return;
   }
-  const loggedIn = await loadSession();
-  if (!loggedIn) state.screen = "intro";
+  // Se a API demorar (ela "dorme" quando ninguém usa), avisa na tela de abertura.
+  const slowTimer = setTimeout(() => document.getElementById("app-splash")?.classList.add("is-slow"), 4000);
+  // Primeiro confere se a pessoa já está logada, DEPOIS escolhe a tela:
+  // logada e pediu cadastro/login (ex.: recarregou com ?tela=cadastro) vai para a Home;
+  // não logada e pediu uma tela de aluno vai para a apresentação.
+  const loginScreens = ["intro", "login", "signup"];
+  const wantsLoginScreen = loginScreens.includes(state.screen);
+  const loggedIn = wantsLoginScreen ? await hasSession() : await loadSession();
+  clearTimeout(slowTimer);
+  if (loggedIn && wantsLoginScreen) state.screen = "trail";
+  if (!loggedIn && !wantsLoginScreen) state.screen = "intro";
   render();
 }
 
