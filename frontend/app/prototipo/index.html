@@ -13,7 +13,55 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="EduSinal" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>EduSinal | Aprender Libras</title>
+  <title>EduSinal | Aprenda Libras no seu ritmo</title>
+  <!-- Para o Google e para a prévia do link (WhatsApp, Instagram...) -->
+  <meta name="description" content="Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar." />
+  <link rel="canonical" href="https://www.edusinal.com.br/app/prototipo/index.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="EduSinal" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="EduSinal | Aprenda Libras no seu ritmo" />
+  <meta property="og:description" content="Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar." />
+  <meta property="og:url" content="https://www.edusinal.com.br/app/prototipo/index.html" />
+  <meta property="og:image" content="https://www.edusinal.com.br/assets/images/compartilhar.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Eduzinho, o mascote do EduSinal, ao lado do texto: Aprenda Libras" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- "Cartão de identidade" do site para o Google (dados estruturados) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "EduSinal",
+    "alternateName": [
+      "Edu Sinal",
+      "EduSinal Libras"
+    ],
+    "url": "https://www.edusinal.com.br/",
+    "inLanguage": "pt-BR",
+    "description": "Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar."
+  }
+  </script>
+  <!-- "Cartão de identidade" do site para o Google (dados estruturados) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "EduSinal",
+    "url": "https://www.edusinal.com.br/app/prototipo/index.html",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "inLanguage": "pt-BR",
+    "description": "Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar.",
+    "image": "https://www.edusinal.com.br/assets/images/compartilhar.png",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BRL"
+    }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -23,25 +71,31 @@
   <!-- O nosso CSS vem depois, para as cores e o visual do EduSinal valerem.
        A ORDEM IMPORTA: quando duas regras brigam, ganha a do arquivo que vem
        depois. base.css (cores e peças comuns) sempre primeiro. -->
-  <link rel="stylesheet" href="css/base.css?v=123" />
-  <link rel="stylesheet" href="css/home.css?v=123" />
-  <link rel="stylesheet" href="css/atividade.css?v=123" />
-  <link rel="stylesheet" href="css/abas.css?v=123" />
-  <link rel="stylesheet" href="css/mascote.css?v=123" />
-  <link rel="stylesheet" href="css/celular.css?v=123" />
-  <link rel="stylesheet" href="css/bootstrap.css?v=123" />
-  <link rel="stylesheet" href="css/arvore.css?v=123" />
-  <link rel="stylesheet" href="css/configuracoes.css?v=123" />
-  <link rel="stylesheet" href="css/perfil.css?v=123" />
-  <link rel="stylesheet" href="css/boas-vindas.css?v=123" />
-  <link rel="stylesheet" href="css/cadastro.css?v=123" />
+  <link rel="stylesheet" href="css/base.css?v=168" />
+  <link rel="stylesheet" href="css/home.css?v=168" />
+  <link rel="stylesheet" href="css/atividade.css?v=168" />
+  <link rel="stylesheet" href="css/abas.css?v=168" />
+  <link rel="stylesheet" href="css/mascote.css?v=168" />
+  <link rel="stylesheet" href="css/celular.css?v=168" />
+  <link rel="stylesheet" href="css/bootstrap.css?v=168" />
+  <link rel="stylesheet" href="css/arvore.css?v=168" />
+  <link rel="stylesheet" href="css/configuracoes.css?v=168" />
+  <link rel="stylesheet" href="css/perfil.css?v=168" />
+  <link rel="stylesheet" href="css/boas-vindas.css?v=168" />
+  <link rel="stylesheet" href="css/cadastro.css?v=168" />
 </head>
 <body>
+  <!-- Tela de abertura: cobre a tela toda até o app saber se a pessoa está logada -->
+  <div class="app-splash" id="app-splash" role="status">
+    <img src="../../assets/images/logo-eduzinho.webp?v=2" alt="" width="96" height="96" />
+    <p class="app-splash-title">Abrindo o EduSinal…</p>
+    <p class="app-splash-hint">O servidor estava descansando e está acordando. Na primeira vez pode levar até 1 minuto.</p>
+  </div>
   <a class="skip-link" href="#screen-root">Pular para o conteúdo</a>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#trilha" data-screen="trail" aria-label="EduSinal, trilha">
-        <img src="../../assets/images/Mascote%20Libras%20em%20Azul%20vibrante.png" alt="" />
+        <img src="../../assets/images/logo-eduzinho.webp?v=2" alt="" width="40" height="40" />
         <span>Edu<span class="brand-accent">Sinal</span></span>
       </a>
       <p class="sidebar-label" id="sidebar-label">ESPAÇO DO ALUNO</p>
@@ -88,6 +142,16 @@
     </div>
   </div>
 
+  <!-- Cartão de um aluno da liga (abre ao tocar no ranking) -->
+  <div class="modal fade" id="player-modal" tabindex="-1" aria-labelledby="player-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content streak-modal-content">
+        <button type="button" class="btn-close btn-close-white streak-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        <div id="player-body"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirm-title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -105,7 +169,7 @@
   </div>
 
   <!-- Janela de compra da Lojinha: o mascote com o item em cima, o texto e os botões lado a lado.
-       O Comprar começa travado por 3 s (barrinha enchendo); Cancelar funciona na hora. -->
+       O Comprar começa travado por 2 s (barrinha enchendo); Cancelar funciona na hora. -->
   <div class="modal fade" id="buy-modal" tabindex="-1" aria-labelledby="buy-title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content buy-modal-content">
@@ -121,19 +185,21 @@
   </div>
 
   <script src="../../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
-  <script src="js/estado.js?v=123" defer></script>
-  <script src="js/mascote-desenho.js?v=123" defer></script>
-  <script src="js/conteudo.js?v=123" defer></script>
-  <script src="js/telas-trilha.js?v=123" defer></script>
-  <script src="js/licao.js?v=123" defer></script>
-  <script src="js/telas-dicionario.js?v=123" defer></script>
-  <script src="js/telas-ligas.js?v=123" defer></script>
-  <script src="js/telas-missoes.js?v=123" defer></script>
-  <script src="js/telas-lojinha.js?v=123" defer></script>
-  <script src="js/telas-perfil.js?v=123" defer></script>
-  <script src="js/telas-mascote.js?v=123" defer></script>
-  <script src="js/telas-conta.js?v=123" defer></script>
-  <script src="js/calendario.js?v=123" defer></script>
-  <script src="js/app.js?v=123" defer></script>
+  <script src="js/estado.js?v=168" defer></script>
+  <script src="js/api.js?v=168" defer></script>
+  <script src="js/mascote-desenho.js?v=168" defer></script>
+  <script src="js/conteudo.js?v=168" defer></script>
+  <script src="js/telas-trilha.js?v=168" defer></script>
+  <script src="js/licao.js?v=168" defer></script>
+  <script src="js/telas-dicionario.js?v=168" defer></script>
+  <script src="js/telas-ligas.js?v=168" defer></script>
+  <script src="js/telas-missoes.js?v=168" defer></script>
+  <script src="js/telas-lojinha.js?v=168" defer></script>
+  <script src="js/telas-perfil.js?v=168" defer></script>
+  <script src="js/telas-mascote.js?v=168" defer></script>
+  <script src="js/telas-conta.js?v=168" defer></script>
+  <script src="js/telas-termos.js?v=168" defer></script>
+  <script src="js/calendario.js?v=168" defer></script>
+  <script src="js/app.js?v=168" defer></script>
 </body>
 </html>

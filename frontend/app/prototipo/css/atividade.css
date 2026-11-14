@@ -9,7 +9,7 @@
    =================================================================== */
 .lesson {
   width: min(760px, 100%);
-  min-height: calc(100vh - 20px);
+  min-height: calc(100vh / var(--zoom) - 20px); /* com zoom, 100vh "vale" mais: divide de volta */
   display: flex;
   flex-direction: column;
   margin: 0 auto;

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from src.services.vidas_service import (
     SemVidasDisponiveis,
     calcular_resposta,
+    perder_vida,
     recuperar_vidas,
 )
 
@@ -90,6 +91,20 @@ class RecuperacaoDeVidasTests(unittest.TestCase):
                 primeira_atividade=True,
                 agora=agora,
             )
+
+
+class PerderVidaTests(unittest.TestCase):
+    def test_errar_tira_uma_vida_e_liga_o_relogio(self):
+        agora = datetime(2026, 10, 5, 12, 0)
+        vidas, proxima = perder_vida(3, None, agora)
+
+        self.assertEqual(vidas, 2)
+        self.assertEqual(proxima, agora + timedelta(minutes=30))
+
+    def test_nunca_fica_negativo(self):
+        vidas, _ = perder_vida(0, None, datetime(2026, 10, 5, 12, 0))
+
+        self.assertEqual(vidas, 0)
 
 
 if __name__ == "__main__":

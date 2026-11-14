@@ -28,25 +28,23 @@ function powerUpBlockReason(power) {
   return "";
 }
 
-function buyPowerUp(powerId) {
+// Comprar uma ajuda: o servidor confere as moedas e as regras e devolve o estado.
+async function buyPowerUp(powerId) {
   const power = POWER_UPS.find((entry) => entry.id === powerId);
   if (!power || powerUpBlockReason(power)) return;
 
-  state.coins -= power.cost;
-  if (power.id === "recarga-energia") {
-    state.energy = MAX_ENERGY;
-    state.nextEnergyAt = null;
-    state.energyRefillDate = dateKey();
-    showToast("Energia recarregada!");
-  } else if (power.id === "recarga-vidas") {
-    state.lives = MAX_LIVES;
-    state.nextLifeAt = null;
-    showToast("Vidas recarregadas!");
-  } else {
-    state.streakFreezes += 1;
-    showToast("Protetor de ofensiva guardado.");
+  try {
+    applyServerState(await api("POST", "/lojinha/compras", { id: power.id }));
+  } catch (error) {
+    showApiError(error);
+    return;
   }
-  persist();
+  const messages = {
+    "recarga-energia": "Energia recarregada!",
+    "recarga-vidas": "Vidas recarregadas!",
+    "protetor-ofensiva": "Protetor de ofensiva guardado.",
+  };
+  showToast(messages[power.id]);
   render();
 }
 
@@ -167,6 +165,7 @@ function renderShop() {
       </div>
       <span class="shop-hero-balance"><strong>${state.coins}</strong> moedas</span>
     </section>
+    <div class="screen-scroll">
     <section class="shop-group" aria-labelledby="shop-daily-title">
       <div class="mission-heading"><h2 id="shop-daily-title">Vitrine do dia</h2><span class="mission-timer">${icon("clock-fill")} Troca em ${timeUntilNewShop()}</span></div>
       <div class="shop-showcase">${dailyShopItems().map(renderShopItem).join("")}</div>
@@ -183,5 +182,6 @@ function renderShop() {
         <button class="button-3d button-3d-primary" type="button" data-screen="mascot">Abrir guarda-roupa ${icon("arrow-right")}</button>
       </div>
     </section>
-    <p class="demo-disclaimer">As moedas são de demonstração e os itens ficam salvos somente neste navegador.</p>`;
+    <p class="demo-disclaimer">As moedas são do jogo: não há compras com dinheiro real.</p>
+    </div>`;
 }

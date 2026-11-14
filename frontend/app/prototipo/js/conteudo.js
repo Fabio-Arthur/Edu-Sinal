@@ -512,39 +512,9 @@ function currentTopicId() {
   return TOPIC_ORDER.find((id) => !isLessonDone(id, "final")) || TOPIC_ORDER[TOPIC_ORDER.length - 1];
 }
 
-// Marca a lição como concluída. Devolve true se foi a primeira vez.
-function markLessonDone(topicId, branchId) {
-  if (isLessonDone(topicId, branchId)) return false;
-  state.completedLessons.push(lessonKey(topicId, branchId));
-  persist();
-  return true;
-}
-
-// Versão da trilha. Quando a trilha muda muito (como a nova ordem das etapas,
-// em 26/10), este número sobe e o progresso antigo das etapas é zerado uma vez.
-// XP, moedas, ofensiva e as letras do alfabeto do Dicionário ("alfabeto:A") ficam.
-const TRAIL_VERSION = 2;
-
-// Confere o progresso salvo ao abrir o app (chamada no início do app.js,
-// depois que todos os arquivos carregaram): zera a trilha se ela for de uma
-// versão antiga e joga fora etapas ou atividades que não existem mais.
-function fixOldProgress() {
-  const isLetter = (key) => key.startsWith(`${ALPHABET_TOPIC}:`);
-  const stillExists = (key) => {
-    const [topicId, branchId] = key.split(":");
-    const topic = learningTopics[topicId];
-    return Boolean(topic) && (branchId === "final" || topic.branches.some((branch) => branch.id === branchId));
-  };
-  const isOldTrail = state.trailVersion !== TRAIL_VERSION;
-  const kept = state.completedLessons.filter((key) => isLetter(key) || (!isOldTrail && stillExists(key)));
-  if (!isOldTrail && kept.length === state.completedLessons.length) return;
-  state.completedLessons = kept;
-  state.trailVersion = TRAIL_VERSION;
-  persist();
-}
-
 // Passos de uma atividade: os cartões (aprender, com type "card") ou as perguntas (exercício).
 // A prova final junta as 2 primeiras perguntas de cada exercício da etapa.
+// A ordem das perguntas aqui é a mesma do banco: a API conta por ela.
 function stepsFor(topicId, branchId) {
   const topic = learningTopics[topicId];
   if (branchId === "final") {

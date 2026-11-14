@@ -27,15 +27,25 @@ const ACHIEVEMENTS = [
 
 // ----- Ações do perfil -----
 
-function saveName(form) {
+// Apelido e meta diária ficam no servidor (PUT /eu manda os dois juntos).
+async function saveProfile(name, dailyGoal) {
+  try {
+    applyServerState(await api("PUT", "/eu", { apelido: name, meta_diaria: dailyGoal }));
+    return true;
+  } catch (error) {
+    showApiError(error);
+    return false;
+  }
+}
+
+async function saveName(form) {
   const name = form.elements.name.value.trim();
   if (name.length < 2 || name.length > 20) {
     showToast("O nome precisa ter de 2 a 20 caracteres.");
     return;
   }
-  state.name = name;
+  if (!(await saveProfile(name, state.dailyGoal))) return;
   state.editingName = false;
-  persist();
   render();
   showToast("Nome atualizado.");
 }
@@ -60,10 +70,8 @@ function setTextSize(size) {
   render();
 }
 
-function setDailyGoal(goal) {
-  state.dailyGoal = Number(goal);
-  persist();
-  render();
+async function setDailyGoal(goal) {
+  if (await saveProfile(state.name, Number(goal))) render();
 }
 
 function setMotion(motion) {
@@ -72,23 +80,50 @@ function setMotion(motion) {
   render();
 }
 
-// Apaga todo o progresso salvo neste navegador e recomeça do zero.
-function resetDemo() {
+// Apagar a conta (LGPD): apaga TUDO do aluno no servidor, de uma vez.
+function deleteAccount() {
   askConfirm({
-    title: "Recomeçar a demonstração?",
-    text: "Isso apaga XP, moedas, mascote e todo o progresso salvo neste navegador.",
-    confirmLabel: "Apagar e recomeçar",
-  }, () => {
-    localStorage.removeItem("edusinal-prototype");
-    location.href = location.pathname; // recarrega sem parâmetros na URL
+    title: "Apagar sua conta?",
+    text: "Isso apaga sua conta e todo o seu progresso (XP, moedas, mascote e ofensiva) para sempre.",
+    confirmLabel: "Apagar minha conta",
+  }, async () => {
+    try {
+      await api("DELETE", "/eu");
+    } catch (error) {
+      showApiError(error);
+      return;
+    }
+    state.isRegistered = false;
+    setScreen("intro");
+    showToast("Sua conta e todos os seus dados foram apagados.");
   });
 }
 
+// Sair: o servidor apaga a sessão (o cookie deixa de valer).
+// Visitante não tem senha para voltar depois: sair apaga o progresso dele.
 function logout() {
+  if (!state.isGuest) {
+    finishLogout("Você saiu. Seu progresso continua guardado na sua conta.");
+    return;
+  }
+  askConfirm({
+    title: "Sair do modo visitante?",
+    text: "Como você não criou uma conta, seu progresso (XP, moedas e mascote) vai ser apagado.",
+    confirmLabel: "Sair e apagar",
+  }, () => finishLogout("Você saiu. Volte quando quiser!"));
+}
+
+async function finishLogout(message) {
+  try {
+    await api("POST", "/auth/sair");
+  } catch (error) {
+    showApiError(error);
+    return;
+  }
   state.isRegistered = false;
-  persist();
+  state.isGuest = false;
   setScreen("intro");
-  showToast("Você saiu. Seu progresso continua salvo neste navegador.");
+  showToast(message);
 }
 
 // ----- Telas -----
@@ -122,9 +157,8 @@ function renderAchievement(achievement) {
     <article class="badge-card${isDone ? " is-done" : ""}">
       <span class="badge-medal">${icon(achievement.icon)}</span>
       <div class="badge-info">
-        <h3>${achievement.title}</h3>
+        <div class="badge-top"><h3>${achievement.title}</h3>${prize ? `<small class="badge-prize">${icon("gift-fill")} ${prize.name}</small>` : ""}</div>
         <p>${achievement.text}</p>
-        ${prize ? `<small class="badge-prize">${icon("gift-fill")} Prêmio: ${prize.name}</small>` : ""}
         ${footer}
       </div>
     </article>`;
@@ -138,8 +172,54 @@ function renderProfileTile([iconName, value, label, color]) {
   return `<div class="profile-tile">${content}</div>`;
 }
 
+// Conquistas que aparecem no Perfil: as já conquistadas e só as próximas
+// (3, ou 2 quando não cabem), na ordem da lista. As outras ficam escondidas e
+// vão aparecendo conforme o aluno completa as de cima.
+// No PC a página não rola: em tela baixa ou com texto grande, mostra só 2.
+function visibleNextAchievements() {
+  const isComputer = window.matchMedia?.("(min-width: 1001px)").matches;
+  if (isComputer && (state.textSize === "large" || window.innerHeight < 760)) return 2;
+  return 3;
+}
+
+function isAchievementDone(achievement) {
+  return achievement.progress() >= achievement.target;
+}
+
+function nextAchievements() {
+  return ACHIEVEMENTS.filter((achievement) => !isAchievementDone(achievement)).slice(0, visibleNextAchievements());
+}
+
+// A conquista já aparece no Perfil? (o guarda-roupa usa para não contar o segredo)
+function isAchievementVisible(achievement) {
+  return isAchievementDone(achievement) || nextAchievements().includes(achievement);
+}
+
+// As já conquistadas viram medalhas douradas pequenas, na linha do título
+// (não ocupam um cartão cada, então a coluna não cresce).
+function renderEarnedMedals() {
+  const done = ACHIEVEMENTS.filter(isAchievementDone);
+  if (!done.length) return "";
+  return `<div class="badge-earned" aria-label="Conquistadas">${done.map((achievement) => {
+    const prize = achievementPrize(achievement);
+    const label = `${achievement.title}: conquistada${prize ? `. Prêmio: ${prize.name}` : ""}`;
+    return `<span class="badge-earned-medal" role="img" title="${label}" aria-label="${label}">${icon(achievement.icon)}</span>`;
+  }).join("")}</div>`;
+}
+
+function renderAchievements() {
+  const next = nextAchievements();
+  const done = ACHIEVEMENTS.filter(isAchievementDone);
+  const hidden = ACHIEVEMENTS.length - next.length - done.length;
+  const secret = hidden > 0
+    ? `<p class="badge-secret">${icon("question-circle-fill")} ${hidden} ${hidden === 1 ? "conquista escondida" : "conquistas escondidas"}: complete as de cima para descobrir!</p>`
+    : "";
+  const allDone = next.length === 0 ? `<p class="badge-secret">${icon("stars")} Você ganhou todas as conquistas!</p>` : "";
+  return `<div class="badge-grid">${next.map(renderAchievement).join("")}</div>${secret}${allDone}`;
+}
+
 function renderProfile() {
-  const doneCount = ACHIEVEMENTS.filter((achievement) => achievement.progress() >= achievement.target).length;
+  const doneCount = ACHIEVEMENTS.filter(isAchievementDone).length;
   const items = mascotItemsCount();
   const tiles = [
     ["fire", state.streak, state.streak === 1 ? "dia de ofensiva" : "dias de ofensiva", "coral"],
@@ -162,17 +242,36 @@ function renderProfile() {
         ${state.editingName ? "" : `<button class="button-3d button-3d-light" type="button" data-screen="mascot">${icon("palette-fill")} Personalizar mascote</button>`}
       </div>
     </section>
+    <div class="desk-columns">
+    <div class="desk-col">
+    ${state.isGuest ? renderGuestCard() : ""}
 
     <section class="profile-group" aria-labelledby="profile-stats-title">
       <div class="mission-heading"><h2 id="profile-stats-title">Estatísticas</h2></div>
       <div class="profile-tiles">${tiles.map(renderProfileTile).join("")}</div>
     </section>
+    </div>
+    <div class="desk-col">
 
     <section class="profile-group" aria-labelledby="achievements-title">
-      <div class="mission-heading"><h2 id="achievements-title">Conquistas</h2><span class="mission-timer">${icon("award-fill")} ${doneCount} de ${ACHIEVEMENTS.length}</span></div>
-      <div class="badge-grid">${ACHIEVEMENTS.map(renderAchievement).join("")}</div>
+      <div class="mission-heading badge-heading"><h2 id="achievements-title">Conquistas</h2>${renderEarnedMedals()}<span class="mission-timer">${icon("award-fill")} ${doneCount} de ${ACHIEVEMENTS.length}</span></div>
+      ${renderAchievements()}
     </section>
-    <p class="demo-disclaimer">Este perfil é local e não representa uma conta autenticada.</p>`;
+    </div>
+    </div>`;
+}
+
+// Convite para o visitante criar a conta (e não perder o que já fez).
+function renderGuestCard() {
+  return `
+    <section class="guest-card" aria-labelledby="guest-title">
+      <span class="guest-card-icon">${icon("cloud-arrow-up-fill")}</span>
+      <div>
+        <h2 id="guest-title">Você está como visitante</h2>
+        <p>Seu progresso fica guardado só por 7 dias. Crie uma conta para salvar tudo o que você já fez.</p>
+      </div>
+      <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
+    </section>`;
 }
 
 // Interruptor com as opções lado a lado (ex.: Claro | Escuro).
@@ -217,7 +316,8 @@ function renderMore() {
   const privacy = [
     "Não existe chat nem mensagens entre alunos.",
     "Nas ligas aparecem só apelidos e avatares.",
-    "Nesta demonstração, os dados ficam só neste navegador e não são enviados.",
+    "Guardamos só o apelido, o e-mail e o progresso. A senha é guardada embaralhada.",
+    "Em Conta, você pode apagar sua conta e todos os seus dados quando quiser.",
     "Não há compras com dinheiro real: as moedas são do jogo.",
   ].map((item) => `<li>${icon("check-circle-fill")} ${item}</li>`).join("");
 
@@ -231,10 +331,12 @@ function renderMore() {
       </div>
     </section>
 
+    <div class="desk-columns">
+    <div class="desk-col">
     <section class="settings-group" aria-labelledby="settings-prefs-title">
       <h2 class="settings-heading" id="settings-prefs-title">Preferências</h2>
       <div class="settings-card">
-        ${renderSettingRow("palette-fill", "blue", "Tema", "Cores claras ou escuras.", renderChoice("set-theme", state.theme, "Tema", [["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]))}
+        ${renderSettingRow("palette-fill", "blue", "Tema", "Automático segue o modo claro ou escuro do aparelho.", renderChoice("set-theme", state.theme, "Tema", [["auto", "Automático", "circle-half"], ["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]))}
         ${renderSettingRow("type", "teal", "Tamanho do texto", "Deixa tudo um pouco maior.", renderChoice("set-text-size", state.textSize, "Tamanho do texto", [["normal", "Normal", "fonts"], ["large", "Grande", "zoom-in"]]))}
         ${renderSettingRow("stars", "yellow", "Animações", "Reduz movimentos na tela.", renderChoice("set-motion", state.motion, "Animações", [["normal", "Ligadas", "play-fill"], ["reduced", "Reduzidas", "pause-fill"]]))}
         ${renderSettingRow("flag-fill", "coral", "Meta diária", "Atividades por dia na meta da Home.", renderChoice("set-goal", String(state.dailyGoal), "Meta diária", [["1", "1", "cup-hot-fill"], ["3", "3", "lightning-charge-fill"], ["5", "5", "fire"]]))}
@@ -245,17 +347,23 @@ function renderMore() {
       <h2 class="settings-heading" id="settings-help-title">Ajuda</h2>
       <div class="settings-card settings-faq">${faq}</div>
     </section>
+    </div>
+    <div class="desk-col">
 
     <section class="settings-group" aria-labelledby="settings-privacy-title">
       <h2 class="settings-heading" id="settings-privacy-title">Segurança e privacidade</h2>
-      <div class="settings-card"><ul class="settings-privacy">${privacy}</ul></div>
+      <div class="settings-card"><ul class="settings-privacy">${privacy}</ul>
+        <button class="text-button" type="button" data-action="open-terms">${icon("file-earmark-text-fill")} Ler os termos de uso e privacidade</button></div>
     </section>
 
     <section class="settings-group" aria-labelledby="settings-account-title">
       <h2 class="settings-heading" id="settings-account-title">Conta</h2>
       <div class="settings-card">
-        ${renderSettingRow("arrow-counterclockwise", "coral", "Recomeçar demonstração", "Apaga XP, moedas e progresso deste navegador.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="reset-demo">Recomeçar</button>')}
-        ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}
+        ${state.isGuest
+          ? `${renderSettingRow("cloud-arrow-up-fill", "teal", "Criar conta", "Salva o progresso que você fez como visitante.", '<button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>')}
+        ${renderSettingRow("box-arrow-right", "blue", "Sair do modo visitante", "Apaga o progresso de visitante.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`
+          : `${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
+        ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`}
       </div>
     </section>
 
@@ -263,5 +371,15 @@ function renderMore() {
       <img src="icones/icone-192.png" alt="" width="56" height="56" />
       <div><strong>EduSinal</strong><p>Aprender Libras de forma visual e no seu ritmo, com trilha, exercícios e dicionário.</p></div>
       <a class="text-button" href="../../landing/index.html?v=2">Conhecer o projeto ${icon("box-arrow-up-right")}</a>
-    </section>`;
+    </section>
+    </div>
+    </div>`;
 }
+
+// Se a janela mudar de tamanho e passar a caber mais (ou menos) conquistas, redesenha o Perfil.
+let lastVisibleNext = null;
+window.addEventListener("resize", () => {
+  const count = visibleNextAchievements();
+  if (state.screen === "profile" && lastVisibleNext !== null && count !== lastVisibleNext) render();
+  lastVisibleNext = count;
+});

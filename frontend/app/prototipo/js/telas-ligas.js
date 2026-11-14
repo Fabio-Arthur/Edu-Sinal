@@ -1,7 +1,10 @@
 // LIGAS
-// Ranking semanal com colegas fictícios. Os 3 primeiros sobem de liga e os
-// 2 últimos descem quando a semana vira (segunda-feira).
-// Pensado para menores: só apelidos e avatares, sem chat e sem perfil aberto.
+// Ranking semanal com os alunos de verdade da mesma liga (vem da API:
+// GET /ligas/semana). Os 3 primeiros sobem de liga e os 2 últimos descem quando
+// a semana vira (segunda-feira); quem decide isso é o servidor.
+// Pensado para menores: só apelidos, mascotes e números do jogo, sem chat.
+// Tocando num aluno do ranking abre o "cartão" dele (GET /ligas/semana/{posição}),
+// só com dados do jogo: nunca o e-mail.
 
 const LEAGUES = [
   { name: "Bronze", className: "league-bronze" },
@@ -12,57 +15,63 @@ const LEAGUES = [
 ];
 
 const PROMOTION_SPOTS = 3; // quantos sobem
+const GROUP_SIZE = 10; // alunos por grupo da liga (o servidor separa os grupos)
 const DEMOTION_SPOTS = 2;  // quantos descem
-
-// Colegas fictícios: apelido e quanto XP costumam ganhar por dia.
-const LEAGUE_RIVALS = [
-  { name: "Tucano Veloz", xpPerDay: 55 },
-  { name: "Arara Feliz", xpPerDay: 48 },
-  { name: "Onça Curiosa", xpPerDay: 40 },
-  { name: "Boto Sorridente", xpPerDay: 33 },
-  { name: "Capivara Sábia", xpPerDay: 27 },
-  { name: "Sabiá Atento", xpPerDay: 21 },
-  { name: "Jabuti Firme", xpPerDay: 15 },
-  { name: "Mico Esperto", xpPerDay: 10 },
-  { name: "Lobo-guará", xpPerDay: 6 },
-];
 
 // Dia da semana: segunda = 1 ... domingo = 7.
 function weekDayNumber() {
   return ((new Date().getDay() + 6) % 7) + 1;
 }
 
-// Classificação: você + colegas fictícios, do maior XP para o menor.
-// Em caso de empate, você fica na frente.
-function buildRanking(myXp, daysPlayed) {
-  const players = [{ name: state.name, xp: myXp, isMe: true }];
-  LEAGUE_RIVALS.forEach((rival) => {
-    players.push({ name: rival.name, xp: rival.xpPerDay * daysPlayed, isMe: false });
-  });
-  return players.sort((a, b) => b.xp - a.xp);
+// Classificação da semana, do maior XP para o menor. Antes de a API
+// responder, aparece só o próprio aluno.
+// O XP do próprio aluno vem sempre do estado mais novo (o ranking dos
+// outros pode ter até 1 minuto de atraso).
+function buildRanking() {
+  if (!state.leagueRanking) return [{ name: state.name, xp: state.week.xp, isMe: true }];
+  return state.leagueRanking
+    .map((player) => ({
+      name: player.sou_eu ? state.name : player.apelido,
+      xp: player.sou_eu ? state.week.xp : player.xp,
+      look: player.sou_eu ? state.mascot : lookFromServer(player.mascote), // o mascote de cada um é a "foto"
+      isMe: player.sou_eu,
+      serverPosition: player.posicao, // para abrir o cartão do aluno
+    }))
+    .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
 }
 
-// "promotion" (sobe), "demotion" (desce) ou "safe" (fica).
-function zoneOf(position, total) {
-  if (position <= PROMOTION_SPOTS) return "promotion";
-  if (position > total - DEMOTION_SPOTS) return "demotion";
-  return "safe";
+// No PC a lista do ranking rola por dentro: rola até o aluno, para ele se ver
+// sem procurar (fica no meio da lista quando dá).
+function scrollRankingToMe() {
+  const list = document.querySelector(".ranking-list");
+  const me = list?.querySelector(".ranking-row.is-me");
+  if (!me || list.scrollHeight <= list.clientHeight) return;
+  list.scrollTop = me.offsetTop - (list.clientHeight - me.offsetHeight) / 2;
 }
 
-// Quando a semana vira: sobe ou desce de liga conforme a posição final.
-function closeLeagueWeek() {
-  const ranking = buildRanking(state.week.xp, 7);
-  const position = ranking.findIndex((player) => player.isMe) + 1;
-  const zone = zoneOf(position, ranking.length);
-
-  if (zone === "promotion" && state.league < LEAGUES.length - 1) {
-    state.league += 1;
-    showToast(`Semana encerrada: você subiu para a liga ${LEAGUES[state.league].name}!`);
-  } else if (zone === "demotion" && state.league > 0) {
-    state.league -= 1;
-    showToast(`Semana encerrada: você voltou para a liga ${LEAGUES[state.league].name}.`);
+// Busca o ranking na API (no máximo uma vez por minuto) e redesenha a tela.
+let leagueRankingLoadedAt = 0;
+async function refreshLeagueRanking() {
+  if (!state.isRegistered || state.isGuest || Date.now() - leagueRankingLoadedAt < 60000) return;
+  leagueRankingLoadedAt = Date.now();
+  try {
+    const result = await api("GET", "/ligas/semana");
+    state.leagueRanking = result.ranking;
+    applyServerState(result.estado);
+  } catch (error) {
+    leagueRankingLoadedAt = 0; // deu erro: tenta de novo na próxima vez
+    return;
   }
-  state.week = { key: weekKey(), xp: 0, claimed: [] };
+  if (["leagues", "trail"].includes(state.screen) && !state.focusTopic) render();
+}
+
+// "promotion" (sobe), "demotion" (desce) ou "safe" (fica). Mesma regra do
+// servidor: com pouca gente na liga, ninguém desce.
+function zoneOf(position, total, league = state.league) {
+  // Na Bronze (a primeira) ninguém desce, e no Diamante (a última) ninguém sobe.
+  if (position <= PROMOTION_SPOTS) return league === LEAGUES.length - 1 ? "safe" : "promotion";
+  if (total > PROMOTION_SPOTS + DEMOTION_SPOTS && position > total - DEMOTION_SPOTS) return league === 0 ? "safe" : "demotion";
+  return "safe";
 }
 
 function leagueTimeLeft() {
@@ -75,7 +84,7 @@ function leagueTimeLeft() {
 // Frase de situação: na zona de promoção, no meio ou na zona de rebaixamento.
 // Onde o aluno está na liga desta semana: posição, zona e quanto XP falta para
 // entrar na zona de promoção. Usado aqui e no cartão da liga na Home.
-function myLeagueStanding(ranking = buildRanking(state.week.xp, weekDayNumber())) {
+function myLeagueStanding(ranking = buildRanking()) {
   const position = ranking.findIndex((player) => player.isMe) + 1;
   const me = ranking[position - 1];
   const zone = zoneOf(position, ranking.length);
@@ -87,7 +96,14 @@ function renderLeagueStatus(ranking) {
   const { position, me, zone, missing } = myLeagueStanding(ranking);
 
   let message;
-  if (zone === "promotion") {
+  if (me.xp === 0) {
+    // Ainda não jogou nesta semana: em vez de assustar com "rebaixamento", convida.
+    message = "Você ainda não entrou na disputa desta semana. <strong>Faça uma atividade</strong> para ganhar XP e subir no ranking!";
+  } else if (state.league === LEAGUES.length - 1) {
+    message = zone === "demotion"
+      ? "Cuidado: você está na <strong>zona de rebaixamento</strong> da Liga Diamante. Ganhe XP para continuar aqui!"
+      : "Você está na <strong>Liga Diamante</strong>, a mais alta! Continue ganhando XP para ficar aqui.";
+  } else if (zone === "promotion") {
     message = "Você está na <strong>zona de promoção</strong>. Continue assim para subir de liga!";
   } else {
     const warning = zone === "demotion" ? "Cuidado: você está na <strong>zona de rebaixamento</strong>. " : "";
@@ -95,11 +111,18 @@ function renderLeagueStatus(ranking) {
   }
 
   return `
-    <section class="league-status zone-${zone}">
+    <section class="league-status zone-${me.xp === 0 ? "safe" : zone}">
       <div class="league-status-place"><strong>${position}º</strong><span>lugar</span></div>
       <div><p>${message}</p><small>${me.xp} XP nesta semana · cada exercício novo vale ${XP_PER_EXERCISE} XP</small></div>
       <button class="button-3d button-3d-primary" type="button" data-action="open-topic" data-topic="${currentTopicId()}">Ganhar XP ${icon("arrow-right")}</button>
     </section>`;
+}
+
+// A regra da liga atual, no cartão de cima.
+function leagueRuleText() {
+  if (state.league === 0) return `Os ${PROMOTION_SPOTS} primeiros da salinha sobem para a Liga ${LEAGUES[1].name}.`;
+  if (state.league === LEAGUES.length - 1) return `A liga mais alta! Os ${DEMOTION_SPOTS} últimos da salinha descem para a Liga ${LEAGUES[state.league - 1].name}.`;
+  return `Os ${PROMOTION_SPOTS} primeiros da salinha sobem de liga e os ${DEMOTION_SPOTS} últimos descem.`;
 }
 
 // Uma linha do ranking. Os 3 primeiros ganham medalha; o aluno aparece com o mascote dele.
@@ -109,15 +132,16 @@ function renderRankingRow(player, position, total) {
   const place = position <= 3
     ? `<span class="ranking-position ranking-medal medal-${position}" aria-label="${position}º lugar">${position}</span>`
     : `<span class="ranking-position">${position}</span>`;
-  const avatar = player.isMe
-    ? `<span class="ranking-avatar is-me ${backdropClass()}" aria-hidden="true">${mascotSvg(state.mascot, "avatar", "")}</span>`
-    : `<span class="ranking-avatar avatar-tone-${position % 4}" aria-hidden="true">${escapeHtml(player.name.slice(0, 1))}</span>`;
-  return `<li class="ranking-row zone-${zone}${player.isMe ? " is-me" : ""}">${place}${avatar}<strong>${escapeHtml(player.name)}${youLabel}</strong><span class="ranking-points">${player.xp} XP</span></li>`;
+  const look = player.look || state.mascot;
+  const avatar = `<span class="ranking-avatar${player.isMe ? " is-me" : ""} ${backdropClass(look)}" aria-hidden="true">${mascotSvg(look, "avatar", "")}</span>`;
+  // A linha inteira é um botão: abre o cartão do aluno.
+  return `<li><button class="ranking-row zone-${zone}${player.isMe ? " is-me" : ""}" type="button" data-action="open-player" data-position="${player.serverPosition || 0}" data-name="${escapeHtml(player.name)}" aria-label="Ver o perfil de ${escapeHtml(player.name)}">${place}${avatar}<strong>${escapeHtml(player.name)}${youLabel}</strong><span class="ranking-points">${player.xp} XP</span></button></li>`;
 }
 
 function renderLeagues() {
+  if (state.isGuest) return renderLeaguesForGuest();
   const league = LEAGUES[state.league];
-  const ranking = buildRanking(state.week.xp, weekDayNumber());
+  const ranking = buildRanking();
 
   // Escada: as ligas já passadas ficam coloridas, a atual em destaque e as próximas cinza
   const ladder = LEAGUES.map((item, index) => {
@@ -131,11 +155,11 @@ function renderLeagues() {
   const rows = [];
   ranking.forEach((player, index) => {
     const position = index + 1;
-    if (position === ranking.length - DEMOTION_SPOTS + 1) {
+    if (zoneOf(position, ranking.length) === "demotion" && zoneOf(position - 1, ranking.length) !== "demotion") {
       rows.push('<li class="ranking-divider zone-demotion" aria-hidden="true"><i class="bi bi-arrow-down" aria-hidden="true"></i> Zona de rebaixamento</li>');
     }
     rows.push(renderRankingRow(player, position, ranking.length));
-    if (position === PROMOTION_SPOTS) {
+    if (position === PROMOTION_SPOTS && ranking.length > PROMOTION_SPOTS && zoneOf(position, ranking.length) === "promotion") {
       rows.push('<li class="ranking-divider zone-promotion" aria-hidden="true"><i class="bi bi-arrow-up" aria-hidden="true"></i> Zona de promoção</li>');
     }
   });
@@ -146,16 +170,111 @@ function renderLeagues() {
       <div class="league-hero-copy">
         <small>LIGA DA SEMANA</small>
         <h2 id="league-title">Liga ${league.name}</h2>
-        <p>Os ${PROMOTION_SPOTS} primeiros sobem de liga e os ${DEMOTION_SPOTS} últimos descem.</p>
+        <p>${leagueRuleText()}</p>
       </div>
       <span class="league-timer">${icon("clock-fill")} Termina em <strong>${leagueTimeLeft()}</strong></span>
     </section>
+    <div class="desk-columns">
+    <div class="desk-col">
     <ol class="league-ladder" aria-label="Ligas, da primeira à última">${ladder}</ol>
     ${renderLeagueStatus(ranking)}
-    <section aria-labelledby="ranking-title">
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Toque em um aluno para ver o perfil dele. Aparecem só o apelido, o mascote e números do jogo: nada de e-mail, chat ou mensagens.</p>
+    <p class="demo-disclaimer">Cada liga é dividida em grupos de até ${GROUP_SIZE} alunos. Aqui aparece o seu grupo: quem ganhou XP nesta semana.</p>
+    </div>
+    <div class="desk-col desk-col-fill">
+    <section class="ranking-section" aria-labelledby="ranking-title">
       <div class="section-heading"><div><p class="eyebrow">CLASSIFICAÇÃO</p><h2 id="ranking-title">Ranking da semana</h2></div></div>
       <ol class="ranking-list">${rows.join("")}</ol>
     </section>
-    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>
-    <p class="demo-disclaimer">Colegas e pontuações fictícios, apenas para demonstração.</p>`;
+    </div>
+    </div>`;
+}
+
+// Visitante não entra na liga: em vez do ranking, mostra como as ligas
+// funcionam e o convite para criar a conta (o progresso vai junto).
+function renderLeaguesForGuest() {
+  const ladder = LEAGUES.map((item, index) => `<li class="league-step ${item.className} is-locked"><span class="league-badge">${icon(index === 0 ? "trophy-fill" : "lock-fill")}</span><small>${item.name}</small></li>`).join("");
+  return `
+    <section class="league-hero" aria-labelledby="league-title">
+      <span class="league-badge league-badge-large ${LEAGUES[0].className}">${icon("trophy-fill")}</span>
+      <div class="league-hero-copy">
+        <small>LIGAS</small>
+        <h2 id="league-title">Compita com outros alunos</h2>
+        <p>Toda semana, quem ganha mais XP sobe de liga. Dá para chegar até o Diamante!</p>
+      </div>
+    </section>
+    <ol class="league-ladder" aria-label="Ligas, da primeira à última">${ladder}</ol>
+    <section class="guest-card" aria-labelledby="guest-league-title">
+      <span class="guest-card-icon">${icon("lock-fill")}</span>
+      <div>
+        <h2 id="guest-league-title">As ligas são para quem tem conta</h2>
+        <p>Crie uma conta para entrar na Liga Bronze. É rapidinho, e tudo o que você já fez vai junto.</p>
+      </div>
+      <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
+    </section>
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>`;
+}
+
+
+// ----- Cartão do aluno (janela que abre ao tocar no ranking) -----
+
+const SHORT_MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+// "Unidade 01 · Etapa 02 · Números" (ou "Trilha completa").
+function playerStageLabel(topicId) {
+  if (!topicId || !learningTopics[topicId]) return `${icon("stars")} Trilha completa!`;
+  const topic = learningTopics[topicId];
+  const unit = TRAIL_UNITS.find((item) => item.topics.includes(topicId));
+  return `${icon("signpost-2-fill")} ${unit ? `Unidade ${unit.number} · ` : ""}Etapa ${topic.number} · ${topic.title}`;
+}
+
+function playerTile(iconName, color, value, label) {
+  return `<div class="player-tile"><span class="player-tile-icon is-${color}">${icon(iconName)}</span><strong>${value}</strong><small>${label}</small></div>`;
+}
+
+// Topo da janela (já aparece antes da API responder: nome e mascote estão no ranking).
+function renderPlayerTop(name, look, kicker, stage) {
+  return `
+    <div class="player-hero">
+      <span class="player-avatar ${backdropClass(look)}" aria-hidden="true">${mascotSvg(look, "avatar", "")}</span>
+      <div class="player-hero-copy">
+        <small>${kicker}</small>
+        <h2 id="player-title">${escapeHtml(name)}</h2>
+        <span class="player-stage">${stage}</span>
+      </div>
+    </div>`;
+}
+
+function renderPlayerCard(data) {
+  const look = data.sou_eu ? state.mascot : lookFromServer(data.mascote);
+  const since = new Date(`${data.aluno_desde}T12:00:00`);
+  const league = LEAGUES[data.liga] || LEAGUES[0];
+  const kicker = data.sou_eu ? `VOCÊ · ${data.posicao}º LUGAR NA SALINHA` : `${data.posicao}º LUGAR NA SALINHA`;
+  return `
+    ${renderPlayerTop(data.apelido, look, kicker, playerStageLabel(data.etapa_atual))}
+    <div class="player-grid">
+      ${playerTile("fire", "fire", data.ofensiva, data.ofensiva === 1 ? "dia de ofensiva" : "dias de ofensiva")}
+      ${playerTile("lightning-charge-fill", "xp", data.xp, "XP no total")}
+      ${playerTile("trophy-fill", `league ${league.className}`, league.name, "liga atual")}
+      ${playerTile("flag-fill", "stage", `${data.etapas}/${TOPIC_ORDER.length}`, data.etapas === 1 ? "etapa concluída" : "etapas concluídas")}
+      ${playerTile("award-fill", "medal", `${data.conquistas}/${data.total_conquistas}`, "conquistas")}
+      ${playerTile("calendar-heart-fill", "since", `${SHORT_MONTHS[since.getMonth()]}/${since.getFullYear()}`, "aluno desde")}
+    </div>`;
+}
+
+async function openPlayerCard(position, name) {
+  if (!window.bootstrap) return;
+  const body = document.getElementById("player-body");
+  const fromRanking = buildRanking().find((player) => player.name === name) || {};
+  // Enquanto a API responde: o topo com o que já sabemos e os cartões "carregando".
+  body.innerHTML = `${renderPlayerTop(name, fromRanking.look || state.mascot, "CARREGANDO…", `${icon("hourglass-split")} Buscando o perfil`)}
+    <div class="player-grid is-loading">${'<div class="player-tile"></div>'.repeat(6)}</div>`;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("player-modal")).show();
+  try {
+    const data = await api("GET", `/ligas/semana/${position}?apelido=${encodeURIComponent(name)}`);
+    body.innerHTML = renderPlayerCard(data);
+  } catch (error) {
+    body.innerHTML = `${renderPlayerTop(name, fromRanking.look || state.mascot, "OPS", `${icon("exclamation-circle-fill")} Não deu para abrir`)}
+      <p class="player-error">${escapeHtml(error.message)}</p>`;
+  }
 }

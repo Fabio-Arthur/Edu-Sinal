@@ -79,3 +79,17 @@ def calcular_resposta(
         moedas_ganhas=MOEDAS_PRIMEIRA_ATIVIDADE if primeira_atividade else MOEDAS_POR_ATIVIDADE,
         atividade_concluida=True,
     )
+
+def perder_vida(
+    vidas: int,
+    proxima_vida_em: datetime | None,
+    agora: datetime,
+) -> tuple[int, datetime | None]:
+    # Errou uma pergunta: tira 1 vida (nunca fica negativo).
+    vidas = max(0, vidas - 1)
+
+    # Se o relógio da próxima vida ainda não estava correndo, começa agora.
+    if proxima_vida_em is None:
+        proxima_vida_em = agora + TEMPO_POR_VIDA
+
+    return vidas, proxima_vida_em

@@ -140,7 +140,7 @@
 }
 .trail-scroll.has-left { --fade-left: 40px; }
 .trail-scroll.has-right { --fade-right: 40px; }
-.trail-track { --banner-h: 76px; position: relative; display: flex; width: max-content; padding: 0 var(--edge); }
+.trail-track { --banner-h: 76px; --route-top: 76px; --sobra: 0px; position: relative; display: flex; width: max-content; padding: 0 var(--edge); } /* --route-top = TRAIL_ROUTE_TOP do telas-trilha.js */
 .trail-unit { width: calc(var(--step-w) * 4); flex: none; }
 .trail-unit + .trail-unit { margin-left: calc(var(--edge) * 2); } /* vão entre as unidades */
 .trail-unit .home-map-banner { height: var(--banner-h); margin: 0 8px; }
@@ -164,7 +164,7 @@
   transform: translateY(var(--wave, 0px)); /* sobe ou desce: a onda */
 }
 /* Linha ondulada ligando as bolinhas (desenhada no telas-trilha.js) */
-.trail-wave { position: absolute; top: var(--banner-h); left: var(--edge); pointer-events: none; }
+.trail-wave { position: absolute; top: calc(var(--banner-h) + var(--sobra) / 2); left: var(--edge); pointer-events: none; } /* desce junto com as bolinhas */
 .trail-wave path,
 .trail-wave-mobile path { fill: none; stroke: var(--line); stroke-width: 6; stroke-linecap: round; }
 .trail-wave path.is-done,
@@ -397,28 +397,49 @@ button.home-tile:active { background: var(--line); }
   .hero-mascot { width: 116px; height: 116px; }
 }
 
-/* Computador de tela até 900px de altura (notebook): a Home ocupa a altura toda,
-   sem sobrar faixa vazia embaixo. O cartão da trilha estica (a trilha fica no meio
-   dele) e a coluna do lado termina na mesma altura (o cartão das missões estica
-   e o da liga fica no pé).
-   Em monitor alto não estica, senão o cartão fica enorme e vazio. */
-@media (min-width: 1001px) and (max-height: 900px) {
+/* Computador: a Home ocupa a altura toda, sem sobrar faixa vazia embaixo.
+   O cartão da trilha estica (a trilha fica no meio dele) e a coluna do lado
+   termina na mesma altura (o cartão das missões estica e o da liga fica no pé).
+   Em monitor grande, a "escala da tela" (css/base.css) aumenta tudo, então o
+   cartão não fica enorme e vazio. */
+@media (min-width: 1001px) {
   .app-shell[data-current-screen="trail"][data-focus="off"] .screen-root { display: flex; flex-direction: column; }
   .home-dashboard { flex: 1; align-items: stretch; }
   .home-main-column { grid-template-rows: auto 1fr; }
   .home-side-column { grid-template-rows: auto auto 1fr auto; } /* as missões esticam e a liga fica embaixo */
-  .home-map { display: flex; flex-direction: column; justify-content: center; }
+  /* A faixa da unidade fica grudada lá em cima, e as bolinhas ficam no meio do
+     espaço que sobra embaixo dela. A trilha mede a altura do próprio quadro
+     ("container query": 100cqh = a altura do .trail-frame) e empurra as
+     bolinhas para baixo com metade da sobra (a linha ondulada desce junto). */
+  .home-map { display: flex; flex-direction: column; justify-content: flex-start; }
+  .home-map .trail-frame { flex: 1; min-height: 0; display: flex; flex-direction: column; container-type: size; }
+  .home-map .trail-scroll { flex: 1; min-height: 0; }
+  .home-map .trail-track {
+    --banner-h: 92px;
+    /* 266px = espaço do balão (76) + onda (24) + bolinha (72) + nome da etapa (88) + barra de rolar (6) */
+    --sobra: max(0px, calc(100cqh - var(--banner-h) - 266px));
+    --route-top: calc(76px + var(--sobra) / 2);
+  }
+  /* As setas descem junto, na altura das bolinhas (mesma conta da trilha) */
+  .home-map .trail-arrow {
+    --sobra: max(0px, calc(100cqh - 92px - 266px));
+    top: calc(92px + 76px + var(--sobra) / 2 + 36px - 22px);
+  }
+  /* Faixa da unidade maior, com o título em destaque */
+  .home-map .home-map-banner { padding: 16px 24px; }
+  .home-map .home-map-banner small { font-size: 13px; }
+  .home-map .home-map-banner h2 { margin-top: 4px; font-size: 30px; }
+  .home-map .home-map-banner > span { padding: 8px 14px; font-size: 14px; }
 }
-/* Tela um pouco mais alta (monitor de até 900px de altura): o cartão da trilha fica
-   bem alto, então a trilha ganha uma "lupa" de 15% para não sobrar tanto vazio.
-   (O zoom é o mesmo truque do "texto grande", que a trilha já aceita.) */
-@media (min-width: 1001px) and (min-height: 761px) and (max-height: 900px) {
-  .home-map .trail-frame { zoom: 1.15; }
-}
+/* (A "lupa" da trilha é calculada no telas-trilha.js, função zoomTrail.) */
 
 /* Computador com tela baixa (notebook): a Home fica mais compacta para caber
-   inteira na tela, sem rolar. Em tela alta, nada muda. */
-@media (min-width: 1001px) and (max-height: 820px) {
+   inteira na tela, sem rolar. Vale também para monitores grandes em que a
+   "escala da tela" (css/base.css) deixa a altura útil abaixo de ~820px:
+   1500px ou mais de largura com escala 1.12, e Full HD com escala 1.25. */
+@media (min-width: 1001px) and (max-height: 820px),
+       (min-width: 1500px) and (max-height: 919px),
+       (min-width: 1800px) and (min-height: 900px) and (max-height: 1025px) {
   .app-shell[data-current-screen="trail"][data-focus="off"] .screen-root { padding-top: 16px; padding-bottom: 8px; }
   .app-shell[data-current-screen="trail"][data-focus="off"] .app-footer { min-height: 34px; }
   .home-dashboard { gap: 16px; }
