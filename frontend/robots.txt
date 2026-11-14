@@ -1,0 +1,7 @@
+# Recado para o Google e outros buscadores: pode olhar o site todo,
+# menos a API (são só dados, não páginas).
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://www.edusinal.com.br/sitemap.xml
