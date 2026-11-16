@@ -57,7 +57,8 @@ frontend/
     js/app.js               Troca de telas, cliques e teclado (carrega por último)
   assets/images/       Imagens compartilhadas
   assets/vendor/       Bootstrap e Bootstrap Icons (cópias locais, com as licenças)
-  landing/             Página "Conheça o projeto" (usa o mesmo mascote do app)
+  index.html           Página principal "Conheça o projeto" (usa o mesmo mascote do app)
+  landing/             Estilo da página principal (landing.css)
 backend/
   api/edusinal-api/
     src/controllers/   Rotas HTTP da API
@@ -77,7 +78,7 @@ python3 -m http.server 5500
 
 Abra <http://localhost:5500/>. Se a porta 5500 já estiver ocupada, encerre o servidor anterior com `Ctrl+C` ou escolha outra porta, por exemplo `python3 -m http.server 5501`.
 
-A landing de apresentação fica em <http://localhost:5500/frontend/landing/index.html>.
+A página principal (landing) fica em <http://localhost:5500/frontend/index.html>.
 
 Para abrir uma tela direto, use `?tela=` no endereço: `home`, `login`, `cadastro`, `dicionario`, `ligas`, `missoes`, `lojinha`, `perfil` ou `mais`. Exemplo: <http://localhost:5500/frontend/app/prototipo/index.html?tela=ligas>. Depois de mudar o código, recarregue com `Ctrl+Shift+R` para o navegador não usar a versão antiga em cache.
 

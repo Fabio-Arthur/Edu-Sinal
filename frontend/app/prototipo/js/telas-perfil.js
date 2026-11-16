@@ -370,7 +370,7 @@ function renderMore() {
     <section class="settings-about" aria-label="Sobre o EduSinal">
       <img src="icones/icone-192.png" alt="" width="56" height="56" />
       <div><strong>EduSinal</strong><p>Aprender Libras de forma visual e no seu ritmo, com trilha, exercícios e dicionário.</p></div>
-      <a class="text-button" href="../../landing/index.html?v=2">Conhecer o projeto ${icon("box-arrow-up-right")}</a>
+      <a class="text-button" href="../../">Conhecer o projeto ${icon("box-arrow-up-right")}</a>
     </section>
     </div>
     </div>`;

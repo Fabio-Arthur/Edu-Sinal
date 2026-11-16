@@ -24,7 +24,7 @@ function renderIntro() {
           <button class="button-3d button-3d-outline" type="button" data-screen="login">Já tenho conta</button>
         </div>
         <button class="welcome-guest" type="button" data-action="guest-start">${icon("eye-fill")} Só quero experimentar, sem criar conta</button>
-        <a class="welcome-link" href="../../landing/index.html?v=2">${icon("info-circle-fill")} Conhecer o projeto</a>
+        <a class="welcome-link" href="../../">${icon("info-circle-fill")} Conhecer o projeto</a>
       </div>
     </section>
     <section class="welcome-points" aria-label="Sobre o EduSinal">
