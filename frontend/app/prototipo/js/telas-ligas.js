@@ -212,7 +212,7 @@ function renderLeaguesForGuest() {
       </div>
       <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
     </section>
-    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>`;
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat e nem mensagens com outros alunos.</p>`;
 }
 
 

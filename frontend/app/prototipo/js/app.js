@@ -146,7 +146,8 @@ function setScreen(screen) {
     }
   }
   if (screen === "signup" || screen === "login") hideToast(); // o aviso cobriria o botão "Continuar"
-  if (screen === "signup" && state.screen !== "signup") resetSignup(); // cadastro novo começa da 1ª etapa
+  // Cadastro novo começa da 1ª etapa. Voltando dos termos, continua de onde parou.
+  if (screen === "signup" && !["signup", "terms"].includes(state.screen)) resetSignup();
   if (screen === "login" && state.screen !== "login") resetLogin();
   state.screen = screen;
   state.answered = false;

@@ -4,56 +4,59 @@
 // mesmo sem estar logado.
 // RASCUNHO do TCC: revisar com o orientador antes de publicar de verdade.
 
-const TERMS_UPDATED_AT = "13/11/2026";
+const TERMS_UPDATED_AT = "16/11/2026";
 
 // Cada parte: [título, parágrafos]. Para mudar o texto, é só editar aqui.
+// Organização do texto do Erick (equipe), ajustada ao que o app faz hoje.
 const TERMS_SECTIONS = [
   ["O que é o EduSinal", [
-    "O EduSinal é um app para aprender Libras, feito como Trabalho de Conclusão de Curso (TCC). Ele é gratuito, não tem propaganda e não vende nada com dinheiro de verdade.",
+    "O EduSinal é uma plataforma digital de ensino de Libras, feita como Trabalho de Conclusão de Curso (TCC). Todo o conteúdo é gratuito: o app não tem propaganda e não vende nada com dinheiro de verdade.",
   ]],
   ["Quem pode usar", [
     "Qualquer pessoa que queira aprender Libras.",
     "Se você tem menos de 12 anos, peça para o seu pai, a sua mãe ou um responsável ler estes termos e criar a conta junto com você. A lei brasileira (LGPD) pede que um responsável concorde quando o usuário é uma criança.",
   ]],
-  ["Sua conta", [
-    "Para criar a conta, pedimos só um apelido, um e-mail e uma senha.",
-    "Use um apelido, e não o seu nome completo. Apelidos com palavrões ou ofensas podem ser trocados ou bloqueados.",
-    "Não conte a sua senha para ninguém. Cada pessoa usa a própria conta.",
-    "Também dá para experimentar como visitante, sem e-mail e sem senha. O visitante não entra nas ligas, e o progresso dele é apagado depois de 7 dias, ou quando você sai. Se criar a conta antes disso, o progresso vai junto.",
+  ["Sua conta e o Modo Visitante", [
+    "<strong>Cadastro:</strong> pedimos só um apelido, um e-mail e uma senha. Use um apelido, e não o seu nome completo. Apelidos com palavrões ou ofensas podem ser trocados ou bloqueados.",
+    "<strong>Senha:</strong> ela é guardada embaralhada, e ninguém consegue lê-la, nem a equipe. Não conte a sua senha para ninguém: cada pessoa usa a própria conta.",
+    "<strong>Modo Visitante:</strong> dá para experimentar o app sem e-mail e sem senha. O visitante não entra nas ligas, e o progresso dele fica salvo no nosso servidor até ele sair, ou por até 7 dias. Se criar a conta antes disso, o progresso vai junto.",
+  ]],
+  ["Moedas e compras", [
+    "<strong>Moedas do jogo:</strong> as moedas e as vidas servem só para aprender no app. Não valem dinheiro, não podem ser vendidas, trocadas nem sacadas, e as regras do jogo podem mudar.",
+    "<strong>Sem compras com dinheiro:</strong> hoje o EduSinal não tem planos pagos e não pede dados de cartão. Se isso mudar um dia, estes termos serão atualizados antes, explicando preços, pagamento e reembolso.",
   ]],
   ["Quais dados guardamos", [
-    "Apelido, e-mail, a senha embaralhada (ninguém consegue ler a senha, nem a equipe), a meta diária e o seu progresso: atividades feitas, XP, moedas, vidas, energia, ofensiva, itens do mascote e sinais vistos no dicionário.",
-    "Não pedimos nome completo, CPF, telefone, endereço, foto, data de nascimento nem localização.",
+    "Guardamos só o necessário para o app funcionar.",
+    "<strong>Dados de cadastro:</strong> apelido, e-mail, a senha embaralhada e a meta diária.",
+    "<strong>Dados de progresso:</strong> atividades feitas, XP, moedas, vidas, energia, ofensiva, itens do mascote e sinais vistos no dicionário.",
+    "<strong>O que não pedimos:</strong> nome completo, CPF, telefone, endereço, foto, data de nascimento nem localização.",
   ]],
   ["Para que usamos os seus dados", [
     "Só para o app funcionar: você entrar na conta, o seu progresso ficar salvo e as missões e as ligas funcionarem.",
     "Não vendemos nem passamos os seus dados para ninguém, e não usamos para propaganda.",
   ]],
-  ["Quem vê o quê", [
+  ["Interação e privacidade", [
     "Nas ligas, os alunos da sua salinha veem o seu apelido, o seu mascote e números do jogo (XP, ofensiva, liga, etapa da trilha, conquistas e o mês em que você entrou). O seu e-mail nunca aparece para ninguém.",
-    "Não existe chat nem mensagens entre alunos.",
+    "Não existe chat nem mensagens entre alunos, para o ambiente ser seguro para todas as idades.",
   ]],
   ["Cookies", [
     "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). O tema, o tamanho do texto e as animações ficam guardados no seu aparelho. Não usamos cookies de propaganda nem de rastreamento.",
   ]],
-  ["Segurança", [
+  ["Segurança e garantias", [
     "A senha é guardada embaralhada, e o app publicado usa conexão segura (HTTPS). Mesmo assim, nenhum sistema é 100% seguro: se notar algo estranho na sua conta, troque a senha e avise a equipe.",
-  ]],
-  ["Os seus direitos", [
-    "Você pode ver o seu progresso no Perfil, mudar o apelido e a meta diária quando quiser e apagar a conta em Configurações → Conta → Apagar minha conta. Apagar a conta apaga todos os seus dados de uma vez, para sempre.",
-  ]],
-  ["Moedas e itens do mascote", [
-    "As moedas são do jogo: não valem dinheiro, não podem ser vendidas nem trocadas, e as regras do jogo podem mudar.",
-  ]],
-  ["Regras de convivência", [
-    "Respeite as outras pessoas e não tente burlar o sistema (por exemplo, para ganhar moedas ou XP sem fazer as atividades).",
     "O conteúdo é educativo e está sendo revisado por pessoas surdas fluentes em Libras. Pode ter erros: se encontrar algum, avise a equipe.",
+  ]],
+  ["Regras de conduta", [
+    "Respeite as outras pessoas e não tente burlar o sistema (por exemplo, para ganhar XP ou moedas sem fazer as atividades). Contas que desrespeitarem estas regras podem ser suspensas.",
+  ]],
+  ["Seus direitos (LGPD)", [
+    "Você pode ver o seu progresso no Perfil, mudar o apelido e a meta diária quando quiser e apagar a conta em Configurações → Conta → Apagar minha conta. Apagar a conta apaga todos os seus dados de uma vez, para sempre.",
   ]],
   ["Mudanças nestes termos", [
     "Se estes termos mudarem, avisamos no app. A data da última mudança fica no topo desta página.",
   ]],
   ["Contato", [
-    "Equipe do EduSinal (TCC). E-mail: [a definir pela equipe].",
+    "Dúvidas ou suporte? Fale com a equipe do EduSinal (TCC) pelo e-mail: [a definir pela equipe].",
   ]],
 ];
 
