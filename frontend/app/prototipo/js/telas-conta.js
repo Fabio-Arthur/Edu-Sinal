@@ -32,8 +32,9 @@ function passwordProblem(password, nickname = "", email = "") {
 // ----- Cadastro por etapas -----
 
 // Campo de senha com o botão de olhinho para mostrar/esconder o que foi digitado.
-function passwordField(id, name, label, autocomplete, placeholder) {
-  return `<label class="field-label" for="${id}">${label}<span class="password-field"><input id="${id}" name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}" /><button class="password-toggle" type="button" data-action="toggle-password" data-target="${id}" aria-label="Mostrar a senha" aria-pressed="false">${icon("eye-fill")}</button></span></label>`;
+// value: o que já tinha sido digitado (ex.: voltando dos termos no cadastro).
+function passwordField(id, name, label, autocomplete, placeholder, value = "") {
+  return `<label class="field-label" for="${id}">${label}<span class="password-field"><input id="${id}" name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}" value="${escapeHtml(value)}" /><button class="password-toggle" type="button" data-action="toggle-password" data-target="${id}" aria-label="Mostrar a senha" aria-pressed="false">${icon("eye-fill")}</button></span></label>`;
 }
 
 // Mostra ou esconde a senha sem redesenhar a tela (o que já foi digitado fica).
@@ -55,12 +56,13 @@ const GOAL_OPTIONS = [
   { value: 5, title: "Puxado", text: "5 atividades por dia", icon: "fire" },
 ];
 
-// Respostas enquanto o cadastro não termina (a senha nunca fica guardada).
+// Respostas enquanto o cadastro não termina. As senhas ficam só na memória da
+// página (nunca no navegador) e são apagadas quando a conta é criada.
 // keptProgress: era visitante e a conta guardou o progresso que ele já tinha.
-let signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
+let signup = { step: 0, nickname: "", email: "", password: "", passwordConfirmation: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 
 function resetSignup() {
-  signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
+  signup = { step: 0, nickname: "", email: "", password: "", passwordConfirmation: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 }
 
 // O que cada etapa pergunta e mostra.
@@ -82,8 +84,8 @@ function signupStepHtml(stepName) {
   if (stepName === "password") {
     return {
       question: "Agora crie uma senha.",
-      body: `${passwordField("signup-password", "password", "Senha", "new-password", "Crie uma senha")}
-        ${passwordField("signup-confirm-password", "passwordConfirmation", "Confirme a senha", "new-password", "Digite a senha de novo")}
+      body: `${passwordField("signup-password", "password", "Senha", "new-password", "Crie uma senha", signup.password)}
+        ${passwordField("signup-confirm-password", "passwordConfirmation", "Confirme a senha", "new-password", "Digite a senha de novo", signup.passwordConfirmation)}
         <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres. Dica: uma frase curta que só você conhece é fácil de lembrar e difícil de adivinhar.</p>
         <label class="signup-terms"><input type="checkbox" name="acceptedTerms"${signup.acceptedTerms ? " checked" : ""} /><span>Li e aceito os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button> do EduSinal.</span></label>`,
     };
@@ -323,6 +325,7 @@ async function handleSignupSubmit(form) {
   if (stepName === "email") signup.email = form.elements.email.value.trim().toLowerCase();
   if (stepName === "password") {
     signup.password = form.elements.password.value;
+    signup.passwordConfirmation = form.elements.passwordConfirmation.value;
     signup.acceptedTerms = true;
   }
   if (signup.step < SIGNUP_STEPS.length - 1) {
@@ -355,7 +358,8 @@ async function handleSignupSubmit(form) {
     }
     return;
   }
-  signup.password = ""; // a senha sai da memória assim que a conta foi criada
+  signup.password = ""; // as senhas saem da memória assim que a conta foi criada
+  signup.passwordConfirmation = "";
   signup.done = true;
   signup.keptProgress = wasGuest;
   render();

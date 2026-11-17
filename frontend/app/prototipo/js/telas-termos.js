@@ -64,9 +64,14 @@ const TERMS_SECTIONS = [
 let termsReturnScreen = "more";
 
 function openTerms() {
-  // Saindo do cadastro para ler os termos: lembra se a caixinha estava marcada.
+  // Saindo do cadastro para ler os termos: lembra a caixinha e as senhas
+  // digitadas (só na memória da página, nunca no navegador).
   const acceptBox = document.querySelector('input[name="acceptedTerms"]');
   if (acceptBox) signup.acceptedTerms = acceptBox.checked;
+  const password = document.getElementById("signup-password");
+  const confirmation = document.getElementById("signup-confirm-password");
+  if (password) signup.password = password.value;
+  if (confirmation) signup.passwordConfirmation = confirmation.value;
   termsReturnScreen = state.screen === "terms" ? termsReturnScreen : state.screen;
   setScreen("terms");
 }
