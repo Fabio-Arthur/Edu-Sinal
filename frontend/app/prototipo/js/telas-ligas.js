@@ -20,7 +20,7 @@ const DEMOTION_SPOTS = 2;  // quantos descem
 
 // Dia da semana: segunda = 1 ... domingo = 7.
 function weekDayNumber() {
-  return ((new Date().getDay() + 6) % 7) + 1;
+  return ((brasiliaNow().getDay() + 6) % 7) + 1;
 }
 
 // Classificação da semana, do maior XP para o menor. Antes de a API
@@ -80,7 +80,7 @@ function leagueTimeLeft() {
   const daysLeft = 7 - weekDayNumber();
   if (daysLeft === 1) return "1 dia";
   if (daysLeft > 1) return `${daysLeft} dias`;
-  return `${24 - new Date().getHours()} h`;
+  return `${24 - brasiliaNow().getHours()} h`;
 }
 
 // Frase de situação: na zona de promoção, no meio ou na zona de rebaixamento.

@@ -195,6 +195,9 @@
     const mascotButton = document.getElementById("hero-mascot");
     mascotButton.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { animated: true });
     mascotButton.addEventListener("click", () => playMascotReaction("waving"));
+    // Acorda a API no fundo (no Render ela "dorme" quando ninguém usa): quando
+    // a pessoa clicar em Começar ou Entrar, ela já está de pé.
+    fetch("/api/saude").catch(() => {});
   </script>
 </body>
 </html>

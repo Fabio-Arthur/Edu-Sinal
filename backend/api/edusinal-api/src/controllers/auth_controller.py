@@ -28,9 +28,10 @@ router = APIRouter(prefix="/auth", tags=["Conta"])
 DURACAO_DA_SESSAO = timedelta(days=7)
 VISITANTE_DURA = timedelta(days=7)  # depois disso, a conta de visitante se apaga sozinha
 TENTATIVAS_POR_MINUTO = 5
-# Na banca, muita gente escaneia o QR code na mesma rede (o mesmo IP).
-# Por isso o limite de visitantes é bem maior que o de login.
-VISITANTES_POR_MINUTO = 30
+# Na banca, muita gente escaneia o QR code ao mesmo tempo, na mesma rede (o
+# mesmo IP; publicado, a API ainda recebe tudo pelo proxy da Vercel). Por isso
+# o limite de visitantes é bem alto: só barra quem tenta criar contas sem parar.
+VISITANTES_POR_MINUTO = 120
 
 # Pedidos por chave: {"chave": [hora1, hora2, ...]}. O login conta por E-MAIL
 # (protege cada conta de quem tenta adivinhar a senha); os visitantes, por IP.

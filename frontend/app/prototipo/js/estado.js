@@ -15,9 +15,24 @@ const DAILY_GOAL = 3;                     // meta do dia padrão (o aluno escolh
 const XP_PER_EXERCISE = 20;
 
 // ----- Datas -----
+// O "dia" do jogo é o de Brasília, igual ao servidor: a meia-noite que vira as
+// missões, a vitrine e a semana da liga é a de Brasília, mesmo para quem mora em
+// outro fuso (Manaus, Cuiabá, Acre) ou está com o celular num fuso errado.
+const GAME_TIME_ZONE = "America/Sao_Paulo";
 
-// Data no formato "2026-10-21", no fuso do navegador.
-function dateKey(date = new Date()) {
+// Agora, no relógio de Brasília. Devolve um Date comum com o dia e a hora de
+// Brasília (para usar getDate, getHours e getDay sem pensar em fuso).
+function brasiliaNow() {
+  const parts = {};
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: GAME_TIME_ZONE, hourCycle: "h23",
+    year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric",
+  }).formatToParts(new Date()).forEach((part) => { parts[part.type] = Number(part.value); });
+  return new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+}
+
+// Data no formato "2026-10-21". Sem data, é o dia de hoje em Brasília.
+function dateKey(date = brasiliaNow()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -30,7 +45,7 @@ function daysBetween(fromKey, toKey) {
 }
 
 // A semana começa na segunda-feira; a chave é a data dessa segunda.
-function weekKey(date = new Date()) {
+function weekKey(date = brasiliaNow()) {
   const monday = new Date(date);
   monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
   return dateKey(monday);

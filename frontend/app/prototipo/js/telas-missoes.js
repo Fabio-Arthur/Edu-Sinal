@@ -105,7 +105,7 @@ function coinsLeftToEarn() {
 function renderMissions() {
   const doneToday = DAILY_MISSIONS.filter((mission) => state.daily.claimed.includes(mission.id)).length;
   const ready = readyMissionsCount();
-  const hoursLeft = 24 - new Date().getHours();
+  const hoursLeft = 24 - brasiliaNow().getHours(); // as missões renovam à meia-noite de Brasília
   const heroText = ready > 0
     ? `${ready} ${ready === 1 ? "missão pronta" : "missões prontas"} para resgatar!`
     : "Complete metas pequenas e ganhe moedas para a lojinha.";

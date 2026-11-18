@@ -112,9 +112,9 @@ function isInDailyShop(item) {
   return dailyShopItems().includes(item);
 }
 
-// Quanto falta para a meia-noite, quando a vitrine troca.
+// Quanto falta para a meia-noite (de Brasília), quando a vitrine troca.
 function timeUntilNewShop() {
-  const now = new Date();
+  const now = brasiliaNow();
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const minutes = Math.ceil((midnight - now) / 60000);
   const hours = Math.floor(minutes / 60);
