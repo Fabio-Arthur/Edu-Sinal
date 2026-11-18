@@ -1,0 +1,47 @@
+/* Aviso de cookies (página inicial e app): uma faixa flutuando embaixo, no meio.
+   Usa as mesmas cores das duas páginas (e as do modo escuro do app). */
+.cookie-notice {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 2000; /* abaixo da tela de abertura do app (3000) */
+  transform: translateX(-50%);
+  width: min(700px, calc(100% - 32px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 4px 0 var(--line), 0 12px 32px rgba(15, 30, 60, 0.18);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.cookie-notice p { flex: 1; min-width: 0; margin: 0; }
+.cookie-notice-icon { flex: none; color: #c98a2c; font-size: 26px; }
+.cookie-notice-actions { flex: none; display: flex; align-items: center; gap: 14px; }
+.cookie-notice-link { color: var(--primary); font-weight: 700; }
+.cookie-notice-ok {
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  box-shadow: 0 3px 0 var(--hero-shadow);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cookie-notice-ok:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--hero-shadow); }
+:root[data-theme="dark"] .cookie-notice-ok { color: #10202b; } /* no escuro o azul é claro */
+
+/* Celular: o texto em cima e os botões embaixo; no app, fica acima da barra de abas */
+@media (max-width: 600px) {
+  .cookie-notice { flex-wrap: wrap; gap: 10px 12px; }
+  .cookie-notice-actions { width: 100%; justify-content: flex-end; }
+}
+@media (max-width: 1000px) {
+  .app-shell ~ .cookie-notice { bottom: calc(84px + env(safe-area-inset-bottom)); }
+}

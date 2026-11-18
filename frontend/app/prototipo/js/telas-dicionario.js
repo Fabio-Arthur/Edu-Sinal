@@ -180,20 +180,24 @@ function renderAlphabetChallenge() {
     </section>`;
 }
 
-// No celular, o cartão do Desafia-me sai do meio da tela (ficava grudado na
-// busca) e vira um botão redondo no canto, que abre o cartão numa janelinha.
+// O Desafia-me é um botão pequeno que abre o cartão numa janelinha. Assim o
+// cartão grande não ocupa o topo da tela e sobra espaço para as letras e as
+// palavras. No PC ele fica ao lado da busca; no celular, redondo, no canto.
 function toggleChallengeSheet() {
   state.challengeSheetOpen = !state.challengeSheetOpen;
   render();
 }
 
-function renderChallengeFab() {
+function renderChallengeButton() {
   const unlocked = isChallengeUnlocked();
-  const gold = unlocked && isChallengeRewardAvailable();
+  const gold = unlocked && isChallengeRewardAvailable(); // dourado: o prêmio de hoje ainda está valendo
   const look = gold ? " is-gold" : unlocked ? "" : " is-locked";
-  const fab = `<button class="challenge-fab${look}" type="button" data-action="toggle-challenge-sheet" aria-label="Abrir o Desafia-me" aria-expanded="${state.challengeSheetOpen}">${icon(unlocked ? "lightning-charge-fill" : "lock-fill")}</button>`;
-  if (!state.challengeSheetOpen) return fab;
-  return `${fab}
+  return `<button class="challenge-fab${look}" type="button" data-action="toggle-challenge-sheet" aria-label="Abrir o Desafia-me" aria-expanded="${state.challengeSheetOpen}">${icon(unlocked ? "lightning-charge-fill" : "lock-fill")}<span class="challenge-fab-label">Desafia-me</span></button>`;
+}
+
+function renderChallengeSheet() {
+  if (!state.challengeSheetOpen) return "";
+  return `
     <div class="challenge-sheet">
       <button class="challenge-sheet-backdrop" type="button" data-action="toggle-challenge-sheet" aria-label="Fechar o Desafia-me"></button>
       <div class="challenge-sheet-box">${renderAlphabetChallenge()}</div>
@@ -301,14 +305,16 @@ function renderSigns() {
       </div>
       <span class="dictionary-hero-stat"><strong>${unlockedWordsCount()}/${DICTIONARY_WORDS.length}</strong> palavras desbloqueadas</span>
     </section>
-    ${renderAlphabetChallenge()}
     <div class="dictionary-tools">
-      <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
+      <div class="dictionary-search-row">
+        <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
+        ${renderChallengeButton()}
+      </div>
       <div class="dictionary-categories" role="group" aria-label="Categorias do dicionário">${chips}</div>
     </div>
     <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>
     <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>
     </div>
-    ${renderChallengeFab()}`;
+    ${renderChallengeSheet()}`;
 }

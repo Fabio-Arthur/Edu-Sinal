@@ -41,6 +41,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="landing/landing.css?v=4" />
+  <link rel="stylesheet" href="assets/css/aviso-cookies.css?v=1" />
   <!-- Poses e animações do mascote (as mesmas do app) -->
   <link rel="stylesheet" href="app/prototipo/css/mascote.css?v=173" />
 </head>
@@ -191,6 +192,8 @@
   </script>
   <script src="app/prototipo/js/telas-mascote.js?v=173"></script>
   <script src="app/prototipo/js/mascote-desenho.js?v=173"></script>
+  <!-- Aviso de cookies (o mesmo do app): aparece uma vez por aparelho -->
+  <script src="assets/js/aviso-cookies.js?v=1" data-termos="app/prototipo/?tela=termos" defer></script>
   <script>
     const mascotButton = document.getElementById("hero-mascot");
     mascotButton.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { animated: true });

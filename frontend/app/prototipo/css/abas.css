@@ -703,25 +703,39 @@
   .dictionary-hero-stat strong { font-size: 22px; }
 }
 
-/* Desafia-me no celular: botão redondo no canto que abre o cartão numa janelinha
-   (no PC o cartão continua no lugar de sempre). */
-.challenge-fab, .challenge-sheet { display: none; }
+/* Desafia-me: um botão pequeno que abre o cartão numa janelinha.
+   No PC fica ao lado da busca, com o nome; no celular vira um botão redondo
+   no canto (só o raio), em cima da barra de abas. A janelinha abre no meio
+   da tela no PC e embaixo no celular. */
+.dictionary-search-row { display: flex; align-items: center; gap: 12px; }
+.dictionary-search-row .dictionary-search-box { flex: 1; min-width: 0; }
+.challenge-fab {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 52px; padding: 0 20px;
+  border: 3px solid var(--surface); border-radius: 99px;
+  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color: #ffffff;
+  font-family: "Manrope", sans-serif; font-size: 15px; font-weight: 800;
+  box-shadow: 0 4px 0 var(--hero-shadow);
+  cursor: pointer;
+}
+.challenge-fab .bi { font-size: 20px; }
+.challenge-fab.is-gold { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c; color: #5c4300; } /* dourado: prêmio de hoje valendo */
+.challenge-fab.is-locked { background: var(--surface-soft); color: var(--muted); box-shadow: 0 4px 0 var(--line); }
+.challenge-fab:hover { transform: translateY(-2px); }
+.challenge-fab:active { transform: translateY(3px); }
+.challenge-sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.challenge-sheet-backdrop { position: absolute; inset: 0; border: 0; background: rgba(10, 20, 40, 0.45); cursor: default; }
+.challenge-sheet-box { position: relative; width: min(620px, 100%); animation: challenge-sheet-in 0.18s ease-out; }
+.challenge-sheet .challenge-card { margin: 0; }
 @media (max-width: 1000px) {
-  .dictionary-hero + .challenge-card { display: none; }
-  .challenge-fab {
-    position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 15;
-    display: grid; place-items: center; width: 58px; height: 58px; padding: 0;
-    border: 3px solid var(--surface); border-radius: 50%;
-    background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color: #ffffff; font-size: 26px;
-    box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22);
-  }
-  .challenge-fab.is-gold { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
-  .challenge-fab.is-locked { background: var(--surface-soft); color: var(--muted); box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
-  .challenge-fab:active { transform: translateY(3px); }
-  .challenge-sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
-  .challenge-sheet-backdrop { position: absolute; inset: 0; border: 0; background: rgba(10, 20, 40, 0.45); cursor: default; }
-  .challenge-sheet-box { position: relative; width: 100%; animation: challenge-sheet-in 0.18s ease-out; }
-  .challenge-sheet .challenge-card { margin: 0; }
+  .challenge-fab { position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 15; width: 58px; height: 58px; padding: 0; border-radius: 50%; box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22); }
+  .challenge-fab .bi { font-size: 26px; }
+  .challenge-fab-label { display: none; }
+  .challenge-fab.is-gold { box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
+  .challenge-fab.is-locked { box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
+  .challenge-sheet { align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
+  .challenge-sheet-box { width: 100%; }
 }
 @keyframes challenge-sheet-in { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .challenge-sheet-box { animation: none; } }

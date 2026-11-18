@@ -311,11 +311,12 @@ document.addEventListener("submit", (event) => {
   }
 });
 
-// Esc fecha o modo foco.
+// Esc fecha o modo foco e a janelinha do Desafia-me.
 document.addEventListener("keydown", (event) => {
   if (handleLessonKey(event)) return; // atividade: 1 a 4 e Enter (em licao.js)
   if (event.key !== "Escape") return;
-  if (state.focusTopic) closeTopic();
+  if (state.challengeSheetOpen) toggleChallengeSheet();
+  else if (state.focusTopic) closeTopic();
 });
 
 // O aparelho trocou de modo claro para escuro (ou o contrário): no tema

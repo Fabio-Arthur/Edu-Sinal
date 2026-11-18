@@ -4,7 +4,7 @@
 // mesmo sem estar logado.
 // RASCUNHO do TCC: revisar com o orientador antes de publicar de verdade.
 
-const TERMS_UPDATED_AT = "16/11/2026";
+const TERMS_UPDATED_AT = "18/11/2026";
 
 // Cada parte: [título, parágrafos]. Para mudar o texto, é só editar aqui.
 // Organização do texto do Erick (equipe), ajustada ao que o app faz hoje.
@@ -40,7 +40,7 @@ const TERMS_SECTIONS = [
     "Não existe chat nem mensagens entre alunos, para o ambiente ser seguro para todas as idades.",
   ]],
   ["Cookies", [
-    "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). O tema, o tamanho do texto e as animações ficam guardados no seu aparelho. Não usamos cookies de propaganda nem de rastreamento.",
+    "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). Ele é essencial: sem ele não dá para entrar na conta, por isso avisamos na primeira visita em vez de pedir permissão. O tema, o tamanho do texto, as animações e se você já viu esse aviso ficam guardados só no seu aparelho. Não usamos cookies de propaganda, de estatística nem de rastreamento.",
   ]],
   ["Segurança e garantias", [
     "A senha é guardada embaralhada, e o app publicado usa conexão segura (HTTPS). Mesmo assim, nenhum sistema é 100% seguro: se notar algo estranho na sua conta, troque a senha e avise a equipe.",

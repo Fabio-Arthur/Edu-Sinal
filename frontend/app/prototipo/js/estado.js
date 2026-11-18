@@ -121,7 +121,7 @@ const state = {
   selectedWord: null,      // palavra escolhida no dicionário
   dictionaryCategory: "alfabeto",
   dictionaryQuery: "",
-  challengeSheetOpen: false, // janelinha do Desafia-me no celular
+  challengeSheetOpen: false, // janelinha do Desafia-me (abre pelo botão redondo do Dicionário)
   editingName: false,      // perfil: mostrando o campo para trocar o nome?
   mascotTab: "shirt",      // aba aberta no editor do mascote
 };
