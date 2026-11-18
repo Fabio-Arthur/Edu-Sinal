@@ -34,7 +34,7 @@ Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a re
 | Método | Rota | Para que serve |
 | --- | --- | --- |
 | `POST` | `/auth/cadastro` | Criar a conta (apelido, e-mail, senha, meta diária). Já sai logado |
-| `POST` | `/auth/login` | Entrar. E-mail ou senha errados recebem a mesma resposta. Limite de 5 tentativas por minuto |
+| `POST` | `/auth/login` | Entrar. E-mail ou senha errados recebem a mesma resposta. Limite de 5 tentativas por minuto para cada e-mail (não por IP: a turma inteira sai pela mesma internet) |
 | `POST` | `/auth/visitante` | Entrar como visitante, sem e-mail e senha. Já sai logado |
 | `POST` | `/auth/visitante/conta` | O visitante cria a conta (apelido, e-mail, senha, meta) e mantém o progresso |
 | `POST` | `/auth/sair` | Sair. Se for visitante, a conta dele é apagada |

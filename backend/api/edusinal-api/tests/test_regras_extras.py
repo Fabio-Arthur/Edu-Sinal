@@ -47,6 +47,14 @@ class SenhaTests(unittest.TestCase):
     def test_apelido_de_uma_letra_nao_passa(self):
         self.assertIsNotNone(senha_service.problema_no_apelido("M"))
 
+    def test_apelido_com_simbolo_ou_codigo_nao_passa(self):
+        self.assertIsNotNone(senha_service.problema_no_apelido("<b>oi</b>"))
+        self.assertIsNotNone(senha_service.problema_no_apelido("Mari!!"))
+
+    def test_apelido_com_acento_numero_e_espaco_passa(self):
+        self.assertIsNone(senha_service.problema_no_apelido("João 2"))
+        self.assertIsNone(senha_service.problema_no_apelido("Visitante 1234"))
+
     def test_hash_confere_a_senha_certa_e_recusa_a_errada(self):
         guardado = senha_service.gerar_hash("Exemplo#2026")
 
@@ -160,6 +168,16 @@ class LigasTests(unittest.TestCase):
         self.assertEqual(ranking[0]["apelido"], "Bia")
         self.assertEqual(ranking[0]["posicao"], 1)
 
+    def test_empate_mantem_a_ordem_que_veio_do_banco(self):
+        # O banco já devolve os empatados em ordem (conta mais antiga primeiro).
+        ranking = ligas_service.montar_ranking([
+            {"id_aluno": 1, "apelido": "Ana", "xp": 20},
+            {"id_aluno": 2, "apelido": "Bia", "xp": 20},
+        ])
+
+        self.assertEqual([j["apelido"] for j in ranking], ["Ana", "Bia"])
+        self.assertEqual([j["posicao"] for j in ranking], [1, 2])
+
     def test_tres_primeiros_sobem(self):
         self.assertEqual(ligas_service.nova_liga(0, posicao=3, total=10), 1)
 
@@ -237,3 +255,22 @@ def test_etapa_atual_e_a_primeira_sem_prova_final():
     assert ligas_service.etapa_atual(etapas, []) == "alfabeto-manual"
     assert ligas_service.etapa_atual(etapas, ["alfabeto-manual:vogais", "alfabeto-manual:final"]) == "numeros"
     assert ligas_service.etapa_atual(etapas, [f"{e}:final" for e in etapas]) is None
+
+
+class LimiteDeLoginTests(unittest.TestCase):
+
+    def test_sexta_tentativa_do_mesmo_email_e_barrada(self):
+        from src.controllers.auth_controller import muitas_tentativas
+        registro = {}
+        resultados = [muitas_tentativas("mari@email.com", registro) for _ in range(6)]
+
+        self.assertEqual(resultados, [False] * 5 + [True])
+
+    def test_email_diferente_nao_e_barrado(self):
+        # A turma inteira entrando junto (mesma internet) não se bloqueia.
+        from src.controllers.auth_controller import muitas_tentativas
+        registro = {}
+        for _ in range(6):
+            muitas_tentativas("mari@email.com", registro)
+
+        self.assertFalse(muitas_tentativas("biel@email.com", registro))
