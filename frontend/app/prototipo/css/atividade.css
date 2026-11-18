@@ -216,6 +216,7 @@
 
 @media (max-width: 1000px) {
   .lesson { min-height: 0; padding-bottom: 124px; }
+  .lesson.has-hint { padding-bottom: 150px; } /* aviso + mascote pensando: a faixa de baixo fica mais alta */
   .lesson-top { gap: 10px; }
   .lesson-body { justify-content: flex-start; gap: 14px; padding: 18px 0; }
   .lesson-body h2 { font-size: 22px; }
@@ -231,6 +232,9 @@
   .lesson-footer { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); }
   .lesson-footer-inner { flex-direction: column; align-items: stretch; gap: 12px; }
   .lesson-next { width: 100%; min-width: 0; }
+  /* Pergunta aberta: o mascote pensando do lado do botão Conferir (a faixa não cresce) */
+  .lesson-footer.is-asking .lesson-footer-inner { flex-direction: row; align-items: center; }
+  .lesson-footer.is-asking .lesson-next { flex: 1; width: auto; }
   .feedback-mascot { width: 50px; height: 50px; }
   .feedback-icon { width: 22px; height: 22px; font-size: 13px; }
   .lesson-feedback strong { font-size: 16px; }
