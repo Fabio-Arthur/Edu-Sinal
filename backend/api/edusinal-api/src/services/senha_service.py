@@ -25,6 +25,9 @@ def problema_no_apelido(apelido: str) -> str | None:
     apelido = apelido.strip()
     if len(apelido) < APELIDO_MINIMO or len(apelido) > APELIDO_MAXIMO:
         return f"O apelido precisa ter de {APELIDO_MINIMO} a {APELIDO_MAXIMO} caracteres."
+    # Só letras (com acento também), números e espaços, igual ao app.
+    if not all(letra.isalnum() or letra == " " for letra in apelido):
+        return "Use só letras, números e espaços no apelido."
     return None
 
 

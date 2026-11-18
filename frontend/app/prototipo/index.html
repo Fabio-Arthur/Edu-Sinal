@@ -13,14 +13,14 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="EduSinal" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>EduSinal | Aprenda Libras no seu ritmo</title>
+  <title>EduSinal | App de Libras</title>
   <!-- Para o Google e para a prévia do link (WhatsApp, Instagram...) -->
-  <meta name="description" content="Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar." />
+  <meta name="description" content="Entre no app do EduSinal e continue sua trilha de Libras: lições curtas, dicionário de sinais, missões, ligas e o seu mascote." />
   <link rel="canonical" href="https://www.edusinal.com.br/app/prototipo/index.html" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="EduSinal" />
   <meta property="og:locale" content="pt_BR" />
-  <meta property="og:title" content="EduSinal | Aprenda Libras no seu ritmo" />
+  <meta property="og:title" content="EduSinal | App de Libras" />
   <meta property="og:description" content="Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar." />
   <meta property="og:url" content="https://www.edusinal.com.br/app/prototipo/index.html" />
   <meta property="og:image" content="https://www.edusinal.com.br/assets/images/compartilhar.png" />
@@ -71,23 +71,24 @@
   <!-- O nosso CSS vem depois, para as cores e o visual do EduSinal valerem.
        A ORDEM IMPORTA: quando duas regras brigam, ganha a do arquivo que vem
        depois. base.css (cores e peças comuns) sempre primeiro. -->
-  <link rel="stylesheet" href="css/base.css?v=168" />
-  <link rel="stylesheet" href="css/home.css?v=168" />
-  <link rel="stylesheet" href="css/atividade.css?v=168" />
-  <link rel="stylesheet" href="css/abas.css?v=168" />
-  <link rel="stylesheet" href="css/mascote.css?v=168" />
-  <link rel="stylesheet" href="css/celular.css?v=168" />
-  <link rel="stylesheet" href="css/bootstrap.css?v=168" />
-  <link rel="stylesheet" href="css/arvore.css?v=168" />
-  <link rel="stylesheet" href="css/configuracoes.css?v=168" />
-  <link rel="stylesheet" href="css/perfil.css?v=168" />
-  <link rel="stylesheet" href="css/boas-vindas.css?v=168" />
-  <link rel="stylesheet" href="css/cadastro.css?v=168" />
+  <link rel="stylesheet" href="css/base.css?v=175" />
+  <link rel="stylesheet" href="css/home.css?v=175" />
+  <link rel="stylesheet" href="css/atividade.css?v=175" />
+  <link rel="stylesheet" href="css/abas.css?v=175" />
+  <link rel="stylesheet" href="css/mascote.css?v=175" />
+  <link rel="stylesheet" href="css/celular.css?v=175" />
+  <link rel="stylesheet" href="css/bootstrap.css?v=175" />
+  <link rel="stylesheet" href="css/arvore.css?v=175" />
+  <link rel="stylesheet" href="css/configuracoes.css?v=175" />
+  <link rel="stylesheet" href="css/perfil.css?v=175" />
+  <link rel="stylesheet" href="css/boas-vindas.css?v=175" />
+  <link rel="stylesheet" href="css/cadastro.css?v=175" />
 </head>
 <body>
-  <!-- Tela de abertura: cobre a tela toda até o app saber se a pessoa está logada -->
+  <!-- Tela de abertura: cobre a tela toda até o app saber se a pessoa está logada.
+       O app.js troca a logo pelo Eduzinho pensando (apontando para a cabeça). -->
   <div class="app-splash" id="app-splash" role="status">
-    <img src="../../assets/images/logo-eduzinho.webp?v=2" alt="" width="96" height="96" />
+    <span class="app-splash-mascot mascot-backdrop" id="app-splash-mascot"><img src="../../assets/images/logo-eduzinho.webp?v=2" alt="" width="96" height="96" /></span>
     <p class="app-splash-title">Abrindo o EduSinal…</p>
     <p class="app-splash-hint">O servidor estava descansando e está acordando. Na primeira vez pode levar até 1 minuto.</p>
   </div>
@@ -115,7 +116,7 @@
         <button class="settings-button" id="settings-button" type="button" data-screen="more" aria-label="Configurações"><i class="bi bi-gear-fill" aria-hidden="true"></i></button>
       </header>
       <main class="screen-root" id="screen-root" tabindex="-1"></main>
-      <footer class="app-footer"><span>EduSinal <span class="footer-dot">•</span> Ambiente demonstrativo</span><a href="../../landing/index.html?v=2">Página inicial <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></footer>
+      <footer class="app-footer"><span>EduSinal <span class="footer-dot">•</span> Ambiente demonstrativo</span><a href="../../">Página inicial <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></footer>
     </div>
 
     <!-- Barra de baixo, só no celular: as abas principais -->
@@ -185,21 +186,21 @@
   </div>
 
   <script src="../../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
-  <script src="js/estado.js?v=168" defer></script>
-  <script src="js/api.js?v=168" defer></script>
-  <script src="js/mascote-desenho.js?v=168" defer></script>
-  <script src="js/conteudo.js?v=168" defer></script>
-  <script src="js/telas-trilha.js?v=168" defer></script>
-  <script src="js/licao.js?v=168" defer></script>
-  <script src="js/telas-dicionario.js?v=168" defer></script>
-  <script src="js/telas-ligas.js?v=168" defer></script>
-  <script src="js/telas-missoes.js?v=168" defer></script>
-  <script src="js/telas-lojinha.js?v=168" defer></script>
-  <script src="js/telas-perfil.js?v=168" defer></script>
-  <script src="js/telas-mascote.js?v=168" defer></script>
-  <script src="js/telas-conta.js?v=168" defer></script>
-  <script src="js/telas-termos.js?v=168" defer></script>
-  <script src="js/calendario.js?v=168" defer></script>
-  <script src="js/app.js?v=168" defer></script>
+  <script src="js/estado.js?v=175" defer></script>
+  <script src="js/api.js?v=175" defer></script>
+  <script src="js/mascote-desenho.js?v=175" defer></script>
+  <script src="js/conteudo.js?v=175" defer></script>
+  <script src="js/telas-trilha.js?v=175" defer></script>
+  <script src="js/licao.js?v=175" defer></script>
+  <script src="js/telas-dicionario.js?v=175" defer></script>
+  <script src="js/telas-ligas.js?v=175" defer></script>
+  <script src="js/telas-missoes.js?v=175" defer></script>
+  <script src="js/telas-lojinha.js?v=175" defer></script>
+  <script src="js/telas-perfil.js?v=175" defer></script>
+  <script src="js/telas-mascote.js?v=175" defer></script>
+  <script src="js/telas-conta.js?v=175" defer></script>
+  <script src="js/telas-termos.js?v=175" defer></script>
+  <script src="js/calendario.js?v=175" defer></script>
+  <script src="js/app.js?v=175" defer></script>
 </body>
 </html>

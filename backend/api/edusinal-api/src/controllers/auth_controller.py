@@ -28,24 +28,29 @@ router = APIRouter(prefix="/auth", tags=["Conta"])
 DURACAO_DA_SESSAO = timedelta(days=7)
 VISITANTE_DURA = timedelta(days=7)  # depois disso, a conta de visitante se apaga sozinha
 TENTATIVAS_POR_MINUTO = 5
-# Na banca, muita gente escaneia o QR code na mesma rede (o mesmo IP).
-# Por isso o limite de visitantes é bem maior que o de login.
-VISITANTES_POR_MINUTO = 30
+# Na banca, muita gente escaneia o QR code ao mesmo tempo, na mesma rede (o
+# mesmo IP; publicado, a API ainda recebe tudo pelo proxy da Vercel). Por isso
+# o limite de visitantes é bem alto: só barra quem tenta criar contas sem parar.
+VISITANTES_POR_MINUTO = 120
 
-# Pedidos por endereço (IP): {"1.2.3.4": [hora1, hora2, ...]}.
+# Pedidos por chave: {"chave": [hora1, hora2, ...]}. O login conta por E-MAIL
+# (protege cada conta de quem tenta adivinhar a senha); os visitantes, por IP.
+# O login não conta por IP porque, numa escola, a turma inteira sai pela mesma
+# internet (o mesmo IP), e publicado a API ainda recebe tudo pelo proxy da
+# Vercel: com 5 por IP, só 5 alunos conseguiriam entrar por minuto.
 # Fica na memória da API: se ela reiniciar, zera (para o TCC, está ótimo).
 tentativas_de_login: dict[str, list[float]] = {}
 visitantes_criados: dict[str, list[float]] = {}
 
 
-def muitas_tentativas(ip: str, registro: dict | None = None, limite: int = TENTATIVAS_POR_MINUTO) -> bool:
+def muitas_tentativas(chave: str, registro: dict | None = None, limite: int = TENTATIVAS_POR_MINUTO) -> bool:
     # Guarda só os pedidos do último minuto e vê se passou do limite.
     if registro is None:
         registro = tentativas_de_login
     agora = time.time()
-    recentes = [hora for hora in registro.get(ip, []) if agora - hora < 60]
+    recentes = [hora for hora in registro.get(chave, []) if agora - hora < 60]
     recentes.append(agora)
-    registro[ip] = recentes
+    registro[chave] = recentes
     return len(recentes) > limite
 
 
@@ -141,8 +146,8 @@ def visitante_vira_conta(dados: Cadastro, id_usuario: int = Depends(usuario_loga
 
 
 @router.post("/login")
-def entrar(dados: Login, pedido: Request, resposta: Response):
-    if muitas_tentativas(pedido.client.host):
+def entrar(dados: Login, resposta: Response):
+    if muitas_tentativas(dados.email.lower()):
         raise HTTPException(status_code=429, detail="Muitas tentativas. Espere um minutinho e tente de novo.")
 
     with conectar() as conexao:

@@ -127,12 +127,16 @@ def ranking(conexao, segunda: date, id_liga: int, grupo: int, id_usuario: int) -
     # nada de e-mail ou outro dado pessoal.
     # Visitantes (email NULL) não entram no ranking dos outros: cada visitante
     # vê só a si mesmo junto com os alunos de verdade.
+    # Empate de XP: quem tem a conta mais antiga fica na frente. A ordem precisa
+    # ser sempre a mesma (sem ORDER BY, o banco devolve os empatados em qualquer
+    # ordem, e o ranking e o cartão do aluno mostravam posições diferentes).
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(
             """SELECT usuarios.id_usuario, usuarios.nome, xp_semanal.xp
                FROM xp_semanal JOIN usuarios ON usuarios.id_usuario = xp_semanal.id_usuario
                WHERE xp_semanal.data_semana = %s AND xp_semanal.id_liga = %s AND xp_semanal.grupo = %s
-                 AND (usuarios.email IS NOT NULL OR usuarios.id_usuario = %s)""",
+                 AND (usuarios.email IS NOT NULL OR usuarios.id_usuario = %s)
+               ORDER BY xp_semanal.xp DESC, usuarios.id_usuario""",
             (segunda, id_liga, grupo, id_usuario),
         )
         return cursor.fetchall()

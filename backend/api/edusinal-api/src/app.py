@@ -37,3 +37,11 @@ app.include_router(auth_controller.router)
 app.include_router(eu_controller.router)
 app.include_router(atividades_controller.router)
 app.include_router(extras_controller.router)
+
+
+@app.get("/saude", tags=["Saúde"])
+def saude():
+    # "Estou acordada": usada pelo despertador (.github/workflows/despertador.yml,
+    # na main) e pela página inicial, para a API não dormir no Render enquanto os
+    # alunos usam. Não abre o banco, então é bem leve.
+    return {"ok": True}

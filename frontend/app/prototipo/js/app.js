@@ -146,7 +146,8 @@ function setScreen(screen) {
     }
   }
   if (screen === "signup" || screen === "login") hideToast(); // o aviso cobriria o botão "Continuar"
-  if (screen === "signup" && state.screen !== "signup") resetSignup(); // cadastro novo começa da 1ª etapa
+  // Cadastro novo começa da 1ª etapa. Voltando dos termos, continua de onde parou.
+  if (screen === "signup" && !["signup", "terms"].includes(state.screen)) resetSignup();
   if (screen === "login" && state.screen !== "login") resetLogin();
   state.screen = screen;
   state.answered = false;
@@ -369,6 +370,9 @@ async function startApp() {
     render();
     return;
   }
+  // Enquanto pergunta à API, o Eduzinho fica pensando (apontando para a cabeça).
+  const splashMascot = document.getElementById("app-splash-mascot");
+  if (splashMascot) splashMascot.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { pose: "thinking", scene: true });
   // Se a API demorar (ela "dorme" quando ninguém usa), avisa na tela de abertura.
   const slowTimer = setTimeout(() => document.getElementById("app-splash")?.classList.add("is-slow"), 4000);
   // Primeiro confere se a pessoa já está logada, DEPOIS escolhe a tela:

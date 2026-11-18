@@ -168,6 +168,13 @@ function lessonKicker() {
   return `${topic.title} · ${name} · ${position}`;
 }
 
+// O mascote do aluno no rodapé da pergunta: pensa (mão no queixo) enquanto o
+// aluno escolhe e, ao conferir, comemora ou fica tristinho no mesmo lugar.
+// badge: o ✓ ou ✗ no cantinho.
+function lessonMascot(pose, badge = "") {
+  return `<span class="feedback-mascot"><span class="feedback-mascot-art ${backdropClass()}">${mascotSvg(state.mascot, "avatar", "", { pose })}</span>${badge}</span>`;
+}
+
 function renderLesson() {
   const lesson = state.currentLesson;
   const step = currentStep();
@@ -178,6 +185,8 @@ function renderLesson() {
   // Cartão: o sinal novo e o botão para seguir. Pergunta: as opções e "Conferir".
   let body;
   let footerHint;
+  let footerClass = "";
+  let hint = ""; // aviso da prova final e do desafio
   let button;
   if (isCardStep(step)) {
     body = `<h2>${step.title || "Sinal novo"}</h2>${signVideoHtml(step.sign)}<p class="learn-word">${escapeHtml(step.label || step.sign)}</p><p class="learn-tip">${step.tip}</p>`;
@@ -186,9 +195,10 @@ function renderLesson() {
   } else {
     const retryTag = step.isRetry ? `<span class="lesson-retry">${icon("arrow-counterclockwise")} Segunda chance</span>` : "";
     body = `${retryTag}<h2>${questionTitle(step)}</h2>${questionBodyHtml(step)}`;
-    footerHint = "";
-    if (isFinalExam()) footerHint = `${icon("trophy-fill")} Prova final: para passar, erre no máximo ${FINAL_MAX_MISTAKES}.`;
-    if (lesson.isChallenge) footerHint = `${icon("lightning-charge-fill")} Desafio: para vencer, erre no máximo ${FINAL_MAX_MISTAKES}.`;
+    if (isFinalExam()) hint = `${icon("trophy-fill")} Prova final: para passar, erre no máximo ${FINAL_MAX_MISTAKES}.`;
+    if (lesson.isChallenge) hint = `${icon("lightning-charge-fill")} Desafio: para vencer, erre no máximo ${FINAL_MAX_MISTAKES}.`;
+    footerHint = lessonMascot("thinking-chin") + (hint ? `<span>${hint}</span>` : "");
+    if (!hint) footerClass = " is-asking"; // no celular, o mascote fica do lado do botão
     button = `<button class="button-3d button-3d-primary lesson-next" id="lesson-continue" type="button" data-action="check-answer" disabled>Conferir</button>`;
   }
 
@@ -197,7 +207,7 @@ function renderLesson() {
     : `<span class="lesson-lives" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></span>`;
 
   return `
-    <section class="lesson is-${lesson.kind}" aria-labelledby="lesson-kicker">
+    <section class="lesson is-${lesson.kind}${hint ? " has-hint" : ""}" aria-labelledby="lesson-kicker">
       <header class="lesson-top">
         <button class="lesson-close" type="button" data-action="leave-lesson" aria-label="Sair da atividade" title="Sair">${icon("x-lg")}</button>
         <div class="lesson-progress" role="progressbar" aria-label="Progresso da atividade" aria-valuenow="${lesson.index}" aria-valuemin="0" aria-valuemax="${total}"><span id="lesson-progress-bar" style="width: ${progress}%"></span></div>
@@ -207,7 +217,7 @@ function renderLesson() {
         <p class="lesson-kicker" id="lesson-kicker">${escapeHtml(lessonKicker())}</p>
         ${body}
       </div>
-      <footer class="lesson-footer" id="lesson-footer">
+      <footer class="lesson-footer${footerClass}" id="lesson-footer">
         <div class="lesson-footer-inner">
           <div class="lesson-feedback" id="answer-feedback" aria-live="polite">${footerHint}</div>
           ${button}
@@ -271,15 +281,18 @@ async function checkAnswer() {
   document.getElementById("lesson-progress-bar").style.width = `${Math.round(((lesson.index + 1) / lesson.steps.length) * 100)}%`;
 
   // Faixa de baixo: verde-turquesa se acertou, coral se errou
-  document.getElementById("lesson-footer").classList.add(isCorrect ? "is-correct" : "is-incorrect");
+  const footer = document.getElementById("lesson-footer");
+  footer.classList.remove("is-asking");
+  footer.classList.add(isCorrect ? "is-correct" : "is-incorrect");
   let title = isCorrect ? CORRECT_TITLES[lesson.index % CORRECT_TITLES.length] : `Quase! A resposta certa é ${correctAnswerLabel(question, rightOption)}.`;
   if (isCorrect && question.isRetry) title = "Agora foi!";
   const retryNote = getsRetry ? " Ela volta no final para você tentar de novo." : "";
+  // O mascote que estava pensando comemora (acertou) ou fica tristinho (errou).
+  const badge = `<span class="feedback-icon">${icon(isCorrect ? "check-lg" : "x-lg")}</span>`;
   document.getElementById("answer-feedback").innerHTML = `
-    <span class="feedback-icon">${icon(isCorrect ? "check-lg" : "x-lg")}</span>
+    ${lessonMascot(isCorrect ? "celebrating" : "sad", badge)}
     <span><strong>${title}</strong><small>${question.explain}${retryNote}</small></span>`;
   // a faixa cresce com a explicação: o conteúdo ganha espaço para não ficar embaixo dela
-  const footer = document.getElementById("lesson-footer");
   document.querySelector(".lesson").style.paddingBottom = `${footer.offsetHeight + 16}px`;
 
   // O que o botão faz agora
@@ -371,7 +384,7 @@ function finishMessage(lesson, result) {
     const next = TOPIC_ORDER[TOPIC_ORDER.indexOf(lesson.topicId) + 1];
     return next ? `Etapa concluída! “${learningTopics[next].title}” foi liberada. ${prize}.` : `Etapa concluída! ${prize}.`;
   }
-  if (state.energy === 0) return `Atividade concluída! Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`;
+  if (state.energy === 0) return `Atividade concluída: ${prize}. Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`;
   return `Atividade concluída: ${prize} e −1 de energia.`;
 }
 

@@ -18,6 +18,14 @@ const PASSWORD_MIN_LENGTH = 8;
 const OBVIOUS_PASSWORDS = ["12345678", "123456789", "1234567890", "87654321", "11111111", "00000000",
   "senha123", "senha1234", "password", "qwertyui", "abcdefgh", "abc12345", "edusinal", "libras123"];
 
+// Apelido: de 2 a 20 caracteres, só letras, números e espaços. Vale no
+// cadastro e ao trocar o nome no Perfil (o servidor confere a mesma coisa).
+function nicknameProblem(nickname) {
+  if (nickname.length < 2 || nickname.length > 20) return "O apelido precisa ter de 2 a 20 caracteres.";
+  if (!/^[\p{L}\p{N} ]+$/u.test(nickname)) return "Use só letras, números e espaços no apelido.";
+  return "";
+}
+
 // Devolve o problema da senha (para mostrar ao aluno) ou "" se está tudo certo.
 function passwordProblem(password, nickname = "", email = "") {
   const lower = password.toLowerCase();
@@ -32,8 +40,9 @@ function passwordProblem(password, nickname = "", email = "") {
 // ----- Cadastro por etapas -----
 
 // Campo de senha com o botão de olhinho para mostrar/esconder o que foi digitado.
-function passwordField(id, name, label, autocomplete, placeholder) {
-  return `<label class="field-label" for="${id}">${label}<span class="password-field"><input id="${id}" name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}" /><button class="password-toggle" type="button" data-action="toggle-password" data-target="${id}" aria-label="Mostrar a senha" aria-pressed="false">${icon("eye-fill")}</button></span></label>`;
+// value: o que já tinha sido digitado (ex.: voltando dos termos no cadastro).
+function passwordField(id, name, label, autocomplete, placeholder, value = "") {
+  return `<label class="field-label" for="${id}">${label}<span class="password-field"><input id="${id}" name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}" value="${escapeHtml(value)}" /><button class="password-toggle" type="button" data-action="toggle-password" data-target="${id}" aria-label="Mostrar a senha" aria-pressed="false">${icon("eye-fill")}</button></span></label>`;
 }
 
 // Mostra ou esconde a senha sem redesenhar a tela (o que já foi digitado fica).
@@ -55,12 +64,13 @@ const GOAL_OPTIONS = [
   { value: 5, title: "Puxado", text: "5 atividades por dia", icon: "fire" },
 ];
 
-// Respostas enquanto o cadastro não termina (a senha nunca fica guardada).
+// Respostas enquanto o cadastro não termina. As senhas ficam só na memória da
+// página (nunca no navegador) e são apagadas quando a conta é criada.
 // keptProgress: era visitante e a conta guardou o progresso que ele já tinha.
-let signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
+let signup = { step: 0, nickname: "", email: "", password: "", passwordConfirmation: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 
 function resetSignup() {
-  signup = { step: 0, nickname: "", email: "", password: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
+  signup = { step: 0, nickname: "", email: "", password: "", passwordConfirmation: "", acceptedTerms: false, goal: DAILY_GOAL, done: false, keptProgress: false };
 }
 
 // O que cada etapa pergunta e mostra.
@@ -82,8 +92,8 @@ function signupStepHtml(stepName) {
   if (stepName === "password") {
     return {
       question: "Agora crie uma senha.",
-      body: `${passwordField("signup-password", "password", "Senha", "new-password", "Crie uma senha")}
-        ${passwordField("signup-confirm-password", "passwordConfirmation", "Confirme a senha", "new-password", "Digite a senha de novo")}
+      body: `${passwordField("signup-password", "password", "Senha", "new-password", "Crie uma senha", signup.password)}
+        ${passwordField("signup-confirm-password", "passwordConfirmation", "Confirme a senha", "new-password", "Digite a senha de novo", signup.passwordConfirmation)}
         <p class="field-hint">${icon("lock-fill")} Pelo menos 8 caracteres. Dica: uma frase curta que só você conhece é fácil de lembrar e difícil de adivinhar.</p>
         <label class="signup-terms"><input type="checkbox" name="acceptedTerms"${signup.acceptedTerms ? " checked" : ""} /><span>Li e aceito os <button class="text-button" type="button" data-action="open-terms">termos de uso e privacidade</button> do EduSinal.</span></label>`,
     };
@@ -100,6 +110,7 @@ function signupStepHtml(stepName) {
 
 // Uma etapa: barra de progresso, o mascote perguntando num balão, os campos
 // e o botão grande embaixo. Usada pelo cadastro e pelo login.
+// Com erro (ex.: "Não consegui lembrar de você…"), o mascote fica tristinho.
 function renderOnboardStep({ formId, step, total, backAction, question, body, error = "", footerExtra = "", submitLabel }) {
   const progress = Math.round((step / total) * 100);
   return `
@@ -111,7 +122,7 @@ function renderOnboardStep({ formId, step, total, backAction, question, body, er
       </header>
       <form class="onboard-body" id="${formId}" novalidate>
         <div class="onboard-ask">
-          <span class="onboard-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "avatar", "")}</span>
+          <span class="onboard-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "avatar", "", error ? { pose: "sad" } : {})}</span>
           <h2 class="onboard-bubble" id="onboard-title">${question}</h2>
         </div>
         <div class="onboard-fields">${body}</div>
@@ -210,12 +221,12 @@ function renderLogin() {
   });
 }
 
-// O mascote cutucando a cabeça, tentando lembrar.
+// O mascote com a mão no queixo, tentando lembrar de quem é.
 function renderLoginChecking() {
   return `
     <section class="onboard onboard-done" aria-live="polite">
-      <span class="welcome-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "full", "", { animated: true })}</span>
-      <h2>Hmm… deixa eu ver se esse e-mail é familiar<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></h2>
+      <span class="welcome-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "full", "", { pose: "thinking-chin", scene: true })}</span>
+      <h2>Hmm… deixa eu ver se eu lembro de você<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></h2>
     </section>`;
 }
 
@@ -248,9 +259,8 @@ function loginBack() {
 function validateSignupStep(form) {
   const stepName = SIGNUP_STEPS[signup.step];
   if (stepName === "nickname") {
-    const nickname = form.elements.nickname.value.trim();
-    if (nickname.length < 2) return "O apelido precisa ter pelo menos 2 letras.";
-    if (!/^[\p{L}\p{N} ]+$/u.test(nickname)) return "Use só letras, números e espaços no apelido.";
+    const problem = nicknameProblem(form.elements.nickname.value.trim());
+    if (problem) return problem;
   }
   if (stepName === "email" && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) return "Informe um e-mail válido.";
   if (stepName === "password") {
@@ -284,8 +294,6 @@ async function handleLoginSubmit(form) {
   const password = form.elements.password.value;
   login.status = "checking";
   render();
-  playMascotReaction();
-  setTimeout(playMascotReaction, 800);
   const thinking = new Promise((resolve) => setTimeout(resolve, LOGIN_THINK_MS)); // o mascote pensa pelo menos um pouquinho
   let estado = null;
   let loginError = null;
@@ -307,7 +315,7 @@ async function handleLoginSubmit(form) {
   applyServerState(estado);
   login.status = "done";
   render();
-  playMascotReaction();
+  playMascotReaction("waving"); // "me lembrei!": acena para o aluno
 }
 
 // "Continuar" de cada etapa: guarda a resposta e vai para a próxima.
@@ -323,6 +331,7 @@ async function handleSignupSubmit(form) {
   if (stepName === "email") signup.email = form.elements.email.value.trim().toLowerCase();
   if (stepName === "password") {
     signup.password = form.elements.password.value;
+    signup.passwordConfirmation = form.elements.passwordConfirmation.value;
     signup.acceptedTerms = true;
   }
   if (signup.step < SIGNUP_STEPS.length - 1) {
@@ -355,9 +364,10 @@ async function handleSignupSubmit(form) {
     }
     return;
   }
-  signup.password = ""; // a senha sai da memória assim que a conta foi criada
+  signup.password = ""; // as senhas saem da memória assim que a conta foi criada
+  signup.passwordConfirmation = "";
   signup.done = true;
   signup.keptProgress = wasGuest;
   render();
-  playMascotReaction(); // comemoração: cutucada na cabeça
+  playMascotReaction("celebrating"); // conta criada: comemora
 }

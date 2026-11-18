@@ -2,13 +2,13 @@
 <!-- Mapa do site para os buscadores: as páginas que devem aparecer na pesquisa. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.edusinal.com.br/app/prototipo/index.html</loc>
-    <lastmod>2026-11-14</lastmod>
+    <loc>https://www.edusinal.com.br/</loc>
+    <lastmod>2026-11-15</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.edusinal.com.br/landing/index.html</loc>
-    <lastmod>2026-11-14</lastmod>
-    <priority>0.8</priority>
+    <loc>https://www.edusinal.com.br/app/prototipo/index.html</loc>
+    <lastmod>2026-11-15</lastmod>
+    <priority>0.6</priority>
   </url>
 </urlset>

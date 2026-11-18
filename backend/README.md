@@ -34,7 +34,7 @@ Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a re
 | Método | Rota | Para que serve |
 | --- | --- | --- |
 | `POST` | `/auth/cadastro` | Criar a conta (apelido, e-mail, senha, meta diária). Já sai logado |
-| `POST` | `/auth/login` | Entrar. E-mail ou senha errados recebem a mesma resposta. Limite de 5 tentativas por minuto |
+| `POST` | `/auth/login` | Entrar. E-mail ou senha errados recebem a mesma resposta. Limite de 5 tentativas por minuto para cada e-mail (não por IP: a turma inteira sai pela mesma internet) |
 | `POST` | `/auth/visitante` | Entrar como visitante, sem e-mail e senha. Já sai logado |
 | `POST` | `/auth/visitante/conta` | O visitante cria a conta (apelido, e-mail, senha, meta) e mantém o progresso |
 | `POST` | `/auth/sair` | Sair. Se for visitante, a conta dele é apagada |
@@ -51,6 +51,7 @@ Todas, menos cadastro, login e visitante, exigem estar logado. Sem sessão, a re
 | `GET` | `/ligas/semana` | Ranking da semana do seu grupo da liga (até 10 alunos), com o mascote de cada um como foto (visitante recebe 403) |
 | `GET` | `/ligas/semana/{posicao}?apelido=` | Cartão de um aluno da **sua** salinha (abre ao tocar no ranking): mascote, ofensiva, XP, liga, etapas, conquistas, etapa atual e mês em que entrou. Nunca o e-mail. Fora da salinha: 404; visitante: 403 |
 | `POST` | `/dicionario/{codigo}/visto` | Marcar um sinal como visto (missão do dicionário). Letras sempre abertas; palavras só depois de desbloqueadas |
+| `GET` | `/saude` | "Estou acordada": não precisa de login nem abre o banco. O despertador e a página inicial chamam para a API não dormir no Render |
 
 O `{codigo}` da atividade é o mesmo id do app: `numeros:pratica-um-a-cinco`, a prova final `numeros:final` e o Desafia-me `dicionario:desafio`. Os erros sempre vêm como `{ "detail": "Mensagem em português." }`.
 
@@ -63,6 +64,15 @@ POST /atividades/numeros:pratica-um-a-cinco/respostas
 ```
 
 `pergunta` e `resposta` são posições, e a primeira é 0. O banco guarda as alternativas na mesma ordem das opções do app. `rodada: 2` é a "segunda chance" da mesma pergunta. Se a mesma resposta chegar duas vezes (internet ruim), ela só conta uma.
+
+## Despertador (a API não dormir)
+
+No plano grátis do Render, a API "dorme" depois de 15 minutos sem ninguém usar, e quem abre o app em seguida espera até 1 minuto. Para isso não acontecer com os alunos:
+
+- o robô `.github/workflows/despertador.yml` (na `main`, porque o GitHub só roda robôs agendados da branch principal) chama `/saude` a cada 10 minutos, das 6h às 23h59 de Brasília. De madrugada ela dorme, para economizar as 750 horas grátis por mês do Render;
+- a página inicial também chama `/saude` assim que abre, então a API já vai acordando enquanto a pessoa lê.
+
+Se a API não responder, o robô falha e o GitHub manda um e-mail: serve de alarme também.
 
 ## Visitante
 

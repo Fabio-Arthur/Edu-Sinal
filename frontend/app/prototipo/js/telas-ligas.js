@@ -20,7 +20,7 @@ const DEMOTION_SPOTS = 2;  // quantos descem
 
 // Dia da semana: segunda = 1 ... domingo = 7.
 function weekDayNumber() {
-  return ((new Date().getDay() + 6) % 7) + 1;
+  return ((brasiliaNow().getDay() + 6) % 7) + 1;
 }
 
 // Classificação da semana, do maior XP para o menor. Antes de a API
@@ -37,7 +37,9 @@ function buildRanking() {
       isMe: player.sou_eu,
       serverPosition: player.posicao, // para abrir o cartão do aluno
     }))
-    .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
+    // Empate: a mesma ordem do servidor (é ela que decide quem sobe e quem desce
+    // na virada da semana), para a posição na tela ser a de verdade.
+    .sort((a, b) => b.xp - a.xp || a.serverPosition - b.serverPosition);
 }
 
 // No PC a lista do ranking rola por dentro: rola até o aluno, para ele se ver
@@ -78,7 +80,7 @@ function leagueTimeLeft() {
   const daysLeft = 7 - weekDayNumber();
   if (daysLeft === 1) return "1 dia";
   if (daysLeft > 1) return `${daysLeft} dias`;
-  return `${24 - new Date().getHours()} h`;
+  return `${24 - brasiliaNow().getHours()} h`;
 }
 
 // Frase de situação: na zona de promoção, no meio ou na zona de rebaixamento.
@@ -212,7 +214,7 @@ function renderLeaguesForGuest() {
       </div>
       <button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>
     </section>
-    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat, mensagens nem perfil aberto de outros alunos.</p>`;
+    <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Nas ligas aparecem só apelidos e avatares. Não há chat e nem mensagens com outros alunos.</p>`;
 }
 
 

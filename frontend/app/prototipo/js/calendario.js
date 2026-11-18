@@ -45,7 +45,7 @@ function renderCalendarDay(date, column) {
 }
 
 function renderStreakCalendar() {
-  const today = new Date();
+  const today = brasiliaNow();
   const firstDay = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
   const daysInMonth = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0).getDate();
   const emptyCells = firstDay.getDay(); // quantos dias antes do dia 1 (domingo = 0)
