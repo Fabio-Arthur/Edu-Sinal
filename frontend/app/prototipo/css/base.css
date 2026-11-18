@@ -755,7 +755,10 @@ body.is-loading::before {
 
 /* Tela de abertura (index.html), enquanto o app pergunta à API quem está logado */
 .app-splash { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; background: var(--bg, #f1f6fb); text-align: center; }
-.app-splash img { width: 96px; height: 96px; border-radius: 24px; object-fit: contain; animation: splash-pulse 1.4s ease-in-out infinite; }
+/* O Eduzinho pensando num círculo (antes do JavaScript carregar, a logo) */
+.app-splash-mascot { width: 140px; height: 140px; display: block; overflow: hidden; border: 4px solid #ffffff; border-radius: 50%; box-shadow: 0 6px 0 var(--hero-shadow, #14548e); }
+.app-splash-mascot img { width: 100%; height: 100%; object-fit: cover; }
+.app-splash-mascot .mascot-svg { margin-top: 6%; }
 .app-splash-title { margin: 6px 0 0; font-family: "Manrope", sans-serif; font-size: 20px; font-weight: 800; color: var(--text); }
 .app-splash-hint { max-width: 320px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; opacity: 0; transition: opacity 0.4s; }
 .app-splash.is-slow .app-splash-hint { opacity: 1; }
@@ -765,8 +768,6 @@ body.is-loading::before {
 @media (min-width: 1800px) and (min-height: 900px) { .app-splash { --escala-abertura: 1.25; } }
 @media (min-width: 2300px) and (min-height: 1200px) { .app-splash { --escala-abertura: 1.6; } }
 @media (min-width: 3400px) and (min-height: 1900px) { .app-splash { --escala-abertura: 2.2; } }
-@keyframes splash-pulse { 50% { transform: scale(1.06); } }
-@media (prefers-reduced-motion: reduce) { .app-splash img { animation: none; } }
 
 /* ----- Termos de uso: o topo fica parado e só o texto rola (cabe na tela) ----- */
 /* 115px = respiro de cima e de baixo da tela (64) + rodapé (51) */

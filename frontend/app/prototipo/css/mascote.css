@@ -1,15 +1,117 @@
-/* Mascote: o desenho em SVG e as cores de fundo.
+/* Mascote: o desenho em SVG, as cores de fundo e as poses.
    (A ordem dos arquivos no index.html importa: veja o comentário lá.) */
 
 /* ===================================================================
    MASCOTE PERSONALIZÁVEL (desenho em SVG + editor)
    =================================================================== */
 .mascot-svg { display: block; width: 100%; height: 100%; }
+/* Com o fundo desenhado, o desenho passa da borda e o quadro em volta corta. */
+.mascot-svg.has-scene { overflow: visible; }
 
 /* Fundo atrás do mascote: o azul da logo é o padrão; os outros vêm da lojinha.
-   São cores fortes porque o personagem é branco, como na logo. */
+   Nas miniaturas é só esta cor; nos mascotes grandes o fundo é desenhado por cima. */
 .mascot-backdrop { background: linear-gradient(160deg, #3a8dff 0%, #1767e6 100%); }
 .mascot-backdrop.bg-fundo-ceu { background: linear-gradient(160deg, #8ccaff 0%, #3f9cf0 100%); }
 .mascot-backdrop.bg-fundo-mar { background: linear-gradient(160deg, #35cdc2 0%, #12908a 100%); }
 .mascot-backdrop.bg-fundo-por-do-sol { background: linear-gradient(160deg, #ffad6e 0%, #ef5f78 100%); }
 .mascot-backdrop.bg-fundo-sol { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); }
+
+/* ===================================================================
+   POSES (uma classe no <svg>, colocada pelo mascote-desenho.js)
+   Cada pose troca olhos, sobrancelhas, boca e braços.
+   =================================================================== */
+
+/* Peças que só aparecem em alguma pose */
+.mascot-svg .brows-sad, .mascot-svg .brows-think, .mascot-svg .wink-r, .mascot-svg .eyes-happy,
+.mascot-svg .mouth-grin, .mascot-svg .mouth-sad, .mascot-svg .mouth-hmm,
+.mascot-svg .arm-think, .mascot-svg .arm-chin, .mascot-svg .sparks { display: none; }
+.mascot-svg .drop, .mascot-svg .confetti > * { opacity: 0; }
+
+/* Ponto de giro de cada parte (nas coordenadas do desenho) */
+.mascot-svg .figure, .mascot-svg .breath, .mascot-svg .head-group, .mascot-svg .arm-upper,
+.mascot-svg .arm-wave, .mascot-svg .arm-think, .mascot-svg .chin-forearm, .mascot-svg .sun-rays { transform-box: view-box; }
+.mascot-svg .figure, .mascot-svg .breath { transform-origin: 100px 210px; }
+.mascot-svg .head-group { transform-origin: 100px 118px; }
+.mascot-svg .arm-upper { transform-origin: 132px 137px; }  /* ombro */
+.mascot-svg .arm-wave, .mascot-svg .arm-think { transform-origin: 161px 150px; } /* cotovelo */
+.mascot-svg .chin-forearm { transform-origin: 138px 166px; }
+.mascot-svg .sun-rays { transform-origin: 100px 100px; }
+.mascot-svg .eyes, .mascot-svg .sparks, .mascot-svg .confetti > * { transform-box: fill-box; transform-origin: center; }
+
+/* Acenar: dá uma piscadinha */
+.mascot-svg.is-waving .eye-r { display: none; }
+.mascot-svg.is-waving .wink-r { display: inline; }
+
+/* Comemorar (acertou!): olhos ^^, sorrisão e os risquinhos amarelos */
+.mascot-svg.is-celebrating .eyes, .mascot-svg.is-celebrating .mouth-happy { display: none; }
+.mascot-svg.is-celebrating .eyes-happy, .mascot-svg.is-celebrating .mouth-grin, .mascot-svg.is-celebrating .sparks { display: inline; }
+
+/* Errou: sobrancelhas tristes, gotinha, cabeça caída e uma "brochada" de leve no braço */
+.mascot-svg.is-sad .brows-normal, .mascot-svg.is-sad .mouth-happy { display: none; }
+.mascot-svg.is-sad .brows-sad, .mascot-svg.is-sad .mouth-sad { display: inline; }
+.mascot-svg.is-sad .eyes { transform: translateY(2.5px) scaleY(0.85); }
+.mascot-svg.is-sad .drop { opacity: 1; }
+.mascot-svg.is-sad .head-group { transform: rotate(-7deg) translateY(3px); }
+.mascot-svg.is-sad .arm-upper { transform: rotate(20deg); }
+.mascot-svg.is-sad .arm-wave { transform: rotate(-8deg); }
+
+/* Pensar (cabeça): o indicador aponta para a cabeça (sinal de ENTENDER) */
+.mascot-svg.is-thinking .brows-normal, .mascot-svg.is-thinking .mouth-happy, .mascot-svg.is-thinking .arm-wave { display: none; }
+.mascot-svg.is-thinking .brows-think, .mascot-svg.is-thinking .mouth-hmm, .mascot-svg.is-thinking .arm-think { display: inline; }
+
+/* Pensar (queixo): o braço desce e a mão segura o queixo */
+.mascot-svg.is-thinking-chin .arm-upper, .mascot-svg.is-thinking-chin .brows-normal, .mascot-svg.is-thinking-chin .mouth-happy { display: none; }
+.mascot-svg.is-thinking-chin .arm-chin, .mascot-svg.is-thinking-chin .brows-think, .mascot-svg.is-thinking-chin .mouth-hmm { display: inline; }
+.mascot-svg.is-thinking .eyes, .mascot-svg.is-thinking-chin .eyes { transform: translate(2px, -2px); } /* olhando pro alto */
+
+/* ===================================================================
+   MOVIMENTO: só nos mascotes grandes e sem "animações reduzidas"
+   (o mascote-desenho.js coloca data-motion="on" no <svg>).
+   =================================================================== */
+.mascot-svg[data-motion="on"] .breath { animation: mascot-breathe 3.2s ease-in-out infinite; }
+.mascot-svg[data-motion="on"] .eyes { animation: mascot-blink 5s infinite; }
+.mascot-svg[data-motion="on"] .arm-wave { animation: mascot-sway 3.2s ease-in-out infinite; }
+.mascot-svg[data-motion="on"] .head-group { transition: transform 0.35s ease; }
+.mascot-svg[data-motion="on"] .arm-upper, .mascot-svg[data-motion="on"] .arm-wave { transition: transform 0.45s ease; }
+
+.mascot-svg[data-motion="on"].is-waving .arm-wave { animation: mascot-wave 0.32s ease-in-out 6 alternate; }
+.mascot-svg[data-motion="on"].is-celebrating .figure { animation: mascot-jump 0.42s ease-in-out 3; }
+.mascot-svg[data-motion="on"].is-celebrating .arm-wave { animation: mascot-cheer 1.26s ease-in-out; }
+.mascot-svg[data-motion="on"].is-celebrating .sparks { animation: mascot-pop 0.42s ease-in-out 3; }
+.mascot-svg[data-motion="on"].is-celebrating .confetti > * { animation: mascot-fall 1.3s ease-out var(--d) both; }
+.mascot-svg[data-motion="on"].is-sad .eyes, .mascot-svg[data-motion="on"].is-sad .arm-wave,
+.mascot-svg[data-motion="on"].is-thinking .eyes, .mascot-svg[data-motion="on"].is-thinking-chin .eyes { animation: none; }
+.mascot-svg[data-motion="on"].is-thinking .arm-think { animation: mascot-poke 0.9s ease-in-out infinite; }
+.mascot-svg[data-motion="on"].is-thinking-chin .chin-forearm { animation: mascot-chin 1.4s ease-in-out infinite; }
+
+/* Fundos, bem de leve: nuvens flutuando, ondas balançando, luzes piscando e o sol girando */
+.mascot-svg[data-motion="on"] .cloud-drift { animation: mascot-drift 8s ease-in-out infinite alternate; }
+.mascot-svg[data-motion="on"] .wave-row { animation: mascot-bob 3.2s ease-in-out infinite alternate; }
+.mascot-svg[data-motion="on"] .bokeh circle { animation: mascot-twinkle 3s ease-in-out infinite alternate; }
+.mascot-svg[data-motion="on"] .bokeh circle:nth-child(2n) { animation-delay: -1.5s; }
+.mascot-svg[data-motion="on"] .bokeh circle:nth-child(3n) { animation-delay: -0.8s; animation-duration: 4s; }
+.mascot-svg[data-motion="on"] .sun-rays { animation: mascot-spin 60s linear infinite; }
+
+@keyframes mascot-breathe { 50% { transform: translateY(1.6px); } }
+@keyframes mascot-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.12); } }
+@keyframes mascot-sway { 50% { transform: rotate(-3deg); } }
+@keyframes mascot-wave { from { transform: rotate(0deg); } to { transform: rotate(-16deg); } }
+@keyframes mascot-jump { 50% { transform: translateY(-14px); } }
+@keyframes mascot-cheer { 0%, 100% { transform: rotate(0deg); } 30%, 70% { transform: rotate(-24deg); } }
+@keyframes mascot-pop { 50% { transform: scale(1.4); } }
+@keyframes mascot-fall {
+  0% { opacity: 0; transform: translateY(-16px) rotate(0deg); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(46px) rotate(160deg); }
+}
+@keyframes mascot-poke { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(7deg); } }
+@keyframes mascot-chin { 50% { transform: rotate(3deg); } }
+@keyframes mascot-drift { from { transform: translateX(-4px); } to { transform: translateX(4px); } }
+@keyframes mascot-bob { from { transform: translateY(-1.5px); } to { transform: translateY(1.5px); } }
+@keyframes mascot-twinkle { from { opacity: 0.12; } to { opacity: 0.45; } }
+@keyframes mascot-spin { to { transform: rotate(360deg); } }
+
+/* Se o aparelho pedir menos movimento no meio do uso, tudo para na hora. */
+@media (prefers-reduced-motion: reduce) {
+  .mascot-svg * { animation: none !important; transition: none !important; }
+}

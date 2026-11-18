@@ -21,13 +21,13 @@ const MASCOT_SLOTS = [
 const DEFAULT_LOOK = { shirt: "camiseta-branca", head: "", face: "", chest: "", background: "" };
 
 const MASCOT_ITEMS = [
-  // Roupas (fill = cor, trim = gola, design = estilo)
+  // Roupas (fill = cor, trim = gola, design = estilo: plain, tank (regata), hoodie, champion)
   { id: "camiseta-branca", slot: "shirt", name: "Clássica da logo", fill: "#ffffff", trim: "#1652c7", design: "plain", unlock: { type: "free" } },
   { id: "camiseta-azul", slot: "shirt", name: "Camiseta azul", fill: "#3d8bfd", trim: "#1652c7", design: "plain", unlock: { type: "free" } },
   { id: "camiseta-turquesa", slot: "shirt", name: "Camiseta turquesa", fill: "#2bbbb3", trim: "#137a75", design: "plain", unlock: { type: "free" } },
   { id: "camiseta-coral", slot: "shirt", name: "Camiseta coral", description: "Quentinha igual fim de tarde", fill: "#f07a68", trim: "#b84a3a", design: "plain", unlock: { type: "coins", cost: 20 } },
   { id: "camiseta-amarela", slot: "shirt", name: "Camiseta amarela", description: "Alegre como dia de sol", fill: "#f7cd4d", trim: "#b58a12", design: "plain", unlock: { type: "coins", cost: 20 } },
-  { id: "camiseta-listrada", slot: "shirt", name: "Listrada", description: "Listras pra todo lado", fill: "#ffffff", stripe: "#9cc3f0", trim: "#1652c7", design: "stripes", unlock: { type: "coins", cost: 35 } },
+  { id: "camiseta-listrada", slot: "shirt", name: "Regata listrada", description: "Listras pra todo lado", fill: "#ffffff", stripe: "#9cc3f0", trim: "#1652c7", design: "tank", unlock: { type: "coins", cost: 35 } },
   { id: "moletom-edusinal", slot: "shirt", name: "Moletom EduSinal", fill: "#24497f", trim: "#162f55", design: "hoodie", unlock: { type: "achievement", id: "etapa" } },
   { id: "camisa-campeao", slot: "shirt", name: "Camisa de campeão", fill: "#f2c230", trim: "#b8860b", design: "champion", unlock: { type: "achievement", id: "liga" } },
 
@@ -53,7 +53,7 @@ const MASCOT_ITEMS = [
   { id: "flor-amarela", slot: "chest", name: "Flor amarela", description: "Uma flor que nunca murcha", unlock: { type: "achievement", id: "colecionador" } },
   { id: "folha-azul", slot: "chest", name: "Folha azul", description: "Pra quem explora o dicionário", unlock: { type: "achievement", id: "explorador" } },
 
-  // Fundos (cor atrás do mascote)
+  // Fundos (desenhados atrás do mascote grande; nas miniaturas, só a cor)
   { id: "", slot: "background", name: "Azul da logo", unlock: { type: "free" } },
   { id: "fundo-ceu", slot: "background", name: "Céu azul", description: "Um céu limpinho atrás de você", unlock: { type: "coins", cost: 20 } },
   { id: "fundo-mar", slot: "background", name: "Mar turquesa", description: "Ondas calmas cor de mar", unlock: { type: "coins", cost: 30 } },
@@ -166,7 +166,7 @@ function askToBuy(item, onConfirm) {
   const look = lookWith(item.slot, item.id);
   const art = document.getElementById("buy-art");
   art.className = `buy-modal-art ${backdropClass(look)}`;
-  art.innerHTML = mascotSvg(look, "full", "");
+  art.innerHTML = mascotSvg(look, "full", "", { scene: true }); // com o fundo desenhado, para ver como fica
   document.getElementById("buy-title").textContent = item.name;
   document.getElementById("buy-text").textContent = text;
   const buyButton = document.getElementById("buy-ok");
@@ -203,7 +203,7 @@ async function wearMascotItem(slot, id) {
     return;
   }
   render();
-  if (changed) playMascotReaction(); // roupa nova: "tive uma ideia!"
+  if (changed) playMascotReaction(); // roupa nova: ele acena e dá uma piscadinha
 }
 
 function chooseMascotTab(slot) {

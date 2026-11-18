@@ -370,6 +370,9 @@ async function startApp() {
     render();
     return;
   }
+  // Enquanto pergunta à API, o Eduzinho fica pensando (apontando para a cabeça).
+  const splashMascot = document.getElementById("app-splash-mascot");
+  if (splashMascot) splashMascot.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { pose: "thinking", scene: true });
   // Se a API demorar (ela "dorme" quando ninguém usa), avisa na tela de abertura.
   const slowTimer = setTimeout(() => document.getElementById("app-splash")?.classList.add("is-slow"), 4000);
   // Primeiro confere se a pessoa já está logada, DEPOIS escolhe a tela:

@@ -102,6 +102,7 @@ function signupStepHtml(stepName) {
 
 // Uma etapa: barra de progresso, o mascote perguntando num balão, os campos
 // e o botão grande embaixo. Usada pelo cadastro e pelo login.
+// Com erro (ex.: "Não consegui lembrar de você…"), o mascote fica tristinho.
 function renderOnboardStep({ formId, step, total, backAction, question, body, error = "", footerExtra = "", submitLabel }) {
   const progress = Math.round((step / total) * 100);
   return `
@@ -113,7 +114,7 @@ function renderOnboardStep({ formId, step, total, backAction, question, body, er
       </header>
       <form class="onboard-body" id="${formId}" novalidate>
         <div class="onboard-ask">
-          <span class="onboard-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "avatar", "")}</span>
+          <span class="onboard-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "avatar", "", error ? { pose: "sad" } : {})}</span>
           <h2 class="onboard-bubble" id="onboard-title">${question}</h2>
         </div>
         <div class="onboard-fields">${body}</div>
@@ -212,12 +213,12 @@ function renderLogin() {
   });
 }
 
-// O mascote cutucando a cabeça, tentando lembrar.
+// O mascote com a mão no queixo, tentando lembrar de quem é.
 function renderLoginChecking() {
   return `
     <section class="onboard onboard-done" aria-live="polite">
-      <span class="welcome-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "full", "", { animated: true })}</span>
-      <h2>Hmm… deixa eu ver se esse e-mail é familiar<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></h2>
+      <span class="welcome-mascot mascot-backdrop">${mascotSvg(DEFAULT_LOOK, "full", "", { pose: "thinking-chin", scene: true })}</span>
+      <h2>Hmm… deixa eu ver se eu lembro de você<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></h2>
     </section>`;
 }
 
@@ -286,8 +287,6 @@ async function handleLoginSubmit(form) {
   const password = form.elements.password.value;
   login.status = "checking";
   render();
-  playMascotReaction();
-  setTimeout(playMascotReaction, 800);
   const thinking = new Promise((resolve) => setTimeout(resolve, LOGIN_THINK_MS)); // o mascote pensa pelo menos um pouquinho
   let estado = null;
   let loginError = null;
@@ -309,7 +308,7 @@ async function handleLoginSubmit(form) {
   applyServerState(estado);
   login.status = "done";
   render();
-  playMascotReaction();
+  playMascotReaction("waving"); // "me lembrei!": acena para o aluno
 }
 
 // "Continuar" de cada etapa: guarda a resposta e vai para a próxima.
@@ -363,5 +362,5 @@ async function handleSignupSubmit(form) {
   signup.done = true;
   signup.keptProgress = wasGuest;
   render();
-  playMascotReaction(); // comemoração: cutucada na cabeça
+  playMascotReaction("celebrating"); // conta criada: comemora
 }

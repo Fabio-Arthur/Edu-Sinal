@@ -275,8 +275,10 @@ async function checkAnswer() {
   let title = isCorrect ? CORRECT_TITLES[lesson.index % CORRECT_TITLES.length] : `Quase! A resposta certa é ${correctAnswerLabel(question, rightOption)}.`;
   if (isCorrect && question.isRetry) title = "Agora foi!";
   const retryNote = getsRetry ? " Ela volta no final para você tentar de novo." : "";
+  // O mascote do aluno comemora (acertou) ou fica tristinho (errou); o ✓ ou ✗ fica no cantinho.
+  const mascot = mascotSvg(state.mascot, "avatar", "", { pose: isCorrect ? "celebrating" : "sad" });
   document.getElementById("answer-feedback").innerHTML = `
-    <span class="feedback-icon">${icon(isCorrect ? "check-lg" : "x-lg")}</span>
+    <span class="feedback-mascot"><span class="feedback-mascot-art ${backdropClass()}">${mascot}</span><span class="feedback-icon">${icon(isCorrect ? "check-lg" : "x-lg")}</span></span>
     <span><strong>${title}</strong><small>${question.explain}${retryNote}</small></span>`;
   // a faixa cresce com a explicação: o conteúdo ganha espaço para não ficar embaixo dela
   const footer = document.getElementById("lesson-footer");
