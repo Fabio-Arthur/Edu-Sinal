@@ -6,6 +6,7 @@
   color-scheme: light;
   /* Paleta da identidade visual: azul, turquesa e branco (coral e amarelo só em detalhes). */
   --bg: #f1f6fb;
+  --fundo-sinais: url("../../../assets/images/fundo-sinais.svg"); /* mãozinhas de Libras no fundo */
   --surface: #ffffff;
   --surface-soft: #e6f0fa;
   --surface-alt: #f6f9fc;
@@ -103,7 +104,10 @@ a {
   min-height: 100vh;
   display: grid;
   grid-template-columns: calc(248px * var(--escala)) minmax(0, 1fr); /* o menu cresce junto (ver "Escala da tela") */
-  background: var(--bg);
+  /* Fundo com formas de mão de Libras, só o contorno e bem clarinhas
+     (tipo papel de parede do WhatsApp). O desenho se repete sem emenda. */
+  background: var(--bg) var(--fundo-sinais, none) repeat;
+  background-size: 264px 216px;
   color: var(--text);
 }
 
@@ -553,6 +557,7 @@ textarea {
 .app-shell[data-theme="dark"] {
   color-scheme: dark;
   --bg: #0f1d2b;
+  --fundo-sinais: url("../../../assets/images/fundo-sinais-escuro.svg");
   --surface: #172a3d;
   --surface-soft: #1d3a56;
   --surface-alt: #14283a;
