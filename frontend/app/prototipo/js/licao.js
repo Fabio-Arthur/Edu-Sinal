@@ -384,7 +384,7 @@ function finishMessage(lesson, result) {
     const next = TOPIC_ORDER[TOPIC_ORDER.indexOf(lesson.topicId) + 1];
     return next ? `Etapa concluída! “${learningTopics[next].title}” foi liberada. ${prize}.` : `Etapa concluída! ${prize}.`;
   }
-  if (state.energy === 0) return `Atividade concluída! Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`;
+  if (state.energy === 0) return `Atividade concluída: ${prize}. Sua energia acabou: ela volta aos poucos (${timeUntilNextEnergy()}).`;
   return `Atividade concluída: ${prize} e −1 de energia.`;
 }
 

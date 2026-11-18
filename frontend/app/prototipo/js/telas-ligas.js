@@ -37,7 +37,9 @@ function buildRanking() {
       isMe: player.sou_eu,
       serverPosition: player.posicao, // para abrir o cartão do aluno
     }))
-    .sort((a, b) => b.xp - a.xp || Number(b.isMe) - Number(a.isMe)); // empate: você fica na frente
+    // Empate: a mesma ordem do servidor (é ela que decide quem sobe e quem desce
+    // na virada da semana), para a posição na tela ser a de verdade.
+    .sort((a, b) => b.xp - a.xp || a.serverPosition - b.serverPosition);
 }
 
 // No PC a lista do ranking rola por dentro: rola até o aluno, para ele se ver

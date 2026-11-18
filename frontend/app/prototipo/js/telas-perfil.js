@@ -39,9 +39,10 @@ async function saveProfile(name, dailyGoal) {
 }
 
 async function saveName(form) {
-  const name = form.elements.name.value.trim();
-  if (name.length < 2 || name.length > 20) {
-    showToast("O nome precisa ter de 2 a 20 caracteres.");
+  const name = form.elements.name.value.trim().replace(/\s+/g, " ");
+  const problem = nicknameProblem(name); // a mesma regra do cadastro
+  if (problem) {
+    showToast(problem);
     return;
   }
   if (!(await saveProfile(name, state.dailyGoal))) return;
@@ -285,9 +286,10 @@ function renderChoice(action, current, label, options) {
 }
 
 // Uma linha de configuração: ícone colorido, nome, explicação e o controle.
-function renderSettingRow(iconName, color, title, text, control) {
+// isWide: o controle é largo (3 opções) e desce para baixo do texto quando falta espaço.
+function renderSettingRow(iconName, color, title, text, control, isWide = false) {
   return `
-    <div class="settings-row">
+    <div class="settings-row${isWide ? " is-wide" : ""}">
       <span class="settings-row-icon tone-${color}">${icon(iconName)}</span>
       <div class="settings-row-text"><strong>${title}</strong><small>${text}</small></div>
       ${control}
@@ -336,7 +338,7 @@ function renderMore() {
     <section class="settings-group" aria-labelledby="settings-prefs-title">
       <h2 class="settings-heading" id="settings-prefs-title">Preferências</h2>
       <div class="settings-card">
-        ${renderSettingRow("palette-fill", "blue", "Tema", "Automático segue o modo claro ou escuro do aparelho.", renderChoice("set-theme", state.theme, "Tema", [["auto", "Automático", "circle-half"], ["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]))}
+        ${renderSettingRow("palette-fill", "blue", "Tema", "Automático segue o modo claro ou escuro do aparelho.", renderChoice("set-theme", state.theme, "Tema", [["auto", "Automático", "circle-half"], ["light", "Claro", "sun-fill"], ["dark", "Escuro", "moon-fill"]]), true)}
         ${renderSettingRow("type", "teal", "Tamanho do texto", "Deixa tudo um pouco maior.", renderChoice("set-text-size", state.textSize, "Tamanho do texto", [["normal", "Normal", "fonts"], ["large", "Grande", "zoom-in"]]))}
         ${renderSettingRow("stars", "yellow", "Animações", "Reduz movimentos na tela.", renderChoice("set-motion", state.motion, "Animações", [["normal", "Ligadas", "play-fill"], ["reduced", "Reduzidas", "pause-fill"]]))}
         ${renderSettingRow("flag-fill", "coral", "Meta diária", "Atividades por dia na meta da Home.", renderChoice("set-goal", String(state.dailyGoal), "Meta diária", [["1", "1", "cup-hot-fill"], ["3", "3", "lightning-charge-fill"], ["5", "5", "fire"]]))}

@@ -41,6 +41,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="landing/landing.css?v=4" />
+  <!-- Poses e animações do mascote (as mesmas do app) -->
+  <link rel="stylesheet" href="app/prototipo/css/mascote.css?v=173" />
 </head>
 <body>
   <header class="site-header">
@@ -60,7 +62,7 @@
   </header>
 
   <main>
-    <!-- Topo: faixa em degradê com o mascote animado (tocar nele faz ele cutucar a cabeça) -->
+    <!-- Topo: faixa em degradê com o mascote animado (tocar nele faz ele acenar) -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="kicker">APRENDIZAGEM VISUAL EM LIBRAS</p>
@@ -182,17 +184,17 @@
     <a href="app/prototipo/index.html">Abrir o app <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
   </footer>
 
-  <!-- O mascote é o mesmo desenho do app (em SVG), com a cutucada ao tocar -->
+  <!-- O mascote é o mesmo desenho do app (em SVG); tocar nele faz ele acenar -->
   <script>
     const state = { motion: "normal" };
     const escapeHtml = (text) => text;
   </script>
-  <script src="app/prototipo/js/telas-mascote.js"></script>
-  <script src="app/prototipo/js/mascote-desenho.js"></script>
+  <script src="app/prototipo/js/telas-mascote.js?v=173"></script>
+  <script src="app/prototipo/js/mascote-desenho.js?v=173"></script>
   <script>
     const mascotButton = document.getElementById("hero-mascot");
     mascotButton.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { animated: true });
-    mascotButton.addEventListener("click", playMascotReaction);
+    mascotButton.addEventListener("click", () => playMascotReaction("waving"));
   </script>
 </body>
 </html>

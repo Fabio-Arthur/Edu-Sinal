@@ -49,6 +49,16 @@
   padding: 16px 18px;
 }
 .settings-row + .settings-row { border-top: 2px solid var(--line); }
+/* Tema: o controle de 3 opções é largo. Quando o cartão fica estreito (PC com
+   duas colunas, principalmente com texto grande), ele desce para baixo do
+   texto, senão o texto fica com uma palavra por linha. */
+.settings-card { container-type: inline-size; }
+@container (max-width: 620px) {
+  .settings-row.is-wide { grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; }
+  .settings-row.is-wide > :last-child { grid-column: 1 / -1; }
+  .settings-row.is-wide .segmented { display: flex; }
+  .settings-row.is-wide .segmented-option { flex: 1; min-width: 0; padding: 0 8px; }
+}
 .settings-row-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; font-size: 20px; }
 .settings-row-text strong { display: block; font-size: 15px; }
 .settings-row-text small { color: var(--muted); font-size: 13px; }

@@ -18,6 +18,14 @@ const PASSWORD_MIN_LENGTH = 8;
 const OBVIOUS_PASSWORDS = ["12345678", "123456789", "1234567890", "87654321", "11111111", "00000000",
   "senha123", "senha1234", "password", "qwertyui", "abcdefgh", "abc12345", "edusinal", "libras123"];
 
+// Apelido: de 2 a 20 caracteres, só letras, números e espaços. Vale no
+// cadastro e ao trocar o nome no Perfil (o servidor confere a mesma coisa).
+function nicknameProblem(nickname) {
+  if (nickname.length < 2 || nickname.length > 20) return "O apelido precisa ter de 2 a 20 caracteres.";
+  if (!/^[\p{L}\p{N} ]+$/u.test(nickname)) return "Use só letras, números e espaços no apelido.";
+  return "";
+}
+
 // Devolve o problema da senha (para mostrar ao aluno) ou "" se está tudo certo.
 function passwordProblem(password, nickname = "", email = "") {
   const lower = password.toLowerCase();
@@ -251,9 +259,8 @@ function loginBack() {
 function validateSignupStep(form) {
   const stepName = SIGNUP_STEPS[signup.step];
   if (stepName === "nickname") {
-    const nickname = form.elements.nickname.value.trim();
-    if (nickname.length < 2) return "O apelido precisa ter pelo menos 2 letras.";
-    if (!/^[\p{L}\p{N} ]+$/u.test(nickname)) return "Use só letras, números e espaços no apelido.";
+    const problem = nicknameProblem(form.elements.nickname.value.trim());
+    if (problem) return problem;
   }
   if (stepName === "email" && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) return "Informe um e-mail válido.";
   if (stepName === "password") {
