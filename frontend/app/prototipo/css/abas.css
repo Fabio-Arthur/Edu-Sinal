@@ -556,52 +556,7 @@
 .word-detail-empty > .bi { color: var(--primary); font-size: 32px; }
 .dictionary-empty { display: flex; justify-content: center; gap: 8px; padding: 30px 0; color: var(--muted); text-align: center; }
 
-/* Alfabeto manual: faixa com o progresso, grade de letras e painel da letra */
-.alphabet-track { display: grid; gap: 16px; }
-.alphabet-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
-  box-shadow: 0 4px 0 var(--hero-shadow);
-  color: #ffffff;
-}
-.alphabet-banner small { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; opacity: 0.85; }
-.alphabet-banner h2 { margin: 2px 0 0; font-family: "Manrope", sans-serif; font-size: 22px; font-weight: 800; }
-.alphabet-progress { width: min(240px, 40%); display: flex; align-items: center; gap: 10px; }
-.alphabet-progress .hero-progress-track { flex: 1; height: 12px; }
-.alphabet-progress strong { font-family: "Manrope", sans-serif; font-size: 15px; }
-
-/* Desafia-me: cartão 3D acima da grade (dourado quando tem prêmio) */
-.challenge-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
-  border: 2px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface);
-  box-shadow: 0 4px 0 var(--line);
-}
-.challenge-card.has-reward { border-color: var(--yellow); box-shadow: 0 4px 0 #c99a1c; }
-.challenge-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-soft); box-shadow: 0 4px 0 var(--line); color: var(--muted); font-size: 26px; }
-.challenge-card:not(.is-locked) .challenge-icon { border: 3px solid #ffffff; background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c; color: #ffffff; }
-.challenge-copy h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
-.challenge-copy p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-.challenge-prizes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.challenge-prize { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; background: var(--yellow-soft); color: #8a6a0c; font-size: 12px; font-weight: 800; }
-.challenge-prize .bi { color: #d9a20f; }
-.challenge-prize.is-done { background: var(--accent-soft); color: var(--accent); }
-.challenge-prize.is-done .bi { color: var(--accent); }
-.challenge-prize.is-locked { background: var(--surface-soft); color: var(--muted); }
-.challenge-prize.is-locked .bi { color: var(--muted); }
-.challenge-button { white-space: nowrap; }
-
-.alphabet-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); align-items: start; gap: 18px; }
+/* Alfabeto manual: a grade de letras (o painel ao lado é o mesmo das palavras) */
 .letter-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
 .letter-tile {
   position: relative;
@@ -620,46 +575,11 @@
   font-weight: 800;
 }
 .letter-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
-.letter-tile.is-done { border-color: transparent; background: var(--accent); box-shadow: 0 4px 0 var(--done-shadow); color: #ffffff; }
-.letter-tile.is-next { border-color: transparent; background: var(--hero-from); box-shadow: 0 4px 0 var(--hero-shadow); color: #ffffff; }
-.letter-tile.is-next::after { position: absolute; inset: -7px; border: 3px solid var(--yellow); border-radius: 20px; animation: ring-pulse 1.8s ease-in-out infinite; content: ""; pointer-events: none; }
 .letter-tile.is-selected { outline: 3px solid var(--primary); outline-offset: 3px; }
-.letter-tile.is-next.is-selected { outline: 0; }
-.letter-tile .letter-mark { position: absolute; top: 5px; right: 6px; font-size: 11px; }
-.letter-tile.is-locked .letter-mark { color: var(--muted); }
-
-.letter-panel {
-  position: sticky;
-  top: 20px;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 16px;
-  border: 2px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface);
-  text-align: center;
-}
-.letter-panel .sign-video { margin-bottom: 4px; }
-.letter-panel-kicker { margin: 0; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; }
-.letter-panel h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 26px; font-weight: 800; }
-.letter-panel p { margin: 0 0 6px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.letter-panel .button-3d { width: 100%; }
-.letter-panel-warning { color: var(--coral); font-size: 12px; font-weight: 700; }
-.letter-panel-trophy { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: var(--yellow); box-shadow: 0 5px 0 #c99a1c; color: #6b4f00; font-size: 28px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .letter-tile.is-next::after { animation: none; }
-}
 
 @media (max-width: 1000px) {
-  .alphabet-banner { padding: 12px 16px; }
-  .alphabet-banner h2 { font-size: 18px; }
-  .alphabet-layout { grid-template-columns: minmax(0, 1fr); }
   /* no celular, o painel da letra vem antes da grade, compacto: vídeo pequeno ao lado do texto */
   .letter-panel {
-    position: static;
-    order: -1;
     grid-template-columns: 96px minmax(0, 1fr);
     justify-items: start;
     align-items: center;
@@ -668,10 +588,8 @@
     text-align: left;
   }
   .letter-panel .sign-video { grid-row: 1 / span 3; width: 96px; margin: 0; }
-  .letter-panel h3 { font-size: 20px; }
-  .letter-panel p:not(.letter-panel-kicker) { display: none; }
-  .letter-panel .button-3d,
-  .letter-panel-warning { grid-column: 1 / -1; margin-top: 10px; }
+  .letter-panel h2 { font-size: 20px; }
+  .letter-panel p:not(.word-detail-kicker) { display: none; }
   .challenge-card { grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px; }
   .challenge-icon { width: 48px; height: 48px; font-size: 22px; }
   .challenge-button { grid-column: 1 / -1; width: 100%; }

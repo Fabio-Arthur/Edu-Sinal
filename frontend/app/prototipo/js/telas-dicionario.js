@@ -217,30 +217,28 @@ function renderLetterTile(letter) {
   return `<button class="letter-tile${isSelected ? " is-selected" : ""}" type="button" data-alphabet-letter="${letter}" aria-label="Letra ${letter}" aria-pressed="${isSelected}"><span>${letter}</span></button>`;
 }
 
-// Painel ao lado da grade: o vídeo e a dica da letra escolhida.
+// Painel ao lado da grade: o vídeo e a dica da letra escolhida. É o mesmo
+// painel das palavras (word-detail), para as duas abas terem a mesma cara.
 function renderLetterPanel() {
   const letter = state.selectedLetter;
+  const tip = LETTER_TIPS[letter] || "Mais uma letra para soletrar nomes e palavras que ainda não têm sinal.";
   return `
-    <aside class="letter-panel" aria-live="polite">
+    <aside class="word-detail letter-panel" aria-live="polite">
       ${signVideoHtml(`Letra ${letter}`, "small")}
-      <p class="letter-panel-kicker">ALFABETO MANUAL</p>
-      <h3>Letra ${letter}</h3>
-      <p>${LETTER_TIPS[letter] || "Mais uma letra para soletrar nomes e palavras que ainda não têm sinal."}</p>
+      <p class="word-detail-kicker">ALFABETO MANUAL</p>
+      <h2>Letra ${letter}</h2>
+      <p class="word-example">${icon("lightbulb-fill")} ${tip}</p>
     </aside>`;
 }
 
+// Mesmo formato das outras abas: título simples em cima, a grade e o painel ao lado.
 function renderAlphabet() {
   return `
-    <section class="alphabet-track" aria-labelledby="alphabet-title">
-      <div class="alphabet-banner">
-        <div><small>ALFABETO MANUAL</small><h2 id="alphabet-title">Todas as letras liberadas</h2></div>
-        <div class="alphabet-progress"><strong>${ALPHABET.length} letras</strong></div>
-      </div>
-      <div class="alphabet-layout">
-        <div class="letter-grid" role="group" aria-label="Letras do alfabeto manual">${ALPHABET.map(renderLetterTile).join("")}</div>
-        ${renderLetterPanel()}
-      </div>
-    </section>`;
+    <div class="section-heading"><div><p class="eyebrow">TODAS AS ${ALPHABET.length} LETRAS LIBERADAS</p><h2>Alfabeto manual</h2></div></div>
+    <div class="dictionary-layout">
+      <div class="letter-grid" role="group" aria-label="Letras do alfabeto manual">${ALPHABET.map(renderLetterTile).join("")}</div>
+      ${renderLetterPanel()}
+    </div>`;
 }
 
 // ----- Palavras -----
