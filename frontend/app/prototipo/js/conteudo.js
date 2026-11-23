@@ -25,6 +25,8 @@
 // O alfabeto inteiro foi gravado pela equipe (as mãos do Fabo), em 23/11/2026.
 // Os vídeos ficam em assets/videos/alfabeto/: um ciclo da letra (a mão fecha, faz a
 // letra e abre), 576x360, 24 quadros/s, sem som, ~40 KB cada (1 MB o alfabeto todo).
+// Ao lado de cada vídeo fica uma foto .webp com o mesmo nome (a letra formada),
+// que aparece enquanto o vídeo carrega.
 // "?v=1": se um vídeo for gravado de novo, troque para ?v=2 (o site guarda cópia por 7 dias).
 const SIGN_VIDEOS = {};
 for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {

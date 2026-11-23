@@ -311,6 +311,17 @@ document.addEventListener("submit", (event) => {
   }
 });
 
+// Vídeos dos sinais: alguns celulares (iPhone em economia de bateria) não
+// deixam vídeo tocar sozinho. Aí o vídeo fica parado na foto da letra, e o
+// primeiro toque em qualquer lugar da tela faz todos tocarem.
+function playSignVideos() {
+  document.querySelectorAll("video.sign-video").forEach((video) => {
+    if (video.paused) video.play().catch(() => {});
+  });
+}
+document.addEventListener("click", playSignVideos, true);
+document.addEventListener("touchend", playSignVideos, { capture: true, passive: true });
+
 // Esc fecha o modo foco e a janelinha do Desafia-me.
 document.addEventListener("keydown", (event) => {
   if (handleLessonKey(event)) return; // atividade: 1 a 4 e Enter (em licao.js)

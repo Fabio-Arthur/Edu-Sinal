@@ -155,10 +155,18 @@ video.sign-video { background: #a6aba5; }
   .question-split .sign-video { width: 100%; }
 }
 
-/* Palavra → vídeo: cartões de vídeo lado a lado */
+/* Palavra → vídeo: cartões de vídeo lado a lado (no celular, um embaixo do outro) */
 .answer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .answer-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .answer-video { flex-direction: column; gap: 8px; padding: 8px 8px 10px; }
+.answer-video .sign-video { pointer-events: none; } /* tocar no vídeo escolhe a resposta (o toque vai para o botão) */
+@media (max-width: 600px) {
+  /* Celular: cada opção vira uma linha, com o vídeo grande e a letra (A, B, C) ao lado */
+  .answer-grid.answer-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; } /* repetido: vence a regra de 2 colunas lá embaixo */
+  .answer-option.answer-video { flex-direction: row; gap: 0; padding: 8px; }
+  .answer-video .sign-video { width: min(64%, 260px); flex: none; }
+  .answer-video .answer-key { width: 44px; height: 44px; margin: 0 auto; border-radius: 12px; font-size: 20px; }
+}
 
 /* Verdadeiro ou falso: a frase e dois botões grandes */
 .tf-statement {

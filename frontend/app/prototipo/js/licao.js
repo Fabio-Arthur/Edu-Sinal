@@ -95,10 +95,13 @@ function isCardStep(step) {
 function signVideoHtml(sign, size = "large") {
   const video = SIGN_VIDEOS[sign];
   if (video) {
-    // Toca sozinho, em loop e sem som. Com "animações reduzidas", não toca
-    // sozinho: aparecem os botões do vídeo para a pessoa dar o play.
-    const playback = isMotionAllowed() ? "autoplay" : "controls preload=\"metadata\"";
-    return `<video class="sign-video sign-video-${size}" src="${video}" ${playback} loop muted playsinline aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
+    // O vídeo é o conteúdo da lição: sempre toca sozinho, em loop e sem som,
+    // sem botões e sem tela cheia (nem com "reduzir movimento" no celular).
+    // A foto (poster) mostra a letra formada enquanto o vídeo carrega ou se o
+    // celular não deixar tocar sozinho (iPhone em economia de bateria): aí o
+    // primeiro toque na tela faz os vídeos tocarem (playSignVideos, em app.js).
+    const poster = video.replace(/\.mp4(\?|$)/, ".webp$1");
+    return `<video class="sign-video sign-video-${size}" src="${video}" poster="${poster}" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
   }
   return `<div class="sign-video sign-video-${size} is-placeholder" role="img" aria-label="Vídeo do sinal ${escapeHtml(sign)} (em produção)">
       ${icon("play-circle-fill", "sign-video-play")}
