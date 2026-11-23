@@ -78,6 +78,8 @@
   background: #0f1b2b;
   object-fit: cover;
 }
+/* Vídeo de verdade: enquanto carrega, a caixa já tem a cor da parede dos vídeos (sem piscar escuro) */
+video.sign-video { background: #a6aba5; }
 .sign-video.is-placeholder {
   display: grid;
   place-content: center;

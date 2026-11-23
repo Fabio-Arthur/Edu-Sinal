@@ -22,7 +22,14 @@
 
 // Vídeo de cada sinal. Quando um vídeo for gravado, coloque o caminho aqui,
 // por exemplo: "Oi": "../../assets/videos/oi.mp4". Sem vídeo, aparece um espaço reservado.
+// O alfabeto inteiro foi gravado pela equipe (as mãos do Fabo), em 23/11/2026.
+// Os vídeos ficam em assets/videos/alfabeto/: um ciclo da letra (a mão fecha, faz a
+// letra e abre), 576x360, 24 quadros/s, sem som, ~40 KB cada (1 MB o alfabeto todo).
+// "?v=1": se um vídeo for gravado de novo, troque para ?v=2 (o site guarda cópia por 7 dias).
 const SIGN_VIDEOS = {};
+for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+  SIGN_VIDEOS[`Letra ${letter}`] = `../../assets/videos/alfabeto/letra-${letter.toLowerCase()}.mp4?v=1`;
+}
 
 // Os ids das etapas e das atividades ficam salvos no progresso do aluno: trocar
 // um id faz quem já tinha feito aquela atividade perder o "feito".

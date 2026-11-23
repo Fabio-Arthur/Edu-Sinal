@@ -95,7 +95,10 @@ function isCardStep(step) {
 function signVideoHtml(sign, size = "large") {
   const video = SIGN_VIDEOS[sign];
   if (video) {
-    return `<video class="sign-video sign-video-${size}" src="${video}" autoplay loop muted playsinline aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
+    // Toca sozinho, em loop e sem som. Com "animações reduzidas", não toca
+    // sozinho: aparecem os botões do vídeo para a pessoa dar o play.
+    const playback = isMotionAllowed() ? "autoplay" : "controls preload=\"metadata\"";
+    return `<video class="sign-video sign-video-${size}" src="${video}" ${playback} loop muted playsinline aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
   }
   return `<div class="sign-video sign-video-${size} is-placeholder" role="img" aria-label="Vídeo do sinal ${escapeHtml(sign)} (em produção)">
       ${icon("play-circle-fill", "sign-video-play")}
