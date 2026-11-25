@@ -44,7 +44,13 @@ function numberQuestions(steps) {
 
 // Começa a atividade: confere no app (energia e vidas), avisa o servidor
 // e abre a tela. Devolve a resposta da API (o Desafia-me usa as perguntas dela).
+// Trava: dois toques rápidos em "Começar" (ou no "Concluir", abaixo) mandavam
+// o pedido duas vezes; o segundo voltava com erro e o aluno via um aviso de
+// erro mesmo tendo dado tudo certo.
+let lessonRequestBusy = false;
+
 async function beginLesson(lesson) {
+  if (lessonRequestBusy) return null;
   const reason = activityBlockReason(lesson.topicId, lesson.branchId, lesson.kind);
   if (reason) {
     state.currentLesson = lesson;
@@ -52,11 +58,14 @@ async function beginLesson(lesson) {
     return null;
   }
   let result;
+  lessonRequestBusy = true;
   try {
     result = await api("POST", `/atividades/${lessonCode(lesson)}/comecar`);
   } catch (error) {
     showApiError(error);
     return null;
+  } finally {
+    lessonRequestBusy = false;
   }
   applyServerState(result.estado);
   hideToast();
@@ -355,13 +364,19 @@ async function finishLesson() {
     return;
   }
 
+  if (lessonRequestBusy) return;
+  const button = document.getElementById("lesson-continue");
+  if (button) button.disabled = true; // o servidor está conferindo: sem segundo toque
   let result;
+  lessonRequestBusy = true;
   try {
     result = await api("POST", `/atividades/${lessonCode(lesson)}/concluir`);
   } catch (error) {
     showApiError(error);
     returnFromLesson(lesson);
     return;
+  } finally {
+    lessonRequestBusy = false;
   }
   applyServerState(result.estado);
   showToast(finishMessage(lesson, result) + guestReminder());
