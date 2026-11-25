@@ -57,7 +57,7 @@ const TERMS_SECTIONS = [
     "Se estes termos mudarem, avisamos no app. A data da última mudança fica no topo desta página.",
   ]],
   ["Contato", [
-    "Dúvidas ou suporte? Fale com a equipe do EduSinal (TCC) pelo e-mail: [a definir pela equipe].",
+    "Dúvidas ou suporte? Fale com a equipe do EduSinal (TCC) pelo e-mail: <a href=\"mailto:edusinal.SC@gmail.com\">edusinal.SC@gmail.com</a>.",
   ]],
 ];
 

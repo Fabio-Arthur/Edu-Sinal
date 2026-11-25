@@ -94,7 +94,23 @@ function selectWord(wordId) {
   openSignSheet();
 }
 
+// Tema aberto? O alfabeto sempre; os outros abrem junto com a etapa deles na
+// trilha (cada tema do Dicionário é uma etapa). Assim ninguém vê agora o que
+// vai aprender mais pra frente.
+function isCategoryOpen(categoryId) {
+  return categoryId === ALPHABET_CATEGORY || isTopicUnlocked(categoryId);
+}
+
+function lockedCategoryHint(categoryId) {
+  const label = DICTIONARY_CATEGORIES.find((category) => category.id === categoryId).label;
+  showToast(`O tema “${label}” abre quando você chegar nessa etapa da trilha.`);
+}
+
 function chooseDictionaryCategory(categoryId) {
+  if (!isCategoryOpen(categoryId)) {
+    lockedCategoryHint(categoryId);
+    return;
+  }
   state.dictionaryCategory = categoryId;
   state.dictionaryQuery = "";
   state.selectedWord = null;
@@ -132,8 +148,12 @@ function closeDictionaryFilter() {
 
 function renderDictionaryFilter() {
   const options = DICTIONARY_CATEGORIES.map((category) => {
+    if (!isCategoryOpen(category.id)) {
+      // Tema de uma etapa que ainda não abriu: apagado, com cadeado. Tocar só explica.
+      return `<button class="category-chip is-locked" type="button" data-action="dictionary-category" data-category="${category.id}" aria-disabled="true" aria-label="${escapeHtml(category.label)}, bloqueado">${icon("lock-fill")}<span>${category.label}</span></button>`;
+    }
     const isActive = !state.dictionaryQuery.trim() && state.dictionaryCategory === category.id;
-    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}${category.label}</button>`;
+    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}<span>${category.label}</span></button>`;
   }).join("");
   const isOpen = state.dictionaryFilterOpen;
   return `
@@ -363,6 +383,8 @@ function renderDictionaryResults() {
 }
 
 function renderSigns() {
+  // O tema guardado fechou (ex.: entrou outra pessoa no mesmo aparelho): volta para o alfabeto.
+  if (!isCategoryOpen(state.dictionaryCategory)) state.dictionaryCategory = ALPHABET_CATEGORY;
   return `
     <section class="dictionary-hero" aria-labelledby="dictionary-title">
       <span class="dictionary-hero-icon">${icon("book-fill")}</span>

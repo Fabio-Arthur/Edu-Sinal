@@ -500,8 +500,11 @@
   top: calc(100% + 8px);
   right: 0;
   z-index: 25;
-  width: 240px;
+  width: 380px;
+  max-height: 60vh;
+  overflow-y: auto;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* duas colunas: o menu fica baixinho */
   gap: 6px;
   padding: 10px;
   border: 2px solid var(--line);
@@ -510,7 +513,11 @@
   box-shadow: 0 4px 0 var(--line), 0 14px 30px rgba(15, 30, 60, 0.2);
   animation: challenge-sheet-in 0.15s ease-out;
 }
-.dictionary-filter-menu .category-chip { width: 100%; justify-content: flex-start; box-shadow: none; }
+.dictionary-filter-menu .category-chip { width: 100%; min-width: 0; min-height: 42px; justify-content: flex-start; padding: 0 12px; box-shadow: none; }
+.dictionary-filter-menu .category-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Tema que ainda não abriu na trilha: apagado e com cadeado */
+.dictionary-filter-menu .category-chip.is-locked { border-style: dashed; background: var(--surface-soft); color: var(--muted); cursor: not-allowed; opacity: 0.6; }
+.dictionary-filter-menu .category-chip.is-locked:active { transform: none; }
 .app-shell[data-motion="reduced"] .dictionary-filter-menu { animation: none; }
 @media (prefers-reduced-motion: reduce) { .dictionary-filter-menu { animation: none; } }
 
@@ -685,8 +692,12 @@
 .dictionary-search-row { display: flex; align-items: center; gap: 12px; }
 .dictionary-search-row .dictionary-search-box { flex: 1; min-width: 0; }
 @media (max-width: 600px) {
-  /* celular: o botão do filtro fica só com o funil (o tema escolhido aparece no título da lista) */
+  /* celular: o botão do filtro fica só com o funil (o tema escolhido aparece no título da lista)
+     e o menu ocupa a largura da linha da busca, alinhado com as bordas da tela */
   .dictionary-filter-label { display: none; }
+  .dictionary-search-row { position: relative; }
+  .dictionary-filter { position: static; }
+  .dictionary-filter-menu { left: 0; right: 0; width: auto; }
   .dictionary-filter-button { gap: 6px; padding: 0 12px; }
 }
 .challenge-fab {
