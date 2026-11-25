@@ -72,12 +72,16 @@ function unlockedWordsCount() {
 
 // Guarda que o aluno viu um sinal: conta para a missão do dia e para a conquista.
 // O servidor guarda e devolve o estado (a missão do dia já conta na hora).
+const signsBeingMarked = new Set(); // dois toques rápidos no mesmo sinal: um pedido só
 async function markSignViewed(signId) {
-  if (state.daily.signsViewed.includes(signId)) return; // já contou hoje
+  if (state.daily.signsViewed.includes(signId) || signsBeingMarked.has(signId)) return; // já contou hoje
+  signsBeingMarked.add(signId);
   try {
     applyServerState(await api("POST", `/dicionario/${encodeURIComponent(signId)}/visto`));
   } catch (error) {
     showApiError(error);
+  } finally {
+    signsBeingMarked.delete(signId);
   }
 }
 
