@@ -45,3 +45,9 @@
 @media (max-width: 1000px) {
   .app-shell ~ .cookie-notice { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
+/* Na abertura do app, no cadastro, no login e na atividade, o aviso cobria os
+   botões principais (Só quero experimentar, Continuar, Entrar, Conferir); nos
+   termos, ele mandaria ler os termos. Nessas telas ele espera e aparece quando a
+   pessoa chega na Home. (O cadastro já pede para aceitar os termos, que
+   explicam o cookie; na página inicial do site ele aparece normalmente.) */
+.app-shell:is([data-current-screen="intro"], [data-current-screen="signup"], [data-current-screen="login"], [data-current-screen="lesson"], [data-current-screen="terms"]) ~ .cookie-notice { display: none; }

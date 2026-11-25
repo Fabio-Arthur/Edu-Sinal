@@ -6,8 +6,8 @@
 // Cadastro e login são por etapas, uma pergunta por tela (como nos exercícios):
 //   cadastro: apelido → e-mail → senha → meta diária → "Tudo pronto!";
 //   login: e-mail → senha → "deixa eu ver se te conheço…" → "Me lembrei!".
-// Não pede idade: quando houver servidor, crianças vão precisar do
-// consentimento de um responsável (LGPD) e isso será tratado lá.
+// Não pede idade: os termos pedem que crianças menores de 12 anos criem a conta
+// junto com um responsável (LGPD).
 
 const WELCOME_COINS = 20; // moedas de boas-vindas de um perfil novo
 
@@ -23,6 +23,15 @@ const OBVIOUS_PASSWORDS = ["12345678", "123456789", "1234567890", "87654321", "1
 function nicknameProblem(nickname) {
   if (nickname.length < 2 || nickname.length > 20) return "O apelido precisa ter de 2 a 20 caracteres.";
   if (!/^[\p{L}\p{N} ]+$/u.test(nickname)) return "Use só letras, números e espaços no apelido.";
+  return "";
+}
+
+// E-mail: o navegador aceita "maria@gmail" (sem o ".com"), mas o servidor não.
+// Aqui já confere o final, para o aviso aparecer na etapa do e-mail e não lá no fim.
+function emailProblem(input) {
+  const email = input.value.trim();
+  if (!email || !input.validity.valid) return "Informe um e-mail válido.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(email)) return "Esse e-mail não parece certo. Confira se tem o @ e o final (ex.: @gmail.com).";
   return "";
 }
 
@@ -191,7 +200,7 @@ function focusSignupField() {
 // status: "ask" (perguntando), "checking" (o mascote pensando) ou "done".
 // A conferência só acontece depois do e-mail E da senha, e o erro é o mesmo
 // para os dois casos: assim ninguém descobre quais e-mails têm conta
-// ("enumeração de contas"), o que vai importar quando houver servidor.
+// ("enumeração de contas"); o servidor também responde igual nos dois casos.
 
 const LOGIN_STEPS = ["email", "password"];
 const LOGIN_THINK_MS = 1600; // tempo do mascote "pensando"
@@ -262,7 +271,10 @@ function validateSignupStep(form) {
     const problem = nicknameProblem(form.elements.nickname.value.trim());
     if (problem) return problem;
   }
-  if (stepName === "email" && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) return "Informe um e-mail válido.";
+  if (stepName === "email") {
+    const problem = emailProblem(form.elements.email);
+    if (problem) return problem;
+  }
   if (stepName === "password") {
     const password = form.elements.password.value;
     const problem = passwordProblem(password, signup.nickname, signup.email);
@@ -273,10 +285,15 @@ function validateSignupStep(form) {
   return "";
 }
 
+// Trava do "Entrar" e do "Criar conta": enquanto o servidor responde, um
+// segundo toque não manda o pedido de novo.
+let accountRequestBusy = false;
+
 async function handleLoginSubmit(form) {
+  if (accountRequestBusy) return;
   const isEmail = LOGIN_STEPS[login.step] === "email";
   let error = "";
-  if (isEmail && (!form.elements.email.value.trim() || !form.elements.email.validity.valid)) error = "Informe um e-mail válido.";
+  if (isEmail) error = emailProblem(form.elements.email);
   if (!isEmail && !form.elements.password.value) error = "Digite sua senha.";
   document.getElementById("form-error").textContent = error;
   if (error) return;
@@ -297,10 +314,13 @@ async function handleLoginSubmit(form) {
   const thinking = new Promise((resolve) => setTimeout(resolve, LOGIN_THINK_MS)); // o mascote pensa pelo menos um pouquinho
   let estado = null;
   let loginError = null;
+  accountRequestBusy = true;
   try {
     estado = await api("POST", "/auth/login", { email: login.email, senha: password });
   } catch (caught) {
     loginError = caught;
+  } finally {
+    accountRequestBusy = false;
   }
   await thinking;
   if (state.screen !== "login") return; // a pessoa saiu da tela no meio
@@ -321,6 +341,7 @@ async function handleLoginSubmit(form) {
 // "Continuar" de cada etapa: guarda a resposta e vai para a próxima.
 // Na última, cria o perfil e mostra o "Tudo pronto!".
 async function handleSignupSubmit(form) {
+  if (accountRequestBusy) return;
   const errorBox = document.getElementById("form-error");
   const error = validateSignupStep(form);
   errorBox.textContent = error;
@@ -344,6 +365,7 @@ async function handleSignupSubmit(form) {
   // Última etapa: cria a conta no servidor (que já deixa logado).
   // Visitante: a conta de visitante ganha e-mail e senha e guarda o progresso.
   const wasGuest = state.isGuest;
+  accountRequestBusy = true;
   try {
     applyServerState(await api("POST", wasGuest ? "/auth/visitante/conta" : "/auth/cadastro", {
       apelido: signup.nickname,
@@ -353,8 +375,8 @@ async function handleSignupSubmit(form) {
       aceitou_termos: signup.acceptedTerms,
     }));
   } catch (error) {
-    // E-mail já cadastrado: volta para a etapa do e-mail com o aviso.
-    if (error.status === 409) {
+    // E-mail já cadastrado ou que o servidor recusou: volta para a etapa do e-mail com o aviso.
+    if (error.status === 409 || error.field === "email") {
       signup.step = SIGNUP_STEPS.indexOf("email");
       render();
       document.getElementById("form-error").textContent = error.message;
@@ -363,6 +385,8 @@ async function handleSignupSubmit(form) {
       errorBox.textContent = error.message;
     }
     return;
+  } finally {
+    accountRequestBusy = false;
   }
   signup.password = ""; // as senhas saem da memória assim que a conta foi criada
   signup.passwordConfirmation = "";
