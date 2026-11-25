@@ -99,7 +99,48 @@ function chooseDictionaryCategory(categoryId) {
   state.dictionaryQuery = "";
   state.selectedWord = null;
   state.signSheetOpen = false;
+  state.dictionaryFilterOpen = false;
   render();
+  document.querySelector(".screen-scroll")?.scrollTo({ top: 0 }); // tema novo começa do topo
+}
+
+// ----- Filtro de temas (botão ao lado da busca) -----
+// Os temas (Alfabeto, Números...) ficavam numa linha de botões que ocupava
+// espaço da tela; agora ficam num menu que abre pelo botão do funil.
+
+// Nome no botão: o tema escolhido, ou "Temas" enquanto a busca está valendo.
+function dictionaryFilterLabel() {
+  if (state.dictionaryQuery.trim()) return "Temas";
+  return DICTIONARY_CATEGORIES.find((category) => category.id === state.dictionaryCategory).label;
+}
+
+function toggleDictionaryFilter() {
+  state.dictionaryFilterOpen = !state.dictionaryFilterOpen;
+  render();
+  // teclado: o foco vai para o tema escolhido (ou volta para o botão ao fechar)
+  const target = state.dictionaryFilterOpen
+    ? document.querySelector(".dictionary-filter-menu .is-active") || document.querySelector(".dictionary-filter-menu button")
+    : document.querySelector(".dictionary-filter-button");
+  target?.focus({ preventScroll: true });
+}
+
+function closeDictionaryFilter() {
+  if (!state.dictionaryFilterOpen) return;
+  state.dictionaryFilterOpen = false;
+  render();
+}
+
+function renderDictionaryFilter() {
+  const options = DICTIONARY_CATEGORIES.map((category) => {
+    const isActive = !state.dictionaryQuery.trim() && state.dictionaryCategory === category.id;
+    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}${category.label}</button>`;
+  }).join("");
+  const isOpen = state.dictionaryFilterOpen;
+  return `
+    <div class="dictionary-filter">
+      <button class="dictionary-filter-button${isOpen ? " is-open" : ""}" type="button" data-action="toggle-dictionary-filter" aria-expanded="${isOpen}" aria-label="Escolher o tema do dicionário (agora: ${dictionaryFilterLabel()})">${icon("funnel-fill")}<span class="dictionary-filter-label">${dictionaryFilterLabel()}</span>${icon("chevron-down", "dictionary-filter-arrow")}</button>
+      ${isOpen ? `<div class="dictionary-filter-menu" role="group" aria-label="Temas do dicionário">${options}</div>` : ""}
+    </div>`;
 }
 
 // Chamado a cada letra digitada na busca. Só troca a lista de resultados,
@@ -108,6 +149,7 @@ function searchDictionary(query) {
   state.dictionaryQuery = query;
   state.selectedWord = null;
   document.getElementById("dictionary-results").innerHTML = renderDictionaryResults();
+  document.querySelector(".dictionary-filter-label").textContent = dictionaryFilterLabel();
 }
 
 // ----- Desafia-me: 5 perguntas dos exercícios que o aluno já concluiu -----
@@ -321,11 +363,6 @@ function renderDictionaryResults() {
 }
 
 function renderSigns() {
-  const chips = DICTIONARY_CATEGORIES.map((category) => {
-    const isActive = !state.dictionaryQuery && state.dictionaryCategory === category.id;
-    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}${category.label}</button>`;
-  }).join("");
-
   return `
     <section class="dictionary-hero" aria-labelledby="dictionary-title">
       <span class="dictionary-hero-icon">${icon("book-fill")}</span>
@@ -339,9 +376,9 @@ function renderSigns() {
     <div class="dictionary-tools">
       <div class="dictionary-search-row">
         <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
+        ${renderDictionaryFilter()}
         ${renderChallengeButton()}
       </div>
-      <div class="dictionary-categories" role="group" aria-label="Categorias do dicionário">${chips}</div>
     </div>
     <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>

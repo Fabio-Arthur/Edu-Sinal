@@ -132,7 +132,7 @@
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   padding-bottom: 6px;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--scrollbar) transparent;
   scrollbar-width: thin;
   /* as pontas somem aos poucos quando ainda tem etapa escondida daquele lado */
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
