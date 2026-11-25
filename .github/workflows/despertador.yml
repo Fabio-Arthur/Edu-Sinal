@@ -16,7 +16,7 @@ on:
   schedule:
     # Horário do GitHub é o UTC (3 horas a mais que Brasília):
     # 9h às 2h59 UTC = 6h às 23h59 em Brasília.
-    - cron: "*/10 9-23,0-2 * * *"
+    - cron: "7-59/10 9-23,0-2 * * *"
   workflow_dispatch: {}
 
 jobs:
