@@ -110,6 +110,8 @@
 .league-status.zone-demotion .league-status-place { background: var(--coral-soft); color: var(--coral); }
 .league-status-place strong { font-family: "Manrope", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
 .league-status-place span { font-size: 11px; font-weight: 700; }
+.league-status-place > .bi { font-size: 26px; line-height: 1; } /* admin: o escudo no lugar da posição */
+.ranking-empty { padding: 24px 12px; color: var(--muted); font-weight: 700; text-align: center; }
 
 /* Ranking: cartões 3D, medalhas no pódio e o aluno com o mascote */
 .ranking-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
