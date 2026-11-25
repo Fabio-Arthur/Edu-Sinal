@@ -577,6 +577,33 @@
 .letter-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
 .letter-tile.is-selected { outline: 3px solid var(--primary); outline-offset: 3px; }
 
+/* Cartão do Desafia-me (aparece dentro da janelinha que o botão ⚡ abre).
+   Precisa vir ANTES do @media do celular logo abaixo, que deixa ele mais compacto. */
+.challenge-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 2px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 4px 0 var(--line);
+}
+.challenge-card.has-reward { border-color: var(--yellow); box-shadow: 0 4px 0 #c99a1c; }
+.challenge-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-soft); box-shadow: 0 4px 0 var(--line); color: var(--muted); font-size: 26px; }
+.challenge-card:not(.is-locked) .challenge-icon { border: 3px solid #ffffff; background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c; color: #ffffff; }
+.challenge-copy h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
+.challenge-copy p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.challenge-prizes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.challenge-prize { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; background: var(--yellow-soft); color: #8a6a0c; font-size: 12px; font-weight: 800; }
+.challenge-prize .bi { color: #d9a20f; }
+.challenge-prize.is-done { background: var(--accent-soft); color: var(--accent); }
+.challenge-prize.is-done .bi { color: var(--accent); }
+.challenge-prize.is-locked { background: var(--surface-soft); color: var(--muted); }
+.challenge-prize.is-locked .bi { color: var(--muted); }
+.challenge-button { white-space: nowrap; }
+
 @media (max-width: 1000px) {
   /* no celular, o painel da letra vem antes da grade, compacto: vídeo pequeno ao lado do texto */
   .letter-panel {
