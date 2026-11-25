@@ -27,7 +27,7 @@ const TERMS_SECTIONS = [
   ]],
   ["Quais dados guardamos", [
     "Guardamos só o necessário para o app funcionar.",
-    "<strong>Dados de cadastro:</strong> apelido, e-mail, a senha embaralhada e a meta diária.",
+    "<strong>Dados de cadastro:</strong> apelido, e-mail, a senha embaralhada, a meta diária e a data em que a conta foi criada.",
     "<strong>Dados de progresso:</strong> atividades feitas, XP, moedas, vidas, energia, ofensiva, itens do mascote e sinais vistos no dicionário.",
     "<strong>O que não pedimos:</strong> nome completo, CPF, telefone, endereço, foto, data de nascimento nem localização.",
   ]],
@@ -41,10 +41,10 @@ const TERMS_SECTIONS = [
     "<strong>Equipe do EduSinal:</strong> os administradores (a equipe do TCC) veem a lista de usuários com o apelido, o mascote e os números do jogo, para cuidar do app. Eles também não veem o seu e-mail nem a sua senha.",
   ]],
   ["Cookies", [
-    "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). Ele é essencial: sem ele não dá para entrar na conta, por isso avisamos na primeira visita em vez de pedir permissão. O tema, o tamanho do texto, as animações e se você já viu esse aviso ficam guardados só no seu aparelho. Não usamos cookies de propaganda, de estatística nem de rastreamento.",
+    "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). Ele é essencial: sem ele não dá para entrar na conta, por isso avisamos sobre ele em vez de pedir permissão. O tema, o tamanho do texto, as animações e se você já viu esse aviso ficam guardados só no seu aparelho. Não usamos cookies de propaganda, de estatística nem de rastreamento.",
   ]],
   ["Segurança e garantias", [
-    "A senha é guardada embaralhada, e o app publicado usa conexão segura (HTTPS). Mesmo assim, nenhum sistema é 100% seguro: se notar algo estranho na sua conta, troque a senha e avise a equipe.",
+    "A senha é guardada embaralhada, e o app publicado usa conexão segura (HTTPS). Mesmo assim, nenhum sistema é 100% seguro: se notar algo estranho na sua conta, avise a equipe pelo e-mail de contato (no fim desta página).",
     "O conteúdo é educativo e está sendo revisado por pessoas surdas fluentes em Libras. Pode ter erros: se encontrar algum, avise a equipe.",
   ]],
   ["Regras de conduta", [
