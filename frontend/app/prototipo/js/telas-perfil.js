@@ -305,7 +305,7 @@ function helpQuestions() {
     ["Como funcionam as vidas?", `Você tem ${MAX_LIVES} vidas. Cada resposta errada gasta uma, e uma vida volta a cada 30 minutos. O dicionário é livre.`],
     ["Como funciona a energia?", `Você tem ${MAX_ENERGY} de energia. Cada atividade nova concluída gasta 1, e 1 volta a cada ${energyHours} horas. Refazer o que já fez não gasta. Na lojinha dá para recarregar uma vez por dia.`],
     ["Como libero a prova final?", "Conclua os 5 exercícios da árvore da etapa. A prova fica no centro da árvore."],
-    ["Como ganho moedas?", "Concluindo exercícios novos e resgatando missões. Use as moedas na lojinha."],
+    ["Como ganho moedas?", "Concluindo atividades novas, resgatando missões e vencendo o Desafia-me do dicionário (uma vez por dia). Use as moedas na lojinha."],
     ["O que é a vitrine do dia?", "Todo dia, 3 itens do mascote ficam à venda na lojinha. À meia-noite eles trocam por outros."],
     ["O que é a ofensiva?", "São os dias seguidos em que você praticou. Um protetor de ofensiva salva um dia perdido."],
   ];
