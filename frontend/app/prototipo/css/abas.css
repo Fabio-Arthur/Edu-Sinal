@@ -390,15 +390,14 @@
   .shop-hero-balance { width: 100%; grid-auto-flow: column; justify-content: center; align-items: baseline; gap: 6px; }
   .shop-hero-balance strong { font-size: 22px; }
   .shop-grid { grid-template-columns: minmax(0, 1fr); }
-  /* vitrine no celular: um item por linha, desenho à esquerda, nome no meio e botão quadradinho à direita */
+  /* vitrine no celular: um item por linha, desenho à esquerda e o texto ao lado;
+     o botão fica embaixo, na largura toda e numa linha só (igual ao das Ajudas) */
   .shop-showcase { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .shop-item { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; justify-items: start; align-items: center; column-gap: 12px; padding: 14px; text-align: left; }
+  .shop-item { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-items: center; column-gap: 14px; row-gap: 12px; padding: 14px; text-align: left; }
   .shop-item-art { width: 72px; height: 72px; }
   .shop-item-info { justify-items: start; margin: 0; }
   .shop-item-description { font-size: 12px; }
-  /* o texto quebra em duas linhas ("Comprar" e o preço embaixo) pra caber no quadradinho,
-     que estica até a altura do card */
-  .shop-item .shop-buy { grid-column: auto; align-self: stretch; width: 96px; min-height: 72px; margin-top: 0; padding: 6px 8px; flex-wrap: wrap; column-gap: 4px; row-gap: 0; font-size: 13px; line-height: 1.25; text-align: center; }
+  .shop-item .shop-buy { grid-column: 1 / -1; width: 100%; margin-top: 0; }
   .shop-wardrobe { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 14px; }
   .shop-wardrobe-mascot { width: 68px; height: 68px; }
   .shop-wardrobe .button-3d { grid-column: 1 / -1; width: 100%; }
@@ -406,10 +405,6 @@
   .app-shell[data-current-screen="shop"] .stat-coins { display: none; }
 }
 
-/* Celular bem pequeno: a vitrine fica sem a descrição dos itens, pra caber na tela */
-@media (max-width: 379px) {
-  .shop-item-description { display: none; }
-}
 
 /* ----- Dicionário ----- */
 /* Topo: faixa em degradê com o livro (mesma família da Lojinha e das Missões) */
@@ -714,8 +709,11 @@
 .challenge-sheet-box { position: relative; width: min(620px, 100%); animation: challenge-sheet-in 0.18s ease-out; }
 .challenge-sheet .challenge-card { margin: 0; }
 @media (max-width: 1000px) {
-  .challenge-fab { position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 15; width: 58px; height: 58px; padding: 0; border-radius: 50%; box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22); }
-  .challenge-fab .bi { font-size: 26px; }
+  /* o raio fica bem perto da barra de baixo, e o Dicionário ganha um espaço livre
+     no fim (#dictionary-results, abaixo): rolando até o fim, nenhuma letra fica embaixo dele */
+  .challenge-fab { position: fixed; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 15; width: 54px; height: 54px; padding: 0; border-radius: 50%; box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22); }
+  #dictionary-results { padding-bottom: 64px; }
+  .challenge-fab .bi { font-size: 24px; }
   .challenge-fab-label { display: none; }
   .challenge-fab.is-gold { box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
   .challenge-fab.is-locked { box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
