@@ -105,6 +105,7 @@ window.addEventListener("resize", updateBarsHeight);
 // Desenha de novo a tela atual com os dados do momento.
 function render() {
   refreshCalendar();
+  armBackButton(); // logado: o voltar do celular fica dentro do app (ver handleBack)
   const view = `${state.screen}|${state.focusTopic}`;
   const sameView = view === lastDrawnView;
   app.dataset.redraw = sameView ? "on" : "off";
@@ -397,6 +398,42 @@ function playSignVideos() {
 }
 document.addEventListener("click", playSignVideos, true);
 document.addEventListener("touchend", playSignVideos, { capture: true, passive: true });
+
+// ----- Botão "voltar" do celular (e do navegador) -----
+// Depois de entrar na conta, o voltar fica dentro do app: fecha o que estiver
+// aberto (janelinha, menu, árvore da etapa, atividade) ou volta para a Home.
+// Na Home ele não faz nada: assim ninguém volta sem querer para o cadastro ou
+// o login. Como funciona: o app deixa uma entrada "extra" no histórico; o
+// voltar gasta essa entrada, o app faz a ação e coloca outra no lugar.
+let backArmed = false;
+function armBackButton() {
+  if (!state.isRegistered || backArmed) return;
+  // Tira o ?tela=cadastro (ou login) do endereço: recarregar não volta para lá.
+  history.replaceState(null, "", location.pathname);
+  history.pushState({ edusinal: true }, "", location.pathname);
+  backArmed = true;
+}
+
+function handleBack() {
+  const openModal = document.querySelector(".modal.show");
+  if (openModal && window.bootstrap) bootstrap.Modal.getInstance(openModal)?.hide();
+  else if (state.dictionaryFilterOpen) closeDictionaryFilter();
+  else if (state.challengeSheetOpen) toggleChallengeSheet();
+  else if (state.signSheetOpen) closeSignSheet();
+  else if (state.screen === "lesson") leaveLesson(); // igual ao X da atividade
+  else if (state.screen === "signup") signupBack(); // visitante criando a conta
+  else if (state.screen === "terms") closeTerms();
+  else if (state.focusTopic) closeTopic();
+  else if (state.screen !== "trail") setScreen("trail");
+  // na Home: fica na Home
+}
+
+window.addEventListener("popstate", () => {
+  backArmed = false;
+  if (!state.isRegistered) return; // fora da conta (saiu), o voltar funciona normal
+  handleBack();
+  armBackButton();
+});
 
 // Esc fecha o modo foco, o menu de temas e as janelinhas do Dicionário (Desafia-me e vídeo).
 document.addEventListener("keydown", (event) => {
