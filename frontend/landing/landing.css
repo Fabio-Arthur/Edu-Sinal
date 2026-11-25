@@ -20,7 +20,38 @@
   --hero-from: #1f6fb8;
   --hero-to: #19a7a1;
   --hero-shadow: #14548e;
+  --safety-line: #b6e4e1;
+  --gold-text: #b58a12;
+  --fundo-sinais: url("../assets/images/fundo-sinais.svg"); /* mãozinhas de Libras, igual ao app */
+  color-scheme: light;
 }
+
+/* Tema escuro: as mesmas cores do modo escuro do app. Quem escolhe é o script
+   no <head> do index.html (o tema do aparelho, ou o que a pessoa escolheu no app). */
+:root[data-theme="dark"] {
+  --bg: #0f1d2b;
+  --surface: #172a3d;
+  --surface-soft: #1d3a56;
+  --text: #e8f1fa;
+  --muted: #9fb3c6;
+  --line: #2b4259;
+  --primary: #6fb4ee;
+  --primary-soft: #1e3d5c;
+  --coral: #ff9782;
+  --coral-soft: #513a36;
+  --yellow: #e5bd52;
+  --yellow-soft: #4d442b;
+  --accent: #4cc9c3;
+  --accent-soft: #1b4a4c;
+  --hero-from: #1b4f86;
+  --hero-to: #127772;
+  --hero-shadow: #0f3157;
+  --safety-line: #275a5b;
+  --gold-text: var(--yellow);
+  --fundo-sinais: url("../assets/images/fundo-sinais-escuro.svg");
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .cookie-notice-ok { color: #10202b; } /* no escuro o azul do botão é claro */
 
 * { box-sizing: border-box; }
 
@@ -28,7 +59,9 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  /* Fundo com as mãozinhas de Libras, bem clarinhas (o mesmo do app) */
+  background: var(--bg) var(--fundo-sinais) repeat;
+  background-size: 264px 216px;
   color: var(--text);
   font-family: "DM Sans", sans-serif;
   font-size: 17px;
@@ -130,7 +163,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 4px 0 var(--hero-shadow);
-  color: var(--text);
+  color: #1d2f45; /* fica branco com texto escuro nos dois temas */
   font-family: "Manrope", sans-serif;
   font-size: 16px;
   font-weight: 800;
@@ -145,7 +178,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
   padding: 8px 14px;
   border: 2px solid var(--line);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 4px 0 var(--line);
   color: var(--text);
   font-family: "Manrope", sans-serif;
@@ -196,7 +229,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 .feature-icon { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; font-size: 26px; }
 .icon-blue { background: var(--primary-soft); color: var(--primary); }
 .icon-coral { background: var(--coral-soft); color: var(--coral); }
-.icon-gold { background: var(--yellow-soft); color: #b58a12; }
+.icon-gold { background: var(--yellow-soft); color: var(--gold-text); }
 .icon-teal { background: var(--accent-soft); color: var(--accent); }
 
 /* Segurança */
@@ -206,7 +239,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
   align-items: center;
   gap: 32px;
   padding: clamp(24px, 4vw, 44px);
-  border: 2px solid #b6e4e1;
+  border: 2px solid var(--safety-line);
   border-radius: 28px;
   background: var(--accent-soft);
 }
@@ -278,7 +311,12 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
   .chip-coins { left: 4%; }
   .section { padding-top: 56px; }
   .steps, .features { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .step, .feature { padding: 20px; }
+  /* título ao lado do ícone; o texto embaixo, na largura toda */
+  .step, .feature { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 14px; padding: 18px 20px 20px; }
+  .step h3, .feature h3 { margin: 0; }
+  .step p, .feature p { grid-column: 1 / -1; margin-top: 12px; }
+  .step-medal { width: 48px; height: 48px; font-size: 21px; }
+  .feature-icon { width: 48px; height: 48px; font-size: 23px; }
   .safety { grid-template-columns: minmax(0, 1fr); }
   .closing { flex-direction: column; align-items: stretch; text-align: center; }
   .closing-actions { display: grid; }

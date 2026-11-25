@@ -295,9 +295,11 @@ def marcar_visto(codigo: str, id_usuario: int = Depends(usuario_logado)):
         id_palavra = extras_repository.buscar_palavra(conexao, codigo)
         if id_palavra is None:
             raise HTTPException(status_code=404, detail="Esse sinal não existe no dicionário.")
-        # Palavra bloqueada ainda não pode ser vista (o alfabeto é sempre aberto).
-        if not dicionario_service.sinal_aberto(codigo, extras_repository.palavras_desbloqueadas(conexao, id_usuario)):
-            raise HTTPException(status_code=409, detail="Esse sinal ainda está bloqueado. Aprenda ele na trilha!")
         progresso = carregar_progresso(conexao, id_usuario, agora)
+        # Palavra bloqueada ainda não pode ser vista (o alfabeto é sempre aberto; o administrador vê tudo).
+        if not progresso["admin"] and not dicionario_service.sinal_aberto(
+            codigo, extras_repository.palavras_desbloqueadas(conexao, id_usuario)
+        ):
+            raise HTTPException(status_code=409, detail="Esse sinal ainda está bloqueado. Aprenda ele na trilha!")
         extras_repository.marcar_vista(conexao, id_usuario, id_palavra, datas_service.dia_em_brasilia(agora))
         return finalizar(conexao, id_usuario, progresso, agora)

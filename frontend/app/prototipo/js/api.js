@@ -20,9 +20,10 @@ const API_URL = isLocalNetwork
 
 // Erro que veio da API, com a mensagem em português para mostrar ao aluno.
 class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, field = "") {
     super(message);
     this.status = status;
+    this.field = field; // o campo com problema, quando o servidor diz (ex.: "email")
   }
 }
 
@@ -47,9 +48,12 @@ async function api(method, path, body) {
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      // O FastAPI manda o erro em "detail" (às vezes uma lista, no 422).
-      const message = typeof data.detail === "string" ? data.detail : "Algo deu errado. Tente de novo.";
-      throw new ApiError(message, response.status);
+      // O FastAPI manda o erro em "detail": um texto, ou uma lista no 422
+      // (formato errado, ex.: e-mail sem o ".com"). Aí a mensagem diz qual campo.
+      if (typeof data.detail === "string") throw new ApiError(data.detail, response.status);
+      const badEmail = Array.isArray(data.detail) && data.detail.some((problem) => problem.loc?.includes("email"));
+      if (badEmail) throw new ApiError("Esse e-mail não parece certo. Confira se tem o @ e o final (ex.: @gmail.com).", response.status, "email");
+      throw new ApiError("Algo deu errado. Tente de novo.", response.status);
     }
     return data;
   } finally {
@@ -76,6 +80,7 @@ function applyServerState(estado) {
     name: estado.apelido,
     email: estado.email,
     isGuest: estado.visitante,
+    isAdmin: Boolean(estado.admin),
     dailyGoal: estado.meta_diaria,
     xp: estado.xp,
     coins: estado.moedas,
@@ -127,12 +132,18 @@ const MASCOT_SLOT_NAMES = { shirt: "roupa", head: "chapeu", face: "rosto", chest
 
 // Entrar como visitante: o servidor cria uma conta sem e-mail e senha,
 // para experimentar o app (ex.: quem escaneia o QR code na apresentação).
+// Trava: dois toques rápidos criavam duas contas de visitante.
+let startingGuest = false;
 async function startAsGuest() {
+  if (startingGuest) return;
+  startingGuest = true;
   try {
     applyServerState(await api("POST", "/auth/visitante"));
   } catch (error) {
     showToast(error.message);
     return;
+  } finally {
+    startingGuest = false;
   }
   setScreen("trail");
   showToast("Você está como visitante. Crie uma conta no Perfil quando quiser salvar seu progresso.");

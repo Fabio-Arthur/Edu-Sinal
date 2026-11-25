@@ -132,7 +132,7 @@
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   padding-bottom: 6px;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--scrollbar) transparent;
   scrollbar-width: thin;
   /* as pontas somem aos poucos quando ainda tem etapa escondida daquele lado */
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
@@ -455,7 +455,6 @@ button.home-tile:active { background: var(--line); }
   .home-tile { padding: 10px 6px 8px; }
   .home-side-card { padding: 14px 16px; }
   .home-quest { padding: 8px 0; }
-  .home-dashboard + .demo-disclaimer { margin-top: 6px; }
 }
 
 /* Celular: só o destaque e a trilha (o resto já fica nas barras e nas abas) */
@@ -491,7 +490,6 @@ button.home-tile:active { background: var(--line); }
   .home-dashboard { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: stretch; } /* stretch: os cartões ocupam a largura toda */
   .home-main-column { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
   .home-hero { flex: none; }
-  .home-dashboard + .demo-disclaimer { flex: none; margin: 0; }
 
   /* Trilha vira um caminho de cima para baixo, ondulado, uma unidade embaixo
      da outra. A faixa da unidade fica presa no alto enquanto rola. */

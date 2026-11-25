@@ -8,7 +8,7 @@
    Depois de conferir, a faixa fica turquesa (acertou) ou coral (errou).
    =================================================================== */
 .lesson {
-  width: min(760px, 100%);
+  width: min(calc(760px * var(--video)), 100%); /* --video: ver base.css */
   min-height: calc(100vh / var(--zoom) - 20px); /* com zoom, 100vh "vale" mais: divide de volta */
   display: flex;
   flex-direction: column;
@@ -71,13 +71,15 @@
 
 /* Vídeo do sinal (ou o espaço reservado, enquanto não foi gravado) */
 .sign-video {
-  width: min(440px, 100%, (100vh / var(--zoom) - 400px) * 1.6); /* em telas baixas, encolhe para caber */
+  width: min(calc(440px * var(--video)), 100%, (100vh / var(--zoom) - 400px) * 1.6); /* em telas baixas, encolhe para caber */
   aspect-ratio: 16 / 10;
   margin: 0 auto;
   border-radius: 20px;
   background: #0f1b2b;
   object-fit: cover;
 }
+/* Vídeo de verdade: enquanto carrega, a caixa já tem a cor da parede dos vídeos (sem piscar escuro) */
+video.sign-video { background: #a6aba5; }
 .sign-video.is-placeholder {
   display: grid;
   place-content: center;
@@ -153,10 +155,18 @@
   .question-split .sign-video { width: 100%; }
 }
 
-/* Palavra → vídeo: cartões de vídeo lado a lado */
+/* Palavra → vídeo: cartões de vídeo lado a lado (no celular, um embaixo do outro) */
 .answer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .answer-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .answer-video { flex-direction: column; gap: 8px; padding: 8px 8px 10px; }
+.answer-video .sign-video { pointer-events: none; } /* tocar no vídeo escolhe a resposta (o toque vai para o botão) */
+@media (max-width: 600px) {
+  /* Celular: cada opção vira uma linha, com o vídeo grande e a letra (A, B, C) ao lado */
+  .answer-grid.answer-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; } /* repetido: vence a regra de 2 colunas lá embaixo */
+  .answer-option.answer-video { flex-direction: row; gap: 0; padding: 8px; }
+  .answer-video .sign-video { width: min(70%, 280px); flex: none; }
+  .answer-video .answer-key { width: 44px; height: 44px; margin: 0 auto; border-radius: 12px; font-size: 20px; }
+}
 
 /* Verdadeiro ou falso: a frase e dois botões grandes */
 .tf-statement {
@@ -189,7 +199,7 @@
   background: var(--bg);
   transition: background-color 160ms ease;
 }
-.lesson-footer-inner { width: min(760px, 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 auto; }
+.lesson-footer-inner { width: min(calc(760px * var(--video)), 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 auto; }
 .lesson-feedback { min-width: 0; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; }
 .lesson-feedback strong { display: block; font-family: "Manrope", sans-serif; font-size: 18px; font-weight: 800; }
 .lesson-feedback small { display: block; margin-top: 2px; color: var(--text); font-size: 14px; line-height: 1.45; }

@@ -13,7 +13,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.controllers import atividades_controller, auth_controller, eu_controller, extras_controller
+from src.controllers import admin_controller, atividades_controller, auth_controller, eu_controller, extras_controller
 from src.settings.settings import settings
 
 
@@ -37,6 +37,7 @@ app.include_router(auth_controller.router)
 app.include_router(eu_controller.router)
 app.include_router(atividades_controller.router)
 app.include_router(extras_controller.router)
+app.include_router(admin_controller.router)
 
 
 @app.get("/saude", tags=["Saúde"])

@@ -51,16 +51,22 @@ function readyMissionsCount() {
 }
 
 // Resgatar: o servidor confere se a missão foi mesmo completada e dá as moedas.
+// Trava: dois toques rápidos mandavam o resgate duas vezes, e o segundo
+// voltava "já foi resgatada" por cima do aviso das moedas.
+const missionsBeingClaimed = new Set();
 async function claimMission(scope, missionId) {
   const mission = missionList(scope).find((entry) => entry.id === missionId);
   const claimed = claimedList(scope);
-  if (!mission || claimed.includes(mission.id) || !isMissionComplete(mission)) return;
+  if (!mission || claimed.includes(mission.id) || !isMissionComplete(mission) || missionsBeingClaimed.has(missionId)) return;
 
+  missionsBeingClaimed.add(missionId);
   try {
     applyServerState(await api("POST", `/missoes/${missionId}/resgatar`));
   } catch (error) {
     showApiError(error);
     return;
+  } finally {
+    missionsBeingClaimed.delete(missionId);
   }
   render();
   showToast(`Missão concluída: +${mission.reward} moedas!`);

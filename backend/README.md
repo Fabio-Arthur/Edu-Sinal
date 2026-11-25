@@ -74,6 +74,17 @@ No plano grátis do Render, a API "dorme" depois de 15 minutos sem ninguém usar
 
 Se a API não responder, o robô falha e o GitHub manda um e-mail: serve de alarme também.
 
+## Administrador
+
+O banco já tinha `tipo_usuario` (`Administrador` ou `Usuario`). Quem é administrador só se decide **direto no banco**: nenhuma rota ou tela cria ou promove admin.
+
+- Criar/promover: `python ferramentas/criar_admin.py "Apelido" email@exemplo.com arquivo-da-senha.txt` (dentro de `api/edusinal-api`, com o `src/.env` do banco certo). A senha é sorteada e vai só para o arquivo (permissão 600). Guarde o arquivo **fora do repositório**.
+- `GET /admin/usuarios`: todos os usuários juntos (apelido, mascote, XP, ofensiva, liga, atividades) e os números do sistema. **Sem e-mail e sem senha.**
+- `DELETE /admin/usuarios/{id}`: apaga a conta e tudo dela (LGPD). Não apaga administrador. Fica registrado no log (`edusinal.admin`).
+- Toda rota `/admin` confere o papel **no servidor** (`usuario_admin`, em `comum.py`): quem não é admin recebe 403.
+- Tudo liberado: o servidor devolve vidas, energia e moedas sempre cheias (`admin_service.liberar_tudo`), abre toda a trilha e todos os sinais, e o admin fica fora das ligas. O Desafia-me segue a regra normal (precisa de exercícios já feitos para sortear perguntas).
+- Admin não apaga a própria conta pelo app (`DELETE /eu` dá 403).
+
 ## Visitante
 
 Para quem só quer experimentar (por exemplo, quem escaneia o QR code na apresentação), o app tem o botão **"Só quero experimentar, sem criar conta"**. A API cria uma conta de visitante: uma linha em `usuarios` com `email` e `senha_hash` vazios (`NULL`) e o apelido "Visitante 1234".
@@ -144,4 +155,5 @@ Os testes cobrem as regras (pasta `src/services/`), sem precisar do banco.
 - O cookie da sessão é `HttpOnly` e `SameSite=Lax`. Com a API publicada em HTTPS, ponha `COOKIE_SEGURO=true` no `.env`.
 - Só os endereços em `ORIGENS_PERMITIDAS` podem chamar a API pelo navegador (CORS).
 - Apagar a conta apaga tudo do aluno, graças ao `ON DELETE CASCADE` das tabelas.
+- **Conexões reaproveitadas (pool):** publicado, abrir uma conexão com o banco custa ~0,7 s, e cada clique abria duas (medido em 25/11/2026: ~1,7 s por clique). Agora `conectar()` (em `src/database/conexao.py`) empresta uma conexão de uma "gaveta" e devolve no fim do `with`, sempre com rollback (desfaz o que não teve commit e solta as travas). Conexão parada há mais de 5 s leva um ping antes de ser usada; se a gaveta estiver vazia, abre outra. As rotas continuam iguais.
 - **Publicar:** o app publicado chama `/api/...` no próprio endereço. A hospedagem precisa repassar `/api` para a API (na Vercel, um "rewrite" no `vercel.json`). Enquanto a API não estiver publicada, o site publicado não consegue entrar nem cadastrar.

@@ -110,6 +110,8 @@
 .league-status.zone-demotion .league-status-place { background: var(--coral-soft); color: var(--coral); }
 .league-status-place strong { font-family: "Manrope", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
 .league-status-place span { font-size: 11px; font-weight: 700; }
+.league-status-place > .bi { font-size: 26px; line-height: 1; } /* admin: o escudo no lugar da posição */
+.ranking-empty { padding: 24px 12px; color: var(--muted); font-weight: 700; text-align: center; }
 
 /* Ranking: cartões 3D, medalhas no pódio e o aluno com o mascote */
 .ranking-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -390,15 +392,14 @@
   .shop-hero-balance { width: 100%; grid-auto-flow: column; justify-content: center; align-items: baseline; gap: 6px; }
   .shop-hero-balance strong { font-size: 22px; }
   .shop-grid { grid-template-columns: minmax(0, 1fr); }
-  /* vitrine no celular: um item por linha, desenho à esquerda, nome no meio e botão quadradinho à direita */
+  /* vitrine no celular: um item por linha, desenho à esquerda e o texto ao lado;
+     o botão fica embaixo, na largura toda e numa linha só (igual ao das Ajudas) */
   .shop-showcase { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .shop-item { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; justify-items: start; align-items: center; column-gap: 12px; padding: 14px; text-align: left; }
+  .shop-item { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; align-items: center; column-gap: 14px; row-gap: 12px; padding: 14px; text-align: left; }
   .shop-item-art { width: 72px; height: 72px; }
   .shop-item-info { justify-items: start; margin: 0; }
   .shop-item-description { font-size: 12px; }
-  /* o texto quebra em duas linhas ("Comprar" e o preço embaixo) pra caber no quadradinho,
-     que estica até a altura do card */
-  .shop-item .shop-buy { grid-column: auto; align-self: stretch; width: 96px; min-height: 72px; margin-top: 0; padding: 6px 8px; flex-wrap: wrap; column-gap: 4px; row-gap: 0; font-size: 13px; line-height: 1.25; text-align: center; }
+  .shop-item .shop-buy { grid-column: 1 / -1; width: 100%; margin-top: 0; }
   .shop-wardrobe { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 14px; }
   .shop-wardrobe-mascot { width: 68px; height: 68px; }
   .shop-wardrobe .button-3d { grid-column: 1 / -1; width: 100%; }
@@ -406,10 +407,6 @@
   .app-shell[data-current-screen="shop"] .stat-coins { display: none; }
 }
 
-/* Celular bem pequeno: a vitrine fica sem a descrição dos itens, pra caber na tela */
-@media (max-width: 379px) {
-  .shop-item-description { display: none; }
-}
 
 /* ----- Dicionário ----- */
 /* Topo: faixa em degradê com o livro (mesma família da Lojinha e das Missões) */
@@ -443,7 +440,7 @@
 .dictionary-hero-stat { flex: none; display: grid; justify-items: center; padding: 10px 18px; border-radius: 18px; background: rgba(255, 255, 255, 0.2); font-size: 12px; font-weight: 700; }
 .dictionary-hero-stat strong { font-family: "Manrope", sans-serif; font-size: 28px; font-weight: 800; line-height: 1.1; }
 
-.dictionary-tools { display: grid; gap: 14px; margin-bottom: 22px; }
+.dictionary-tools { display: grid; gap: 14px; margin-bottom: 14px; }
 
 /* Busca com a lupa dentro do campo */
 .dictionary-search-box {
@@ -460,6 +457,9 @@
   font-size: 18px;
 }
 .dictionary-search-box:focus-within { border-color: var(--primary); box-shadow: 0 3px 0 var(--primary); }
+/* Sem o contorno laranja de foco dentro do campo: o quadro azul em volta (acima) já mostra onde está o cursor,
+   no toque e no teclado. Os botões continuam com o contorno, só na navegação pelo teclado. */
+.dictionary-search:focus-visible { outline: none; }
 .dictionary-search {
   width: 100%;
   min-height: 48px;
@@ -471,7 +471,57 @@
   font: inherit;
   font-size: 15px;
 }
-.dictionary-categories { display: flex; flex-wrap: wrap; gap: 8px; }
+.dictionary-categories { display: flex; flex-wrap: wrap; gap: 8px; } /* abas do Guarda-roupa do mascote */
+
+/* Filtro de temas do Dicionário: botão com funil ao lado da busca; o menu abre embaixo dele */
+.dictionary-filter { position: relative; flex: none; }
+.dictionary-filter-button {
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 0 16px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 3px 0 var(--line);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.dictionary-filter-button > .bi-funnel-fill { color: var(--primary); font-size: 16px; }
+.dictionary-filter-arrow { color: var(--muted); font-size: 12px; transition: transform 0.15s ease; }
+.dictionary-filter-button.is-open { border-color: var(--primary); box-shadow: 0 3px 0 var(--primary); }
+.dictionary-filter-button.is-open .dictionary-filter-arrow { transform: rotate(180deg); }
+.dictionary-filter-button:active { transform: translateY(3px); box-shadow: 0 0 0 transparent; }
+.dictionary-filter-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 25;
+  width: 380px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* duas colunas: o menu fica baixinho */
+  gap: 6px;
+  padding: 10px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 4px 0 var(--line), 0 14px 30px rgba(15, 30, 60, 0.2);
+  animation: challenge-sheet-in 0.15s ease-out;
+}
+.dictionary-filter-menu .category-chip { width: 100%; min-width: 0; min-height: 42px; justify-content: flex-start; padding: 0 12px; box-shadow: none; }
+.dictionary-filter-menu .category-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Tema que ainda não abriu na trilha: apagado e com cadeado */
+.dictionary-filter-menu .category-chip.is-locked { border-style: dashed; background: var(--surface-soft); color: var(--muted); cursor: not-allowed; opacity: 0.6; }
+.dictionary-filter-menu .category-chip.is-locked:active { transform: none; }
+.app-shell[data-motion="reduced"] .dictionary-filter-menu { animation: none; }
+@media (prefers-reduced-motion: reduce) { .dictionary-filter-menu { animation: none; } }
 
 /* Botões de escolha em pílula (categorias e abas do mascote) */
 .category-chip {
@@ -501,7 +551,7 @@
 /* Palavras: cartões com o "play" e o painel do sinal escolhido ao lado */
 .dictionary-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, calc(320px * var(--video)));
   align-items: start;
   gap: 18px;
 }
@@ -551,31 +601,33 @@
 .word-detail p { margin: 0; font-size: 14px; line-height: 1.5; }
 .word-example { display: flex; gap: 8px; }
 .word-example .bi { color: var(--accent); }
-.word-detail .word-note { color: var(--muted); font-size: 12px; }
 .word-detail-empty { justify-items: center; padding: 28px 16px; color: var(--muted); text-align: center; }
 .word-detail-empty > .bi { color: var(--primary); font-size: 32px; }
 .dictionary-empty { display: flex; justify-content: center; gap: 8px; padding: 30px 0; color: var(--muted); text-align: center; }
 
-/* Alfabeto manual: faixa com o progresso, grade de letras e painel da letra */
-.alphabet-track { display: grid; gap: 16px; }
-.alphabet-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
-  box-shadow: 0 4px 0 var(--hero-shadow);
-  color: #ffffff;
+/* Alfabeto manual: a grade de letras (o painel ao lado é o mesmo das palavras) */
+.letter-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.letter-tile {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  box-shadow: 0 4px 0 var(--line);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
 }
-.alphabet-banner small { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; opacity: 0.85; }
-.alphabet-banner h2 { margin: 2px 0 0; font-family: "Manrope", sans-serif; font-size: 22px; font-weight: 800; }
-.alphabet-progress { width: min(240px, 40%); display: flex; align-items: center; gap: 10px; }
-.alphabet-progress .hero-progress-track { flex: 1; height: 12px; }
-.alphabet-progress strong { font-family: "Manrope", sans-serif; font-size: 15px; }
+.letter-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+.letter-tile.is-selected { outline: 3px solid var(--primary); outline-offset: 3px; }
 
-/* Desafia-me: cartão 3D acima da grade (dourado quando tem prêmio) */
+/* Cartão do Desafia-me (aparece dentro da janelinha que o botão ⚡ abre).
+   Precisa vir ANTES do @media do celular logo abaixo, que deixa ele mais compacto. */
 .challenge-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -601,77 +653,9 @@
 .challenge-prize.is-locked .bi { color: var(--muted); }
 .challenge-button { white-space: nowrap; }
 
-.alphabet-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); align-items: start; gap: 18px; }
-.letter-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
-.letter-tile {
-  position: relative;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 2px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface-soft);
-  box-shadow: 0 4px 0 var(--line);
-  color: var(--muted);
-  cursor: pointer;
-  font-family: "Manrope", sans-serif;
-  font-size: 24px;
-  font-weight: 800;
-}
-.letter-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
-.letter-tile.is-done { border-color: transparent; background: var(--accent); box-shadow: 0 4px 0 var(--done-shadow); color: #ffffff; }
-.letter-tile.is-next { border-color: transparent; background: var(--hero-from); box-shadow: 0 4px 0 var(--hero-shadow); color: #ffffff; }
-.letter-tile.is-next::after { position: absolute; inset: -7px; border: 3px solid var(--yellow); border-radius: 20px; animation: ring-pulse 1.8s ease-in-out infinite; content: ""; pointer-events: none; }
-.letter-tile.is-selected { outline: 3px solid var(--primary); outline-offset: 3px; }
-.letter-tile.is-next.is-selected { outline: 0; }
-.letter-tile .letter-mark { position: absolute; top: 5px; right: 6px; font-size: 11px; }
-.letter-tile.is-locked .letter-mark { color: var(--muted); }
-
-.letter-panel {
-  position: sticky;
-  top: 20px;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 16px;
-  border: 2px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface);
-  text-align: center;
-}
-.letter-panel .sign-video { margin-bottom: 4px; }
-.letter-panel-kicker { margin: 0; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; }
-.letter-panel h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 26px; font-weight: 800; }
-.letter-panel p { margin: 0 0 6px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.letter-panel .button-3d { width: 100%; }
-.letter-panel-warning { color: var(--coral); font-size: 12px; font-weight: 700; }
-.letter-panel-trophy { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: var(--yellow); box-shadow: 0 5px 0 #c99a1c; color: #6b4f00; font-size: 28px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .letter-tile.is-next::after { animation: none; }
-}
-
 @media (max-width: 1000px) {
-  .alphabet-banner { padding: 12px 16px; }
-  .alphabet-banner h2 { font-size: 18px; }
-  .alphabet-layout { grid-template-columns: minmax(0, 1fr); }
-  /* no celular, o painel da letra vem antes da grade, compacto: vídeo pequeno ao lado do texto */
-  .letter-panel {
-    position: static;
-    order: -1;
-    grid-template-columns: 96px minmax(0, 1fr);
-    justify-items: start;
-    align-items: center;
-    column-gap: 14px;
-    row-gap: 2px;
-    text-align: left;
-  }
-  .letter-panel .sign-video { grid-row: 1 / span 3; width: 96px; margin: 0; }
-  .letter-panel h3 { font-size: 20px; }
-  .letter-panel p:not(.letter-panel-kicker) { display: none; }
-  .letter-panel .button-3d,
-  .letter-panel-warning { grid-column: 1 / -1; margin-top: 10px; }
+  /* no celular, o painel do vídeo não fica na tela: ele abre na janelinha (.sign-sheet, abaixo) */
+  .dictionary-layout > .word-detail { display: none; }
   .challenge-card { grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px; }
   .challenge-icon { width: 48px; height: 48px; font-size: 22px; }
   .challenge-button { grid-column: 1 / -1; width: 100%; }
@@ -703,25 +687,78 @@
   .dictionary-hero-stat strong { font-size: 22px; }
 }
 
-/* Desafia-me no celular: botão redondo no canto que abre o cartão numa janelinha
-   (no PC o cartão continua no lugar de sempre). */
-.challenge-fab, .challenge-sheet { display: none; }
-@media (max-width: 1000px) {
-  .dictionary-hero + .challenge-card { display: none; }
-  .challenge-fab {
-    position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 15;
-    display: grid; place-items: center; width: 58px; height: 58px; padding: 0;
-    border: 3px solid var(--surface); border-radius: 50%;
-    background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color: #ffffff; font-size: 26px;
-    box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22);
-  }
-  .challenge-fab.is-gold { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
-  .challenge-fab.is-locked { background: var(--surface-soft); color: var(--muted); box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
-  .challenge-fab:active { transform: translateY(3px); }
-  .challenge-sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
-  .challenge-sheet-backdrop { position: absolute; inset: 0; border: 0; background: rgba(10, 20, 40, 0.45); cursor: default; }
-  .challenge-sheet-box { position: relative; width: 100%; animation: challenge-sheet-in 0.18s ease-out; }
-  .challenge-sheet .challenge-card { margin: 0; }
+/* Desafia-me: um botão pequeno que abre o cartão numa janelinha.
+   No PC fica ao lado da busca, com o nome; no celular vira um botão redondo
+   no canto (só o raio), em cima da barra de abas. A janelinha abre no meio
+   da tela no PC e embaixo no celular. */
+.dictionary-search-row { display: flex; align-items: center; gap: 12px; }
+.dictionary-search-row .dictionary-search-box { flex: 1; min-width: 0; }
+@media (max-width: 600px) {
+  /* celular: o botão do filtro fica só com o funil (o tema escolhido aparece no título da lista)
+     e o menu ocupa a largura da linha da busca, alinhado com as bordas da tela */
+  .dictionary-filter-label { display: none; }
+  .dictionary-search-row { position: relative; }
+  .dictionary-filter { position: static; }
+  .dictionary-filter-menu { left: 0; right: 0; width: auto; }
+  .dictionary-filter-button { gap: 6px; padding: 0 12px; }
 }
+.challenge-fab {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 52px; padding: 0 20px;
+  border: 3px solid var(--surface); border-radius: 99px;
+  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color: #ffffff;
+  font-family: "Manrope", sans-serif; font-size: 15px; font-weight: 800;
+  box-shadow: 0 4px 0 var(--hero-shadow);
+  cursor: pointer;
+}
+.challenge-fab .bi { font-size: 20px; }
+.challenge-fab.is-gold { background: linear-gradient(160deg, #ffd969 0%, #f3a521 100%); box-shadow: 0 4px 0 #c99a1c; color: #5c4300; } /* dourado: prêmio de hoje valendo */
+.challenge-fab.is-locked { background: var(--surface-soft); color: var(--muted); box-shadow: 0 4px 0 var(--line); }
+.challenge-fab:hover { transform: translateY(-2px); }
+.challenge-fab:active { transform: translateY(3px); }
+.challenge-sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.challenge-sheet-backdrop { position: absolute; inset: 0; border: 0; background: rgba(10, 20, 40, 0.45); cursor: default; }
+.challenge-sheet-box { position: relative; width: min(620px, 100%); animation: challenge-sheet-in 0.18s ease-out; }
+.challenge-sheet .challenge-card { margin: 0; }
+@media (max-width: 1000px) {
+  /* o raio fica bem perto da barra de baixo, e o Dicionário ganha um espaço livre
+     no fim (#dictionary-results, abaixo): rolando até o fim, nenhuma letra fica embaixo dele */
+  .challenge-fab { position: fixed; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 15; width: 54px; height: 54px; padding: 0; border-radius: 50%; box-shadow: 0 4px 0 var(--hero-shadow), 0 8px 18px rgba(15, 30, 60, 0.22); }
+  #dictionary-results { padding-bottom: 64px; }
+  .challenge-fab .bi { font-size: 24px; }
+  .challenge-fab-label { display: none; }
+  .challenge-fab.is-gold { box-shadow: 0 4px 0 #c99a1c, 0 8px 18px rgba(15, 30, 60, 0.22); }
+  .challenge-fab.is-locked { box-shadow: 0 4px 0 var(--line), 0 8px 18px rgba(15, 30, 60, 0.18); }
+  .challenge-sheet { align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
+  .challenge-sheet-box { width: 100%; }
+}
+/* Celular: janelinha com o vídeo da palavra ou letra tocada (mesma caixa do Desafia-me).
+   O vídeo ocupa a largura toda; em celular baixo, encolhe para o resto caber. */
+.sign-sheet .word-detail { position: static; gap: 4px; padding: 14px; box-shadow: 0 4px 0 var(--line); }
+.sign-sheet .sign-video-small {
+  width: min(100%, (100dvh / var(--zoom) - 330px) * 1.6);
+  margin: 0 auto 8px;
+  border-radius: 16px;
+}
+.sign-sheet .word-detail h2 { font-size: 22px; }
+.sign-sheet-close {
+  position: absolute;
+  top: -14px;
+  right: -6px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 3px 0 var(--line);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+}
+@media (min-width: 1001px) { .sign-sheet { display: none; } } /* no PC o vídeo fica no painel ao lado */
 @keyframes challenge-sheet-in { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .challenge-sheet-box { animation: none; } }

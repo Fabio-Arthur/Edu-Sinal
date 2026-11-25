@@ -44,7 +44,13 @@ function numberQuestions(steps) {
 
 // Começa a atividade: confere no app (energia e vidas), avisa o servidor
 // e abre a tela. Devolve a resposta da API (o Desafia-me usa as perguntas dela).
+// Trava: dois toques rápidos em "Começar" (ou no "Concluir", abaixo) mandavam
+// o pedido duas vezes; o segundo voltava com erro e o aluno via um aviso de
+// erro mesmo tendo dado tudo certo.
+let lessonRequestBusy = false;
+
 async function beginLesson(lesson) {
+  if (lessonRequestBusy) return null;
   const reason = activityBlockReason(lesson.topicId, lesson.branchId, lesson.kind);
   if (reason) {
     state.currentLesson = lesson;
@@ -52,11 +58,14 @@ async function beginLesson(lesson) {
     return null;
   }
   let result;
+  lessonRequestBusy = true;
   try {
     result = await api("POST", `/atividades/${lessonCode(lesson)}/comecar`);
   } catch (error) {
     showApiError(error);
     return null;
+  } finally {
+    lessonRequestBusy = false;
   }
   applyServerState(result.estado);
   hideToast();
@@ -95,7 +104,13 @@ function isCardStep(step) {
 function signVideoHtml(sign, size = "large") {
   const video = SIGN_VIDEOS[sign];
   if (video) {
-    return `<video class="sign-video sign-video-${size}" src="${video}" autoplay loop muted playsinline aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
+    // O vídeo é o conteúdo da lição: sempre toca sozinho, em loop e sem som,
+    // sem botões e sem tela cheia (nem com "reduzir movimento" no celular).
+    // A foto (poster) mostra a letra formada enquanto o vídeo carrega ou se o
+    // celular não deixar tocar sozinho (iPhone em economia de bateria): aí o
+    // primeiro toque na tela faz os vídeos tocarem (playSignVideos, em app.js).
+    const poster = video.replace(/\.mp4(\?|$)/, ".webp$1");
+    return `<video class="sign-video sign-video-${size}" src="${video}" poster="${poster}" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-label="Vídeo do sinal ${escapeHtml(sign)}"></video>`;
   }
   return `<div class="sign-video sign-video-${size} is-placeholder" role="img" aria-label="Vídeo do sinal ${escapeHtml(sign)} (em produção)">
       ${icon("play-circle-fill", "sign-video-play")}
@@ -349,13 +364,19 @@ async function finishLesson() {
     return;
   }
 
+  if (lessonRequestBusy) return;
+  const button = document.getElementById("lesson-continue");
+  if (button) button.disabled = true; // o servidor está conferindo: sem segundo toque
   let result;
+  lessonRequestBusy = true;
   try {
     result = await api("POST", `/atividades/${lessonCode(lesson)}/concluir`);
   } catch (error) {
     showApiError(error);
     returnFromLesson(lesson);
     return;
+  } finally {
+    lessonRequestBusy = false;
   }
   applyServerState(result.estado);
   showToast(finishMessage(lesson, result) + guestReminder());

@@ -123,6 +123,8 @@ async function finishLogout(message) {
   }
   state.isRegistered = false;
   state.isGuest = false;
+  state.isAdmin = false;
+  state.adminData = null;
   setScreen("intro");
   showToast(message);
 }
@@ -303,7 +305,7 @@ function helpQuestions() {
     ["Como funcionam as vidas?", `Você tem ${MAX_LIVES} vidas. Cada resposta errada gasta uma, e uma vida volta a cada 30 minutos. O dicionário é livre.`],
     ["Como funciona a energia?", `Você tem ${MAX_ENERGY} de energia. Cada atividade nova concluída gasta 1, e 1 volta a cada ${energyHours} horas. Refazer o que já fez não gasta. Na lojinha dá para recarregar uma vez por dia.`],
     ["Como libero a prova final?", "Conclua os 5 exercícios da árvore da etapa. A prova fica no centro da árvore."],
-    ["Como ganho moedas?", "Concluindo exercícios novos e resgatando missões. Use as moedas na lojinha."],
+    ["Como ganho moedas?", "Concluindo atividades novas, resgatando missões e vencendo o Desafia-me do dicionário (uma vez por dia). Use as moedas na lojinha."],
     ["O que é a vitrine do dia?", "Todo dia, 3 itens do mascote ficam à venda na lojinha. À meia-noite eles trocam por outros."],
     ["O que é a ofensiva?", "São os dias seguidos em que você praticou. Um protetor de ofensiva salva um dia perdido."],
   ];
@@ -364,7 +366,7 @@ function renderMore() {
         ${state.isGuest
           ? `${renderSettingRow("cloud-arrow-up-fill", "teal", "Criar conta", "Salva o progresso que você fez como visitante.", '<button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>')}
         ${renderSettingRow("box-arrow-right", "blue", "Sair do modo visitante", "Apaga o progresso de visitante.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`
-          : `${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
+          : `${state.isAdmin ? "" : renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
         ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`}
       </div>
     </section>

@@ -63,7 +63,7 @@ function categoryLabel(categoryId) {
 
 // A palavra abre quando a atividade de aprender que a ensina foi concluída.
 function isWordUnlocked(word) {
-  return isLessonDone(word.topicId, word.branchId);
+  return state.isAdmin || isLessonDone(word.topicId, word.branchId);
 }
 
 function unlockedWordsCount() {
@@ -72,12 +72,16 @@ function unlockedWordsCount() {
 
 // Guarda que o aluno viu um sinal: conta para a missão do dia e para a conquista.
 // O servidor guarda e devolve o estado (a missão do dia já conta na hora).
+const signsBeingMarked = new Set(); // dois toques rápidos no mesmo sinal: um pedido só
 async function markSignViewed(signId) {
-  if (state.daily.signsViewed.includes(signId)) return; // já contou hoje
+  if (state.daily.signsViewed.includes(signId) || signsBeingMarked.has(signId)) return; // já contou hoje
+  signsBeingMarked.add(signId);
   try {
     applyServerState(await api("POST", `/dicionario/${encodeURIComponent(signId)}/visto`));
   } catch (error) {
     showApiError(error);
+  } finally {
+    signsBeingMarked.delete(signId);
   }
 }
 
@@ -91,14 +95,76 @@ function selectWord(wordId) {
   }
   state.selectedWord = wordId;
   markSignViewed(wordId);
-  render();
+  openSignSheet();
+}
+
+// Tema aberto? O alfabeto sempre; os outros abrem junto com a etapa deles na
+// trilha (cada tema do Dicionário é uma etapa). Assim ninguém vê agora o que
+// vai aprender mais pra frente.
+function isCategoryOpen(categoryId) {
+  return categoryId === ALPHABET_CATEGORY || isTopicUnlocked(categoryId);
+}
+
+function lockedCategoryHint(categoryId) {
+  const label = DICTIONARY_CATEGORIES.find((category) => category.id === categoryId).label;
+  showToast(`O tema “${label}” abre quando você chegar nessa etapa da trilha.`);
 }
 
 function chooseDictionaryCategory(categoryId) {
+  if (!isCategoryOpen(categoryId)) {
+    lockedCategoryHint(categoryId);
+    return;
+  }
   state.dictionaryCategory = categoryId;
   state.dictionaryQuery = "";
   state.selectedWord = null;
+  state.signSheetOpen = false;
+  state.dictionaryFilterOpen = false;
   render();
+  document.querySelector(".screen-scroll")?.scrollTo({ top: 0 }); // tema novo começa do topo
+}
+
+// ----- Filtro de temas (botão ao lado da busca) -----
+// Os temas (Alfabeto, Números...) ficavam numa linha de botões que ocupava
+// espaço da tela; agora ficam num menu que abre pelo botão do funil.
+
+// Nome no botão: o tema escolhido, ou "Temas" enquanto a busca está valendo.
+function dictionaryFilterLabel() {
+  if (state.dictionaryQuery.trim()) return "Temas";
+  return DICTIONARY_CATEGORIES.find((category) => category.id === state.dictionaryCategory).label;
+}
+
+function toggleDictionaryFilter() {
+  state.dictionaryFilterOpen = !state.dictionaryFilterOpen;
+  render();
+  // teclado: o foco vai para o tema escolhido (ou volta para o botão ao fechar)
+  const target = state.dictionaryFilterOpen
+    ? document.querySelector(".dictionary-filter-menu .is-active") || document.querySelector(".dictionary-filter-menu button")
+    : document.querySelector(".dictionary-filter-button");
+  target?.focus({ preventScroll: true });
+}
+
+function closeDictionaryFilter() {
+  if (!state.dictionaryFilterOpen) return;
+  state.dictionaryFilterOpen = false;
+  render();
+}
+
+function renderDictionaryFilter() {
+  const options = DICTIONARY_CATEGORIES.map((category) => {
+    if (!isCategoryOpen(category.id)) {
+      // Tema de uma etapa que ainda não abriu: apagado, com cadeado. Tocar só explica.
+      return `<button class="category-chip is-locked" type="button" data-action="dictionary-category" data-category="${category.id}" aria-disabled="true" aria-label="${escapeHtml(category.label)}, bloqueado">${icon("lock-fill")}<span>${category.label}</span></button>`;
+    }
+    const isActive = !state.dictionaryQuery.trim() && state.dictionaryCategory === category.id;
+    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}<span>${category.label}</span></button>`;
+  }).join("");
+  const isOpen = state.dictionaryFilterOpen;
+  return `
+    <div class="dictionary-filter">
+      <button class="dictionary-filter-button${isOpen ? " is-open" : ""}" type="button" data-action="toggle-dictionary-filter" aria-expanded="${isOpen}" aria-label="Escolher o tema do dicionário (agora: ${dictionaryFilterLabel()})">${icon("funnel-fill")}<span class="dictionary-filter-label">${dictionaryFilterLabel()}</span>${icon("chevron-down", "dictionary-filter-arrow")}</button>
+      ${isOpen ? `<div class="dictionary-filter-menu" role="group" aria-label="Temas do dicionário">${options}</div>` : ""}
+    </div>`;
 }
 
 // Chamado a cada letra digitada na busca. Só troca a lista de resultados,
@@ -107,6 +173,7 @@ function searchDictionary(query) {
   state.dictionaryQuery = query;
   state.selectedWord = null;
   document.getElementById("dictionary-results").innerHTML = renderDictionaryResults();
+  document.querySelector(".dictionary-filter-label").textContent = dictionaryFilterLabel();
 }
 
 // ----- Desafia-me: 5 perguntas dos exercícios que o aluno já concluiu -----
@@ -180,20 +247,24 @@ function renderAlphabetChallenge() {
     </section>`;
 }
 
-// No celular, o cartão do Desafia-me sai do meio da tela (ficava grudado na
-// busca) e vira um botão redondo no canto, que abre o cartão numa janelinha.
+// O Desafia-me é um botão pequeno que abre o cartão numa janelinha. Assim o
+// cartão grande não ocupa o topo da tela e sobra espaço para as letras e as
+// palavras. No PC ele fica ao lado da busca; no celular, redondo, no canto.
 function toggleChallengeSheet() {
   state.challengeSheetOpen = !state.challengeSheetOpen;
   render();
 }
 
-function renderChallengeFab() {
+function renderChallengeButton() {
   const unlocked = isChallengeUnlocked();
-  const gold = unlocked && isChallengeRewardAvailable();
+  const gold = unlocked && isChallengeRewardAvailable(); // dourado: o prêmio de hoje ainda está valendo
   const look = gold ? " is-gold" : unlocked ? "" : " is-locked";
-  const fab = `<button class="challenge-fab${look}" type="button" data-action="toggle-challenge-sheet" aria-label="Abrir o Desafia-me" aria-expanded="${state.challengeSheetOpen}">${icon(unlocked ? "lightning-charge-fill" : "lock-fill")}</button>`;
-  if (!state.challengeSheetOpen) return fab;
-  return `${fab}
+  return `<button class="challenge-fab${look}" type="button" data-action="toggle-challenge-sheet" aria-label="Abrir o Desafia-me" aria-expanded="${state.challengeSheetOpen}">${icon(unlocked ? "lightning-charge-fill" : "lock-fill")}<span class="challenge-fab-label">Desafia-me</span></button>`;
+}
+
+function renderChallengeSheet() {
+  if (!state.challengeSheetOpen) return "";
+  return `
     <div class="challenge-sheet">
       <button class="challenge-sheet-backdrop" type="button" data-action="toggle-challenge-sheet" aria-label="Fechar o Desafia-me"></button>
       <div class="challenge-sheet-box">${renderAlphabetChallenge()}</div>
@@ -205,7 +276,7 @@ function renderChallengeFab() {
 function selectLetter(letter) {
   state.selectedLetter = letter;
   markSignViewed(signCode(`Letra ${letter}`));
-  render();
+  openSignSheet();
 }
 
 function renderLetterTile(letter) {
@@ -213,30 +284,61 @@ function renderLetterTile(letter) {
   return `<button class="letter-tile${isSelected ? " is-selected" : ""}" type="button" data-alphabet-letter="${letter}" aria-label="Letra ${letter}" aria-pressed="${isSelected}"><span>${letter}</span></button>`;
 }
 
-// Painel ao lado da grade: o vídeo e a dica da letra escolhida.
+// Painel ao lado da grade: o vídeo e a dica da letra escolhida. É o mesmo
+// painel das palavras (word-detail), para as duas abas terem a mesma cara.
 function renderLetterPanel() {
   const letter = state.selectedLetter;
+  const tip = LETTER_TIPS[letter] || "Mais uma letra para soletrar nomes e palavras que ainda não têm sinal.";
   return `
-    <aside class="letter-panel" aria-live="polite">
+    <aside class="word-detail letter-panel" aria-live="polite">
       ${signVideoHtml(`Letra ${letter}`, "small")}
-      <p class="letter-panel-kicker">ALFABETO MANUAL</p>
-      <h3>Letra ${letter}</h3>
-      <p>${LETTER_TIPS[letter] || "Mais uma letra para soletrar nomes e palavras que ainda não têm sinal."}</p>
+      <p class="word-detail-kicker">ALFABETO MANUAL</p>
+      <h2>Letra ${letter}</h2>
+      <p class="word-example">${icon("lightbulb-fill")} ${tip}</p>
     </aside>`;
 }
 
+// ----- Celular: o vídeo abre numa janelinha -----
+// No PC o vídeo fica no painel ao lado da lista. No celular esse painel ocupava
+// o meio da tela antes de escolher qualquer coisa; agora não aparece, e tocar
+// numa palavra ou numa letra abre esta janelinha embaixo, com o vídeo grande.
+// Fecha tocando fora, no X ou com Esc.
+
+function openSignSheet() {
+  state.signSheetOpen = isMobileLayout();
+  render();
+  if (state.signSheetOpen) document.querySelector(".sign-sheet-close")?.focus({ preventScroll: true });
+}
+
+function closeSignSheet() {
+  state.signSheetOpen = false;
+  render();
+}
+
+function renderSignSheet() {
+  if (!state.signSheetOpen) return "";
+  const isAlphabet = !state.dictionaryQuery.trim() && state.dictionaryCategory === ALPHABET_CATEGORY;
+  const word = DICTIONARY_WORDS.find((entry) => entry.id === state.selectedWord && isWordUnlocked(entry));
+  if (!isAlphabet && !word) return "";
+  const title = isAlphabet ? `Letra ${state.selectedLetter}` : word.word;
+  return `
+    <div class="challenge-sheet sign-sheet" role="dialog" aria-modal="true" aria-label="Sinal: ${escapeHtml(title)}">
+      <button class="challenge-sheet-backdrop" type="button" data-action="close-sign-sheet" aria-label="Fechar o vídeo" tabindex="-1"></button>
+      <div class="challenge-sheet-box">
+        <button class="sign-sheet-close" type="button" data-action="close-sign-sheet" aria-label="Fechar o vídeo">${icon("x-lg")}</button>
+        ${isAlphabet ? renderLetterPanel() : renderWordDetail(word)}
+      </div>
+    </div>`;
+}
+
+// Mesmo formato das outras abas: título simples em cima, a grade e o painel ao lado.
 function renderAlphabet() {
   return `
-    <section class="alphabet-track" aria-labelledby="alphabet-title">
-      <div class="alphabet-banner">
-        <div><small>ALFABETO MANUAL</small><h2 id="alphabet-title">Todas as letras liberadas</h2></div>
-        <div class="alphabet-progress"><strong>${ALPHABET.length} letras</strong></div>
-      </div>
-      <div class="alphabet-layout">
-        <div class="letter-grid" role="group" aria-label="Letras do alfabeto manual">${ALPHABET.map(renderLetterTile).join("")}</div>
-        ${renderLetterPanel()}
-      </div>
-    </section>`;
+    <div class="section-heading"><div><p class="eyebrow">TODAS AS ${ALPHABET.length} LETRAS LIBERADAS</p><h2>Alfabeto manual</h2></div></div>
+    <div class="dictionary-layout">
+      <div class="letter-grid" role="group" aria-label="Letras do alfabeto manual">${ALPHABET.map(renderLetterTile).join("")}</div>
+      ${renderLetterPanel()}
+    </div>`;
 }
 
 // ----- Palavras -----
@@ -251,7 +353,6 @@ function renderWordDetail(word) {
       <p class="word-detail-kicker">${categoryLabel(word.category).toUpperCase()}</p>
       <h2>${word.word}</h2>
       <p class="word-example">${icon("lightbulb-fill")} ${word.tip}</p>
-      <p class="word-note">O vídeo deste sinal será gravado e revisado por pessoas surdas fluentes em Libras.</p>
     </aside>`;
 }
 
@@ -286,11 +387,8 @@ function renderDictionaryResults() {
 }
 
 function renderSigns() {
-  const chips = DICTIONARY_CATEGORIES.map((category) => {
-    const isActive = !state.dictionaryQuery && state.dictionaryCategory === category.id;
-    return `<button class="category-chip${isActive ? " is-active" : ""}" type="button" data-action="dictionary-category" data-category="${category.id}" aria-pressed="${isActive}">${category.id === ALPHABET_CATEGORY ? icon("alphabet-uppercase") : ""}${category.label}</button>`;
-  }).join("");
-
+  // O tema guardado fechou (ex.: entrou outra pessoa no mesmo aparelho): volta para o alfabeto.
+  if (!isCategoryOpen(state.dictionaryCategory)) state.dictionaryCategory = ALPHABET_CATEGORY;
   return `
     <section class="dictionary-hero" aria-labelledby="dictionary-title">
       <span class="dictionary-hero-icon">${icon("book-fill")}</span>
@@ -301,14 +399,16 @@ function renderSigns() {
       </div>
       <span class="dictionary-hero-stat"><strong>${unlockedWordsCount()}/${DICTIONARY_WORDS.length}</strong> palavras desbloqueadas</span>
     </section>
-    ${renderAlphabetChallenge()}
     <div class="dictionary-tools">
-      <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
-      <div class="dictionary-categories" role="group" aria-label="Categorias do dicionário">${chips}</div>
+      <div class="dictionary-search-row">
+        <label class="dictionary-search-box">${icon("search")}<input class="dictionary-search" id="dictionary-search" type="search" placeholder="Buscar palavra, ex.: obrigado" aria-label="Buscar palavra no dicionário" value="${escapeHtml(state.dictionaryQuery)}" autocomplete="off" /></label>
+        ${renderDictionaryFilter()}
+        ${renderChallengeButton()}
+      </div>
     </div>
     <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>
-    <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>
     </div>
-    ${renderChallengeFab()}`;
+    ${renderChallengeSheet()}
+    ${renderSignSheet()}`;
 }

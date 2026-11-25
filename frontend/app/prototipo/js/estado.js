@@ -102,6 +102,9 @@ const state = {
   email: "",
   isRegistered: false,          // logado na API?
   isGuest: false,               // entrou como visitante (sem e-mail e senha)?
+  isAdmin: false,               // conta de administrador (o servidor é quem decide)
+  adminData: null,              // lista de usuários da área do administrador
+  adminQuery: "",               // busca na área do administrador
   dailyGoal: DAILY_GOAL,        // atividades por dia na meta da Home
   unlockedItems: [],            // itens do mascote comprados ou ganhos
   mascot: { shirt: "camiseta-branca", head: "", face: "", chest: "", background: "" },
@@ -121,7 +124,9 @@ const state = {
   selectedWord: null,      // palavra escolhida no dicionário
   dictionaryCategory: "alfabeto",
   dictionaryQuery: "",
-  challengeSheetOpen: false, // janelinha do Desafia-me no celular
+  challengeSheetOpen: false, // janelinha do Desafia-me (abre pelo botão redondo do Dicionário)
+  signSheetOpen: false,    // celular: janelinha com o vídeo da palavra ou letra tocada no Dicionário
+  dictionaryFilterOpen: false, // menu de temas do Dicionário (botão do funil ao lado da busca)
   editingName: false,      // perfil: mostrando o campo para trocar o nome?
   mascotTab: "shirt",      // aba aberta no editor do mascote
 };
@@ -140,6 +145,7 @@ const screenTitles = {
   mascot: "Guarda-roupa",
   signup: "Criar conta",
   terms: "Termos de uso e privacidade",
+  admin: "Administrador",
 };
 
 // Itens do menu lateral: [tela, nome, ícone do Bootstrap Icons]
@@ -151,9 +157,15 @@ const navigationItems = [
   ["leagues", "Ligas", "trophy-fill", "yellow"],
   ["missions", "Missões", "flag-fill", "coral"],
   ["shop", "Lojinha", "bag-fill", "yellow"],
+  ["admin", "Admin", "shield-lock-fill", "coral"], // só aparece para administradores
   ["profile", "Perfil", "person-fill", "blue"],
   ["more", "Configurações", "gear-fill", "gray"],
 ];
+
+// Os itens do menu que a pessoa pode ver (a aba Admin é só para administradores).
+function visibleNavigationItems() {
+  return navigationItems.filter(([screen]) => screen !== "admin" || state.isAdmin);
+}
 
 // O tema que vale agora: no "auto", o mesmo do aparelho (modo claro ou escuro do sistema).
 const deviceDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)");

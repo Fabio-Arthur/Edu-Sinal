@@ -22,7 +22,16 @@
 
 // Vídeo de cada sinal. Quando um vídeo for gravado, coloque o caminho aqui,
 // por exemplo: "Oi": "../../assets/videos/oi.mp4". Sem vídeo, aparece um espaço reservado.
+// O alfabeto inteiro foi gravado pela equipe (as mãos do Fabo), em 23/11/2026.
+// Os vídeos ficam em assets/videos/alfabeto/: um ciclo da letra (a mão fecha, faz a
+// letra e abre), 576x360, 24 quadros/s, sem som, ~40 KB cada (1 MB o alfabeto todo).
+// Ao lado de cada vídeo fica uma foto .webp com o mesmo nome (a letra formada),
+// que aparece enquanto o vídeo carrega.
+// "?v=1": se um vídeo for gravado de novo, troque para ?v=2 (o site guarda cópia por 7 dias).
 const SIGN_VIDEOS = {};
+for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+  SIGN_VIDEOS[`Letra ${letter}`] = `../../assets/videos/alfabeto/letra-${letter.toLowerCase()}.mp4?v=1`;
+}
 
 // Os ids das etapas e das atividades ficam salvos no progresso do aluno: trocar
 // um id faz quem já tinha feito aquela atividade perder o "feito".
@@ -498,13 +507,13 @@ function doneBranchCount(topicId) {
 
 // A prova final só abre quando todas as atividades estão concluídas.
 function isFinalUnlocked(topicId) {
-  return doneBranchCount(topicId) === learningTopics[topicId].branches.length;
+  return state.isAdmin || doneBranchCount(topicId) === learningTopics[topicId].branches.length;
 }
 
 // A primeira etapa está sempre aberta; as outras abrem com a prova da anterior.
 function isTopicUnlocked(topicId) {
   const position = TOPIC_ORDER.indexOf(topicId);
-  return position === 0 || isLessonDone(TOPIC_ORDER[position - 1], "final");
+  return state.isAdmin || position === 0 || isLessonDone(TOPIC_ORDER[position - 1], "final");
 }
 
 // Etapa em que o aluno está: a primeira cuja prova final ainda não foi feita.

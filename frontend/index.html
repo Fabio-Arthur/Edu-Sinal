@@ -5,6 +5,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f1f6fb" />
+  <!-- Tema: o mesmo que a pessoa escolheu no app; se não escolheu (Automático),
+       o do aparelho, mudando junto se o aparelho trocar. Vem antes do CSS,
+       para a página não piscar clara antes de ficar escura. -->
+  <script>
+    (function () {
+      const device = window.matchMedia("(prefers-color-scheme: dark)");
+      let chosen = "auto";
+      try { chosen = JSON.parse(localStorage.getItem("edusinal-prototype") || "{}").theme || "auto"; } catch { /* sem armazenamento: segue o aparelho */ }
+      function apply() {
+        const theme = chosen === "auto" ? (device.matches ? "dark" : "light") : chosen;
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0f1d2b" : "#f1f6fb");
+      }
+      apply();
+      if (chosen === "auto") device.addEventListener("change", apply);
+    })();
+  </script>
   <title>EduSinal | Aprenda Libras para se conectar</title>
   <!-- Para o Google e para a prévia do link (WhatsApp, Instagram...) -->
   <meta name="description" content="Aprenda Libras de graça com o EduSinal: trilha visual, exercícios curtos, dicionário de sinais, missões, ligas e um mascote para personalizar." />
@@ -40,9 +57,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="landing/landing.css?v=4" />
-  <!-- Poses e animações do mascote (as mesmas do app) -->
-  <link rel="stylesheet" href="app/prototipo/css/mascote.css?v=173" />
+  <link rel="stylesheet" href="landing/landing.css?v=5" />
+  <link rel="stylesheet" href="assets/css/aviso-cookies.css?v=2" />
+  <!-- Poses e animações do mascote (as mesmas do app). O ?v= é o MESMO do
+       app (app/prototipo/index.html): ao subir a versão lá, suba aqui também. -->
+  <link rel="stylesheet" href="app/prototipo/css/mascote.css?v=183" />
 </head>
 <body>
   <header class="site-header">
@@ -118,7 +137,7 @@
         <article class="feature">
           <span class="feature-icon icon-blue"><i class="bi bi-book-fill" aria-hidden="true"></i></span>
           <h3>Dicionário e alfabeto</h3>
-          <p>Consulte sinais por tema quando quiser. O alfabeto manual tem uma trilha própria, letra por letra, e o desafio "Desafia-me".</p>
+          <p>Os sinais que você aprende na trilha ficam guardados, separados por tema. O alfabeto manual fica todo aberto para consultar, e o "Desafia-me" testa o que você já sabe.</p>
         </article>
         <article class="feature">
           <span class="feature-icon icon-coral"><i class="bi bi-fire" aria-hidden="true"></i></span>
@@ -189,8 +208,10 @@
     const state = { motion: "normal" };
     const escapeHtml = (text) => text;
   </script>
-  <script src="app/prototipo/js/telas-mascote.js?v=173"></script>
-  <script src="app/prototipo/js/mascote-desenho.js?v=173"></script>
+  <script src="app/prototipo/js/telas-mascote.js?v=183"></script>
+  <script src="app/prototipo/js/mascote-desenho.js?v=183"></script>
+  <!-- Aviso de cookies (o mesmo do app): aparece uma vez por aparelho -->
+  <script src="assets/js/aviso-cookies.js?v=1" data-termos="app/prototipo/?tela=termos" defer></script>
   <script>
     const mascotButton = document.getElementById("hero-mascot");
     mascotButton.innerHTML = mascotSvg(DEFAULT_LOOK, "full", "", { animated: true });

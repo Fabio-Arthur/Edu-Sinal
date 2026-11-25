@@ -70,7 +70,7 @@ function isMobileLayout() {
 // Um exercício abre quando o anterior estiver concluído (o primeiro já vem aberto).
 function isBranchUnlocked(topicId, index) {
   const branches = learningTopics[topicId].branches;
-  return index === 0 || isLessonDone(topicId, branches[index - 1].id);
+  return state.isAdmin || index === 0 || isLessonDone(topicId, branches[index - 1].id);
 }
 
 // Curva suave passando por todos os pontos (para desenhar o caminho).
@@ -170,7 +170,7 @@ function renderBranchBubble(topicId) {
   if (selected === "final") {
     const info = finalNodeInfo(topicId);
     title = "Prova final";
-    text = info.status === "locked" ? `Conclua os 5 exercícios para liberar (${doneBranchCount(topicId)} / 5).` : info.hint;
+    text = info.status === "locked" ? `Conclua os ${topic.branches.length} exercícios para liberar (${doneBranchCount(topicId)} / ${topic.branches.length}).` : info.hint;
     point = WAVE_POINTS[WAVE_POINTS.length - 1];
     if (info.status === "open") action = `<button class="button-3d button-3d-primary" type="button" data-action="start-branch" data-topic="${topicId}" data-branch="final" ${activityBlockReason(topicId, "final", "practice") ? "disabled" : ""}>Começar a prova ${icon("arrow-right")}</button>`;
     else action = `<button class="button-3d button-3d-outline" type="button" data-action="close-topic">Voltar à trilha</button>`;
@@ -323,7 +323,7 @@ function renderTrailStep(topicId) {
   }
 
   const node = status === "locked"
-    ? `<span class="trail-node" aria-label="Etapa ${topic.number}, ${label.toLowerCase()}"><span>${symbol}</span></span>`
+    ? `<span class="trail-node" role="img" aria-label="Etapa ${topic.number}, ${label.toLowerCase()}"><span>${symbol}</span></span>`
     : `<button class="trail-node" type="button" data-action="open-topic" data-topic="${topicId}" aria-label="Abrir ${topic.title}"${ring}><span>${symbol}</span></button>`;
   const position = TOPIC_ORDER.indexOf(topicId);
   return `<li class="trail-step is-${status}" style="--wave:${trailWaveOffset(position)}px;--mwave:${trailMobileOffset(position)}px">${tooltip}${node}<div class="trail-step-copy"><small>${label}</small><h3>${topic.title}</h3><p>${topic.subtitle}</p></div></li>`;
@@ -586,6 +586,15 @@ function renderDailyGoal() {
 // Cartão da liga (lateral da Home no computador): troféu, posição, XP da semana e
 // quanto falta para subir. Leva para a tela de Ligas.
 function renderHomeLeague() {
+  if (state.isAdmin) {
+    // O administrador fica fora das ligas (ele teria XP infinito).
+    return `
+    <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Ligas: o administrador fica fora do ranking">
+      <span class="league-badge ${LEAGUES[0].className}">${icon("shield-lock-fill")}</span>
+      <span class="home-league-copy"><strong>Ligas</strong><small>Administrador fica fora do ranking</small></span>
+      ${icon("chevron-right")}
+    </button>`;
+  }
   if (state.isGuest) {
     return `
     <button class="home-side-card home-league" type="button" data-screen="leagues" aria-label="Ligas: crie uma conta para competir">
@@ -638,6 +647,5 @@ function renderTrail() {
         </section>
         ${renderHomeLeague()}
       </aside>
-    </div>
-    <p class="demo-disclaimer">O conteúdo das etapas ainda é provisório e será revisado por pessoas surdas fluentes em Libras.</p>`;
+    </div>`;
 }

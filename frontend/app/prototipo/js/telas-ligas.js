@@ -27,9 +27,11 @@ function weekDayNumber() {
 // responder, aparece só o próprio aluno.
 // O XP do próprio aluno vem sempre do estado mais novo (o ranking dos
 // outros pode ter até 1 minuto de atraso).
+// O administrador vê o ranking da salinha, mas não aparece nele (fica fora das ligas).
 function buildRanking() {
-  if (!state.leagueRanking) return [{ name: state.name, xp: state.week.xp, isMe: true }];
+  if (!state.leagueRanking) return state.isAdmin ? [] : [{ name: state.name, xp: state.week.xp, isMe: true }];
   return state.leagueRanking
+    .filter((player) => !(state.isAdmin && player.sou_eu))
     .map((player) => ({
       name: player.sou_eu ? state.name : player.apelido,
       xp: player.sou_eu ? state.week.xp : player.xp,
@@ -95,6 +97,13 @@ function myLeagueStanding(ranking = buildRanking()) {
 }
 
 function renderLeagueStatus(ranking) {
+  if (state.isAdmin) {
+    return `
+    <section class="league-status zone-safe">
+      <div class="league-status-place">${icon("shield-lock-fill")}<span>admin</span></div>
+      <div><p>Você é <strong>administrador</strong>: vê o ranking da salinha, mas fica fora da disputa (seu XP não conta na liga).</p></div>
+    </section>`;
+  }
   const { position, me, zone, missing } = myLeagueStanding(ranking);
 
   let message;
@@ -165,6 +174,7 @@ function renderLeagues() {
       rows.push('<li class="ranking-divider zone-promotion" aria-hidden="true"><i class="bi bi-arrow-up" aria-hidden="true"></i> Zona de promoção</li>');
     }
   });
+  if (!rows.length) rows.push('<li class="ranking-empty">Ninguém ganhou XP nesta salinha ainda.</li>');
 
   return `
     <section class="league-hero" aria-labelledby="league-title">

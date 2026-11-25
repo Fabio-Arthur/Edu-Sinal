@@ -13,6 +13,7 @@
   --text: #1d2f45;
   --muted: #566b81;
   --line: #dde7f0;
+  --scrollbar: #a3b4c7; /* barrinha de rolagem: visível, mas discreta */
   --primary: #1f6fb8;
   --primary-strong: #14548e;
   --primary-soft: #d6e7f7;
@@ -564,6 +565,7 @@ textarea {
   --text: #e8f1fa;
   --muted: #9fb3c6;
   --line: #2b4259;
+  --scrollbar: #56718d;
   --primary: #6fb4ee;
   --primary-strong: #a6d3f7;
   --primary-soft: #1e3d5c;
@@ -718,6 +720,11 @@ textarea {
    espaço vazio. O zoom final = escala da tela × texto grande. */
 .app-shell { --escala: 1; --texto: 1; --zoom: calc(var(--escala) * var(--texto)); }
 .app-shell[data-text-size="large"] { --texto: 1.15; }
+/* Vídeos maiores (pedido em 25/11/2026): o tamanho que antes só aparecia no
+   "Texto grande" agora é o normal. Com o texto grande, o zoom ainda multiplica,
+   e os vídeos crescem mais um pouco. Vale para os vídeos e para a largura da
+   atividade (onde eles ficam); nunca passa do que cabe na tela. */
+.app-shell { --video: 1.15; }
 @media (min-width: 1500px) and (min-height: 820px) { .app-shell { --escala: 1.12; } }  /* ex.: 1536x864, 1600x900 */
 @media (min-width: 1800px) and (min-height: 900px) { .app-shell { --escala: 1.25; } }  /* Full HD (1920x1080) */
 @media (min-width: 2300px) and (min-height: 1200px) { .app-shell { --escala: 1.6; } }  /* 2K (2560x1440) */
@@ -775,7 +782,7 @@ body.is-loading::before {
 .terms-header { display: flex; align-items: center; gap: 14px; }
 .terms-header h2 { margin: 0; font-size: 24px; }
 .terms-header p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
-.terms-text { flex: 1; min-height: 0; overflow-y: auto; scrollbar-color: var(--line) transparent; padding: 4px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.terms-text { flex: 1; min-height: 0; overflow-y: auto; scrollbar-color: var(--scrollbar) transparent; padding: 4px 18px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
 .terms-section h3 { margin: 18px 0 6px; font-size: 17px; }
 .terms-section p { margin: 0 0 8px; color: var(--text); font-size: 15px; line-height: 1.6; }
 .signup-terms { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; color: var(--text); font-size: 14px; line-height: 1.45; cursor: pointer; }
@@ -792,7 +799,7 @@ body.is-loading::before {
 .desk-col { display: contents; }
 
 @media (min-width: 1001px) {
-  .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"]) .screen-root {
+  .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"], [data-current-screen="admin"]) .screen-root {
     flex: none; /* sem isso, a área cresce junto com o conteúdo e a altura não vale */
     height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
     display: flex;
@@ -817,14 +824,14 @@ body.is-loading::before {
     margin: -8px -6px 0; /* espaço para a sombra 3D e o contorno dos cartões não serem cortados */
     padding: 8px 6px 8px;
     scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
   .desk-columns > .desk-col > * { flex: none; margin-top: 0; margin-bottom: 0; } /* mais forte que o margin-top das seções */
 
   /* Ligas: a coluna do ranking não rola inteira, só a lista */
   .desk-col-fill { overflow: hidden; }
   .desk-col-fill > .ranking-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  .ranking-section .ranking-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; margin: 0 -6px; padding: 2px 6px 8px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .ranking-section .ranking-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; margin: 0 -6px; padding: 2px 6px 8px; scrollbar-width: thin; scrollbar-color: var(--scrollbar) transparent; }
 
   /* Ligas (estilo Duolingo): o ranking é a coluna principal, larga; a escada
      das ligas, a sua posição e os avisos ficam numa coluna estreita do lado.
@@ -914,9 +921,34 @@ body.is-loading::before {
     margin: 0 -8px; /* espaço para a sombra 3D dos cartões */
     padding: 0 8px 8px;
     scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
 }
+
+/* Bordas do quadro: quando tem mais coisa escondida em cima ou embaixo, a
+   borda apaga aos poucos (em vez de cortar as letras ao meio). Ver app.js. */
+@media (min-width: 1001px) {
+  .screen-root > .screen-scroll[data-fade="top"] { mask-image: linear-gradient(to bottom, transparent 0, #000 28px); }
+  .screen-root > .screen-scroll[data-fade="bottom"] { mask-image: linear-gradient(to top, transparent 0, #000 28px); }
+  .screen-root > .screen-scroll[data-fade="top bottom"] { mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); }
+
+  /* Cartão de cima compacto enquanto o quadro está rolado: fica só o título
+     (e o número do lado), e o quadro ganha a tela. */
+  :is(.dictionary-hero, .missions-hero, .shop-hero) { transition: padding 0.2s ease, margin 0.2s ease; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero, .missions-hero, .shop-hero) { padding-top: 10px; padding-bottom: 10px; border-radius: 18px; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero-icon, .missions-hero-gift, .shop-hero-coin) { display: none; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero-copy, .missions-hero-copy, .shop-hero-copy) :is(small, p) { display: none; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero-copy, .missions-hero-copy, .shop-hero-copy) h2 { margin: 0; font-size: 22px; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero-stat, .shop-hero-balance) { grid-auto-flow: column; align-items: baseline; gap: 6px; padding: 4px 14px; border-radius: 12px; }
+  .app-shell[data-compact="on"] :is(.dictionary-hero-stat, .shop-hero-balance) strong { font-size: 18px; }
+  .app-shell[data-compact="on"] .missions-hero-stats { grid-auto-flow: column; }
+  .app-shell[data-compact="on"] .missions-hero-stats span { padding: 3px 12px; }
+  .app-shell[data-compact="on"] .dictionary-hero { margin-bottom: 12px; }
+}
+@media (min-width: 1001px) and (prefers-reduced-motion: reduce) {
+  :is(.dictionary-hero, .missions-hero, .shop-hero) { transition: none; }
+}
+.app-shell[data-motion="reduced"] :is(.dictionary-hero, .missions-hero, .shop-hero) { transition: none; }
 
 /* ----- Guarda-roupa no PC: a página não rola -----
    O mascote fica parado do lado e só a grade de itens rola, por dentro. */
@@ -942,6 +974,6 @@ body.is-loading::before {
     margin: -6px;
     padding: 6px; /* espaço para o contorno e a sombra dos cartões */
     scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
 }

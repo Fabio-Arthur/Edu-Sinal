@@ -29,15 +29,21 @@ function powerUpBlockReason(power) {
 }
 
 // Comprar uma ajuda: o servidor confere as moedas e as regras e devolve o estado.
+// Trava: dois toques rápidos compravam duas vezes (ex.: dois protetores, o
+// dobro de moedas) ou davam erro depois da compra.
+let buyingPowerUp = false;
 async function buyPowerUp(powerId) {
   const power = POWER_UPS.find((entry) => entry.id === powerId);
-  if (!power || powerUpBlockReason(power)) return;
+  if (!power || powerUpBlockReason(power) || buyingPowerUp) return;
 
+  buyingPowerUp = true;
   try {
     applyServerState(await api("POST", "/lojinha/compras", { id: power.id }));
   } catch (error) {
     showApiError(error);
     return;
+  } finally {
+    buyingPowerUp = false;
   }
   const messages = {
     "recarga-energia": "Energia recarregada!",

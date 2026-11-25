@@ -21,13 +21,17 @@ const screenRenderers = {
   more: renderMore,
   mascot: renderMascotEditor,
   terms: renderTerms,
+  admin: renderAdmin,
 };
 
 // ----- Desenho da página -----
 
 // Celular: abas da barra de baixo. Perfil abre pelo mascote e Configurações
 // pela engrenagem, os dois na barra de cima.
-const MOBILE_TABS = ["trail", "signs", "leagues", "missions", "shop"];
+const BASE_MOBILE_TABS = ["trail", "signs", "leagues", "missions", "shop"];
+function mobileTabs() {
+  return state.isAdmin ? [...BASE_MOBILE_TABS, "admin"] : BASE_MOBILE_TABS;
+}
 
 // Telas que acendem uma aba mesmo não sendo ela (a atividade fica dentro da Home).
 // O Perfil e o editor do mascote não têm aba: acendem o mascote da barra de cima.
@@ -36,7 +40,9 @@ const PARENT_TAB = { lesson: "trail" };
 function renderBottomNav() {
   const activeTab = PARENT_TAB[state.screen] || state.screen;
   const ready = readyMissionsCount();
-  document.getElementById("bottom-nav").innerHTML = MOBILE_TABS.map((screen) => {
+  const tabs = mobileTabs();
+  document.getElementById("bottom-nav").style.setProperty("--tabs", tabs.length);
+  document.getElementById("bottom-nav").innerHTML = tabs.map((screen) => {
     const [, label, iconName, tone] = navigationItems.find(([id]) => id === screen);
     const isActive = activeTab === screen;
     const badge = screen === "missions" && ready > 0 ? `<span class="bottom-badge" aria-label="${ready} para resgatar">${ready}</span>` : "";
@@ -50,9 +56,9 @@ function renderMobileStats() {
   refreshEnergy();
   document.getElementById("mobile-stats").innerHTML = `
     <button class="stat-chip stat-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong></button>
-    <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.coins} moedas. Abrir lojinha">${icon("coin")}<strong>${state.coins}</strong></button>
-    <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.energy} de ${MAX_ENERGY} de energia">${icon("battery-charging")}<strong>${state.energy}</strong></button>
-    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
+    <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Moedas infinitas" : `${state.coins} moedas`}. Abrir lojinha">${icon("coin")}<strong>${state.isAdmin ? "∞" : state.coins}</strong></button>
+    <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Energia infinita" : `${state.energy} de ${MAX_ENERGY} de energia`}">${icon("battery-charging")}<strong>${state.isAdmin ? "∞" : state.energy}</strong></button>
+    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Vidas infinitas" : `${state.lives} de ${MAX_LIVES} vidas`}">${icon("heart-fill")}<strong>${state.isAdmin ? "∞" : state.lives}</strong></button>`;
 }
 
 // Celular: o mascote do aluno no canto de cima leva ao Perfil.
@@ -69,7 +75,7 @@ function renderMobileAvatar() {
 function renderNavigation() {
   const activeScreen = state.screen === "mascot" ? "profile" : state.screen; // o editor do mascote fica no Perfil
   const ready = readyMissionsCount();
-  const items = navigationItems.map(([screen, label, iconName, tone]) => {
+  const items = visibleNavigationItems().map(([screen, label, iconName, tone]) => {
     const isActive = activeScreen === screen;
     const symbol = screen === "profile"
       ? `<span class="nav-icon is-avatar ${backdropClass()}">${mascotSvg(state.mascot, "avatar", "")}</span>`
@@ -100,8 +106,12 @@ window.addEventListener("resize", updateBarsHeight);
 function render() {
   refreshCalendar();
   const view = `${state.screen}|${state.focusTopic}`;
-  app.dataset.redraw = view === lastDrawnView ? "on" : "off";
+  const sameView = view === lastDrawnView;
+  app.dataset.redraw = sameView ? "on" : "off";
   lastDrawnView = view;
+  // Redesenhando a mesma tela (ex.: tocou numa letra), o quadro que rola
+  // continua onde estava, em vez de pular para o topo.
+  const keptScroll = sameView ? screenRoot.querySelector(":scope > .screen-scroll")?.scrollTop || 0 : 0;
   heading.textContent = screenTitles[state.screen] || "EduSinal";
   app.dataset.currentScreen = state.screen;
   app.dataset.focus = state.focusTopic ? "on" : "off";
@@ -113,6 +123,10 @@ function render() {
   settings.classList.toggle("is-active", state.screen === "more");
   settings.toggleAttribute("aria-current", state.screen === "more");
   screenRoot.innerHTML = screenRenderers[state.screen]();
+  const scrollBox = screenRoot.querySelector(":scope > .screen-scroll");
+  if (scrollBox) scrollBox.scrollTop = keptScroll;
+  if (!sameView) setCompact(false); // tela nova começa com o cartão inteiro
+  updateScrollBox(scrollBox);
   updateBarsHeight();
   if (state.focusTopic) measureTreeLines(); // para o caminho da árvore "se desenhar"
   else if (state.screen === "trail") setupTrailScroll(); // trilha da Home no lugar certo
@@ -129,10 +143,62 @@ function render() {
   app.dataset.motion = state.motion;
 }
 
+// ----- Quadro que rola (PC: Dicionário, Missões e Lojinha) -----
+// No PC a página não rola: o cartão de cima fica parado e o resto rola num
+// quadro. Ao descer, o cartão de cima encolhe (fica só o título) e o quadro
+// ganha a tela; voltando ao topo, ele volta ao normal. As bordas do quadro
+// apagam aos poucos quando tem mais coisa escondida (em vez de cortar seco).
+// No celular o quadro "some" (a página rola com o dedo) e nada disso vale.
+// O cartão volta ao normal quando a pessoa chega no topo rolando para cima.
+// Cuidado: ao encolher, o quadro cresce e a rolagem pode "voltar" sozinha para
+// o zero (às vezes tudo passa a caber). Isso não conta: senão o cartão ficaria
+// abrindo e fechando. Se tudo coube, ele volta com a rodinha para cima.
+const COMPACT_AFTER = 40; // px rolados para o cartão encolher
+let compactSince = 0;
+function setCompact(on) {
+  if ((app.dataset.compact === "on") === on) return;
+  app.dataset.compact = on ? "on" : "off";
+  if (on) compactSince = performance.now();
+}
+function updateScrollBox(box) {
+  if (!box) {
+    setCompact(false);
+    return;
+  }
+  const top = box.scrollTop;
+  const hiddenBelow = box.scrollHeight - box.clientHeight - top;
+  const fades = [];
+  if (top > 4) fades.push("top");
+  if (hiddenBelow > 16) fades.push("bottom"); // só apaga se tem bastante coisa escondida
+  box.dataset.fade = fades.join(" ");
+  if (top > COMPACT_AFTER) setCompact(true);
+  else if (top < 8 && performance.now() - compactSince > 400) setCompact(false);
+}
+document.addEventListener("scroll", (event) => {
+  if (event.target instanceof Element && event.target.matches(".screen-root > .screen-scroll")) updateScrollBox(event.target);
+}, true);
+window.addEventListener("resize", () => updateScrollBox(screenRoot.querySelector(":scope > .screen-scroll")));
+
+// A rodinha do mouse em qualquer lugar da tela (no cartão de cima, na busca)
+// rola o quadro: parece que a página inteira rola.
+document.addEventListener("wheel", (event) => {
+  if (event.ctrlKey) return; // Ctrl + rodinha = zoom do navegador
+  const box = screenRoot.querySelector(":scope > .screen-scroll");
+  if (!box || !screenRoot.contains(event.target)) return;
+  // Rodinha para cima já no topo: o cartão de cima volta ao normal.
+  if (event.deltaY < 0 && box.scrollTop <= 0) setCompact(false);
+  if (box.scrollHeight <= box.clientHeight + 1) return;
+  if (box.contains(event.target)) return; // dentro do quadro: o navegador já rola
+  if (event.target.closest(".challenge-sheet, .dictionary-filter-menu")) return;
+  const unit = event.deltaMode === 1 ? 32 : event.deltaMode === 2 ? box.clientHeight : 1; // linhas ou páginas → px
+  box.scrollBy({ top: event.deltaY * unit });
+}, { passive: true });
+
 // Vai para outra tela. Sem energia, as atividades novas ficam bloqueadas; sem
 // vidas, os exercícios (ver activityBlockReason em estado.js).
 function setScreen(screen) {
   if (screen === "lesson" && !state.currentLesson) screen = "trail"; // atividade só começa pela árvore
+  if (screen === "admin" && !state.isAdmin) screen = "trail";       // a área do administrador é só dele
   if (screen === "lesson") {
     const lesson = state.currentLesson;
     const reason = activityBlockReason(lesson.topicId, lesson.branchId, lesson.kind);
@@ -154,6 +220,8 @@ function setScreen(screen) {
   state.focusTopic = null;
   state.selectedBranch = null;
   state.editingName = false;
+  state.signSheetOpen = false;
+  state.dictionaryFilterOpen = false;
   if (screen !== "lesson") state.currentLesson = null;
   heading.textContent = screenTitles[screen] || "EduSinal";
   render();
@@ -226,6 +294,9 @@ function closeTopic() {
 // ----- Eventos -----
 
 document.addEventListener("click", (event) => {
+  // Menu de temas do Dicionário aberto: clicar fora dele fecha (e o clique continua valendo)
+  if (state.dictionaryFilterOpen && !event.target.closest(".dictionary-filter")) closeDictionaryFilter();
+
   const letterButton = event.target.closest("[data-alphabet-letter]");
   if (letterButton && !letterButton.disabled) {
     selectLetter(letterButton.dataset.alphabetLetter);
@@ -261,6 +332,8 @@ document.addEventListener("click", (event) => {
   else if (action === "start-challenge") startAlphabetChallenge();
   else if (action === "open-player") openPlayerCard(Number(data.position), data.name);
   else if (action === "toggle-challenge-sheet") toggleChallengeSheet();
+  else if (action === "close-sign-sheet") closeSignSheet();
+  else if (action === "toggle-dictionary-filter") toggleDictionaryFilter();
   else if (action === "mascot-react") playMascotReaction();
   // Missões e lojinha
   else if (action === "claim-mission") claimMission(data.scope, data.mission);
@@ -283,6 +356,8 @@ document.addEventListener("click", (event) => {
   else if (action === "login-back") loginBack();
   else if (action === "login-start") setScreen("trail");
   else if (action === "delete-account") deleteAccount();
+  else if (action === "admin-delete") deleteUserAsAdmin(data.id, data.name);
+  else if (action === "admin-refresh") refreshAdminData(true);
   else if (action === "open-terms") openTerms();
   else if (action === "toggle-password") togglePassword(actionButton);
   else if (action === "close-terms") closeTerms();
@@ -296,6 +371,7 @@ document.addEventListener("click", (event) => {
 // Busca do dicionário: atualiza a lista a cada letra digitada.
 document.addEventListener("input", (event) => {
   if (event.target.id === "dictionary-search") searchDictionary(event.target.value);
+  else if (event.target.id === "admin-search") searchAdminUsers(event.target.value);
 });
 
 document.addEventListener("submit", (event) => {
@@ -311,11 +387,25 @@ document.addEventListener("submit", (event) => {
   }
 });
 
-// Esc fecha o modo foco.
+// Vídeos dos sinais: alguns celulares (iPhone em economia de bateria) não
+// deixam vídeo tocar sozinho. Aí o vídeo fica parado na foto da letra, e o
+// primeiro toque em qualquer lugar da tela faz todos tocarem.
+function playSignVideos() {
+  document.querySelectorAll("video.sign-video").forEach((video) => {
+    if (video.paused) video.play().catch(() => {});
+  });
+}
+document.addEventListener("click", playSignVideos, true);
+document.addEventListener("touchend", playSignVideos, { capture: true, passive: true });
+
+// Esc fecha o modo foco, o menu de temas e as janelinhas do Dicionário (Desafia-me e vídeo).
 document.addEventListener("keydown", (event) => {
   if (handleLessonKey(event)) return; // atividade: 1 a 4 e Enter (em licao.js)
   if (event.key !== "Escape") return;
-  if (state.focusTopic) closeTopic();
+  if (state.dictionaryFilterOpen) toggleDictionaryFilter(); // fecha e o foco volta para o botão
+  else if (state.challengeSheetOpen) toggleChallengeSheet();
+  else if (state.signSheetOpen) closeSignSheet();
+  else if (state.focusTopic) closeTopic();
 });
 
 // O aparelho trocou de modo claro para escuro (ou o contrário): no tema
