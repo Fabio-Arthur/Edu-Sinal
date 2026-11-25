@@ -1,0 +1,31 @@
+# DESPERTADOR DA API
+# No plano grátis do Render, a API "dorme" depois de 15 minutos sem ninguém
+# usar, e quem abre o app em seguida espera até 1 minuto. Este robô do GitHub
+# chama a API a cada 10 minutos, das 6h às 23h59 (horário de Brasília), para
+# ela estar acordada quando os alunos usam. De madrugada ela dorme, para
+# economizar as 750 horas grátis por mês do Render.
+#
+# Se a API não responder, o robô falha e o GitHub manda um e-mail: serve de
+# alarme também. Dá para rodar na mão em Actions > Despertador da API > Run workflow.
+#
+# Fica na main porque o GitHub só roda robôs agendados da branch principal.
+
+name: Despertador da API
+
+on:
+  schedule:
+    # Horário do GitHub é o UTC (3 horas a mais que Brasília):
+    # 9h às 2h59 UTC = 6h às 23h59 em Brasília.
+    - cron: "*/10 9-23,0-2 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  acordar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Chamar a API (/saude)
+        run: |
+          curl --fail --silent --show-error --max-time 90 --retry 2 \
+            --output /dev/null --write-out "A API respondeu %{http_code} em %{time_total}s\n" \
+            https://edusinal-api.onrender.com/saude
