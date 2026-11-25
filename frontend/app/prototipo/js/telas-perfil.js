@@ -123,6 +123,8 @@ async function finishLogout(message) {
   }
   state.isRegistered = false;
   state.isGuest = false;
+  state.isAdmin = false;
+  state.adminData = null;
   setScreen("intro");
   showToast(message);
 }
@@ -364,7 +366,7 @@ function renderMore() {
         ${state.isGuest
           ? `${renderSettingRow("cloud-arrow-up-fill", "teal", "Criar conta", "Salva o progresso que você fez como visitante.", '<button class="button-3d button-3d-primary" type="button" data-screen="signup">Criar conta</button>')}
         ${renderSettingRow("box-arrow-right", "blue", "Sair do modo visitante", "Apaga o progresso de visitante.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`
-          : `${renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
+          : `${state.isAdmin ? "" : renderSettingRow("trash3-fill", "coral", "Apagar minha conta", "Apaga a conta e todo o progresso, para sempre.", '<button class="button-3d button-3d-outline settings-danger" type="button" data-action="delete-account">Apagar</button>')}
         ${renderSettingRow("box-arrow-right", "blue", "Sair", "Volta para a tela de apresentação.", '<button class="button-3d button-3d-outline" type="button" data-action="logout">Sair</button>')}`}
       </div>
     </section>

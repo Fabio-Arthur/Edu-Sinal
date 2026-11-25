@@ -4,7 +4,7 @@
 // mesmo sem estar logado.
 // RASCUNHO do TCC: revisar com o orientador antes de publicar de verdade.
 
-const TERMS_UPDATED_AT = "18/11/2026";
+const TERMS_UPDATED_AT = "25/11/2026";
 
 // Cada parte: [título, parágrafos]. Para mudar o texto, é só editar aqui.
 // Organização do texto do Erick (equipe), ajustada ao que o app faz hoje.
@@ -38,6 +38,7 @@ const TERMS_SECTIONS = [
   ["Interação e privacidade", [
     "Nas ligas, os alunos da sua salinha veem o seu apelido, o seu mascote e números do jogo (XP, ofensiva, liga, etapa da trilha, conquistas e o mês em que você entrou). O seu e-mail nunca aparece para ninguém.",
     "Não existe chat nem mensagens entre alunos, para o ambiente ser seguro para todas as idades.",
+    "<strong>Equipe do EduSinal:</strong> os administradores (a equipe do TCC) veem a lista de usuários com o apelido, o mascote e os números do jogo, para cuidar do app. Eles também não veem o seu e-mail nem a sua senha.",
   ]],
   ["Cookies", [
     "Usamos só um cookie, para você continuar conectado (ele vale 7 dias). Ele é essencial: sem ele não dá para entrar na conta, por isso avisamos na primeira visita em vez de pedir permissão. O tema, o tamanho do texto, as animações e se você já viu esse aviso ficam guardados só no seu aparelho. Não usamos cookies de propaganda, de estatística nem de rastreamento.",
@@ -47,7 +48,7 @@ const TERMS_SECTIONS = [
     "O conteúdo é educativo e está sendo revisado por pessoas surdas fluentes em Libras. Pode ter erros: se encontrar algum, avise a equipe.",
   ]],
   ["Regras de conduta", [
-    "Respeite as outras pessoas e não tente burlar o sistema (por exemplo, para ganhar XP ou moedas sem fazer as atividades). Contas que desrespeitarem estas regras podem ser suspensas.",
+    "Respeite as outras pessoas e não tente burlar o sistema (por exemplo, para ganhar XP ou moedas sem fazer as atividades). Contas que desrespeitarem estas regras podem ser apagadas pela equipe.",
   ]],
   ["Seus direitos (LGPD)", [
     "Você pode ver o seu progresso no Perfil, mudar o apelido e a meta diária quando quiser e apagar a conta em Configurações → Conta → Apagar minha conta. Apagar a conta apaga todos os seus dados de uma vez, para sempre.",

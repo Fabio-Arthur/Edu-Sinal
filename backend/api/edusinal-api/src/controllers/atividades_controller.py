@@ -40,8 +40,13 @@ def buscar_ou_404(conexao, codigo: str) -> dict:
     return atividade
 
 
-def esta_liberada(conexao, id_usuario: int, atividade: dict, concluidas: list[str]) -> bool:
+def esta_liberada(conexao, id_usuario: int, atividade: dict, concluidas: list[str], admin: bool = False) -> bool:
     if atividade["codigo"] in concluidas:
+        return True
+
+    # Administrador: toda a trilha aberta (o Desafia-me segue a regra normal,
+    # porque ele precisa de perguntas dos exercícios já feitos para sortear).
+    if admin and atividade["tipo"] != "Desafio":
         return True
 
     # Desafia-me: abre quando há perguntas suficientes (depois do 1º exercício concluído).
@@ -93,6 +98,8 @@ def registrar_pratica(conexao, id_usuario: int, progresso: dict, xp: int, agora)
         progresso["sequencia_dias"], progresso["data_ultima_atividade"], hoje
     )
     progresso_repository.somar_no_dia(conexao, id_usuario, hoje, 1, xp)
+    if progresso.get("admin"):
+        return  # o administrador fica fora das ligas (ele ganharia de todo mundo)
     segunda = datas_service.segunda_da_semana(hoje)
     grupo = grupo_da_semana(conexao, id_usuario, segunda, progresso["id_liga"])
     progresso_repository.somar_na_semana(conexao, id_usuario, segunda, progresso["id_liga"], grupo, xp)
@@ -111,7 +118,7 @@ def comecar(codigo: str, id_usuario: int = Depends(usuario_logado)):
         concluidas = trilha_repository.concluidas(conexao, id_usuario)
 
         # 1. A atividade já abriu?
-        if not esta_liberada(conexao, id_usuario, atividade, concluidas):
+        if not esta_liberada(conexao, id_usuario, atividade, concluidas, progresso["admin"]):
             raise HTTPException(status_code=409, detail="Essa atividade ainda está trancada.")
 
         # 2. Atividade nova precisa de energia (revisão é livre). O desafio só

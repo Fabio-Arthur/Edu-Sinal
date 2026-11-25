@@ -63,7 +63,7 @@ function categoryLabel(categoryId) {
 
 // A palavra abre quando a atividade de aprender que a ensina foi concluída.
 function isWordUnlocked(word) {
-  return isLessonDone(word.topicId, word.branchId);
+  return state.isAdmin || isLessonDone(word.topicId, word.branchId);
 }
 
 function unlockedWordsCount() {

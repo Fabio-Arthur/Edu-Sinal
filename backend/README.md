@@ -74,6 +74,17 @@ No plano grátis do Render, a API "dorme" depois de 15 minutos sem ninguém usar
 
 Se a API não responder, o robô falha e o GitHub manda um e-mail: serve de alarme também.
 
+## Administrador
+
+O banco já tinha `tipo_usuario` (`Administrador` ou `Usuario`). Quem é administrador só se decide **direto no banco**: nenhuma rota ou tela cria ou promove admin.
+
+- Criar/promover: `python ferramentas/criar_admin.py "Apelido" email@exemplo.com arquivo-da-senha.txt` (dentro de `api/edusinal-api`, com o `src/.env` do banco certo). A senha é sorteada e vai só para o arquivo (permissão 600). Guarde o arquivo **fora do repositório**.
+- `GET /admin/usuarios`: todos os usuários juntos (apelido, mascote, XP, ofensiva, liga, atividades) e os números do sistema. **Sem e-mail e sem senha.**
+- `DELETE /admin/usuarios/{id}`: apaga a conta e tudo dela (LGPD). Não apaga administrador. Fica registrado no log (`edusinal.admin`).
+- Toda rota `/admin` confere o papel **no servidor** (`usuario_admin`, em `comum.py`): quem não é admin recebe 403.
+- Tudo liberado: o servidor devolve vidas, energia e moedas sempre cheias (`admin_service.liberar_tudo`), abre toda a trilha e todos os sinais, e o admin fica fora das ligas. O Desafia-me segue a regra normal (precisa de exercícios já feitos para sortear perguntas).
+- Admin não apaga a própria conta pelo app (`DELETE /eu` dá 403).
+
 ## Visitante
 
 Para quem só quer experimentar (por exemplo, quem escaneia o QR code na apresentação), o app tem o botão **"Só quero experimentar, sem criar conta"**. A API cria uma conta de visitante: uma linha em `usuarios` com `email` e `senha_hash` vazios (`NULL`) e o apelido "Visitante 1234".

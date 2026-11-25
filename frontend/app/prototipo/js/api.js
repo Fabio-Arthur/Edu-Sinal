@@ -76,6 +76,7 @@ function applyServerState(estado) {
     name: estado.apelido,
     email: estado.email,
     isGuest: estado.visitante,
+    isAdmin: Boolean(estado.admin),
     dailyGoal: estado.meta_diaria,
     xp: estado.xp,
     coins: estado.moedas,

@@ -792,7 +792,7 @@ body.is-loading::before {
 .desk-col { display: contents; }
 
 @media (min-width: 1001px) {
-  .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"]) .screen-root {
+  .app-shell:is([data-current-screen="leagues"], [data-current-screen="profile"], [data-current-screen="more"], [data-current-screen="admin"]) .screen-root {
     flex: none; /* sem isso, a área cresce junto com o conteúdo e a altura não vale */
     height: calc((100vh - 51px) / var(--zoom)); /* a tela menos o rodapé */
     display: flex;

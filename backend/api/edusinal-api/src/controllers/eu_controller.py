@@ -38,6 +38,8 @@ def mudar_perfil(dados: MudancaDePerfil, id_usuario: int = Depends(usuario_logad
 def apagar_conta(resposta: Response, id_usuario: int = Depends(usuario_logado)):
     # LGPD: apagar a conta apaga TUDO do usuário (o banco faz isso com o CASCADE).
     with conectar() as conexao:
+        if usuarios_repository.e_administrador(conexao, id_usuario):
+            raise HTTPException(status_code=403, detail="Conta de administrador não se apaga pelo app.")
         usuarios_repository.apagar(conexao, id_usuario)
         conexao.commit()
     resposta.delete_cookie(NOME_DO_COOKIE)

@@ -11,11 +11,12 @@
 
 from datetime import timedelta
 
-from fastapi import Cookie, HTTPException
+from fastapi import Cookie, Depends, HTTPException
 
 from src.database.conexao import conectar
 from src.repositories import extras_repository, progresso_repository, trilha_repository, usuarios_repository
 from src.services import (
+    admin_service,
     datas_service,
     energia_service,
     ligas_service,
@@ -49,8 +50,19 @@ def usuario_logado(sessao: str | None = Cookie(default=None)) -> int:
     return id_usuario
 
 
+def usuario_admin(id_usuario: int = Depends(usuario_logado)) -> int:
+    # As rotas de administrador usam assim: id_admin: int = Depends(usuario_admin)
+    # Quem confere é o SERVIDOR, olhando o banco. Esconder o botão no app não basta.
+    with conectar() as conexao:
+        if not usuarios_repository.e_administrador(conexao, id_usuario):
+            raise HTTPException(status_code=403, detail="Só administradores podem fazer isso.")
+    return id_usuario
+
+
 def carregar_progresso(conexao, id_usuario: int, agora) -> dict:
     progresso = progresso_repository.ler(conexao, id_usuario)
+    # É administrador? Olha uma vez só aqui; o resto do pedido usa progresso["admin"].
+    progresso["admin"] = usuarios_repository.e_administrador(conexao, id_usuario)
 
     # O banco devolve as horas sem fuso: dizemos que são UTC.
     progresso["proxima_vida"] = datas_service.colocar_fuso_utc(progresso["proxima_vida"])
@@ -77,6 +89,10 @@ def carregar_progresso(conexao, id_usuario: int, agora) -> dict:
 
     # 3. Liga: virou a semana? Vê como o usuário foi na semana passada.
     progresso["id_liga"] = liga_depois_da_virada(conexao, id_usuario, progresso["id_liga"], hoje)
+
+    # 4. Administrador: vidas, energia e moedas sempre cheias.
+    if progresso["admin"]:
+        admin_service.liberar_tudo(progresso)
     return progresso
 
 
@@ -116,6 +132,10 @@ def grupo_da_semana(conexao, id_usuario: int, segunda, id_liga: int) -> int:
 
 
 def salvar_progresso(conexao, id_usuario: int, progresso: dict) -> None:
+    # Administrador: o que ele gastou volta na hora (e a resposta já mostra tudo cheio).
+    if progresso.get("admin"):
+        admin_service.liberar_tudo(progresso)
+
     # Antes de guardar, tira o fuso das horas (o banco guarda em UTC, sem fuso).
     para_salvar = dict(progresso)
     para_salvar["proxima_vida"] = datas_service.para_o_banco(progresso["proxima_vida"])
@@ -144,6 +164,7 @@ def montar_estado(conexao, id_usuario: int, progresso: dict, agora) -> dict:
         "apelido": usuario["nome"],
         "email": usuario["email"],
         "visitante": usuario["email"] is None,  # conta de visitante: sem e-mail e sem senha
+        "admin": usuario["tipo_usuario"] == "Administrador",
         "meta_diaria": usuario["meta_diaria"],
         "xp": progresso["xp"],
         "moedas": progresso["moedas"],

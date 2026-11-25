@@ -70,7 +70,7 @@ function isMobileLayout() {
 // Um exercício abre quando o anterior estiver concluído (o primeiro já vem aberto).
 function isBranchUnlocked(topicId, index) {
   const branches = learningTopics[topicId].branches;
-  return index === 0 || isLessonDone(topicId, branches[index - 1].id);
+  return state.isAdmin || index === 0 || isLessonDone(topicId, branches[index - 1].id);
 }
 
 // Curva suave passando por todos os pontos (para desenhar o caminho).

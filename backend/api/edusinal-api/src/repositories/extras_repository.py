@@ -132,3 +132,17 @@ def vistas(conexao, id_usuario: int, dia: date | None = None) -> list[str]:
     with conexao.cursor() as cursor:
         cursor.execute(sql, tuple(valores))
         return [linha[0] for linha in cursor.fetchall()]
+
+
+def visual_de_todos(conexao) -> dict[int, dict[str, str]]:
+    # O mascote de cada usuário, numa consulta só: {id_usuario: {"Roupa": "camiseta-azul", ...}}
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            """SELECT mascote_equipado.id_usuario, mascote_equipado.tipo_cosmetico, cosmeticos.codigo
+               FROM mascote_equipado
+               JOIN cosmeticos ON cosmeticos.id_cosmetico = mascote_equipado.id_cosmetico"""
+        )
+        todos: dict[int, dict[str, str]] = {}
+        for id_usuario, tipo, codigo in cursor.fetchall():
+            todos.setdefault(id_usuario, {})[tipo] = codigo
+        return todos

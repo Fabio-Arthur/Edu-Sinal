@@ -66,7 +66,7 @@ def buscar_por_email(conexao, email: str) -> dict | None:
 def buscar_por_id(conexao, id_usuario: int) -> dict | None:
     with conexao.cursor(dictionary=True) as cursor:
         cursor.execute(
-            "SELECT id_usuario, nome, email, meta_diaria, status_conta FROM usuarios WHERE id_usuario = %s",
+            "SELECT id_usuario, nome, email, meta_diaria, status_conta, tipo_usuario FROM usuarios WHERE id_usuario = %s",
             (id_usuario,),
         )
         return cursor.fetchone()
@@ -128,3 +128,40 @@ def usuario_da_sessao(conexao, token_hash: str, agora: datetime) -> int | None:
 def apagar_sessao(conexao, token_hash: str) -> None:
     with conexao.cursor() as cursor:
         cursor.execute("DELETE FROM sessoes WHERE token_hash = %s", (token_hash,))
+
+
+# ----- Administrador -----
+# Quem é administrador só se decide direto no banco (ferramentas/criar_admin.py).
+# Nenhuma rota do app consegue criar ou promover um administrador.
+
+def e_administrador(conexao, id_usuario: int) -> bool:
+    with conexao.cursor() as cursor:
+        cursor.execute("SELECT tipo_usuario FROM usuarios WHERE id_usuario = %s", (id_usuario,))
+        linha = cursor.fetchone()
+    return linha is not None and linha[0] == "Administrador"
+
+
+def listar_para_admin(conexao) -> list[dict]:
+    # Todos os usuários juntos (sem separar por liga). O e-mail NÃO sai daqui:
+    # o administrador vê só apelido, mascote e números de jogo.
+    with conexao.cursor(dictionary=True) as cursor:
+        cursor.execute(
+            """SELECT usuarios.id_usuario, usuarios.nome, usuarios.data_cadastro,
+                      usuarios.tipo_usuario, usuarios.email IS NULL AS visitante,
+                      progresso_usuario.xp, progresso_usuario.sequencia_dias, progresso_usuario.id_liga,
+                      (SELECT COUNT(*) FROM progresso_trilha
+                        WHERE progresso_trilha.id_usuario = usuarios.id_usuario) AS atividades
+               FROM usuarios JOIN progresso_usuario ON progresso_usuario.id_usuario = usuarios.id_usuario
+               ORDER BY progresso_usuario.xp DESC, usuarios.id_usuario"""
+        )
+        return cursor.fetchall()
+
+
+def apagar_se_comum(conexao, id_usuario: int) -> bool:
+    # Administrador nunca é apagado por aqui (nem o próprio, nem o outro).
+    with conexao.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM usuarios WHERE id_usuario = %s AND tipo_usuario = 'Usuario'",
+            (id_usuario,),
+        )
+        return cursor.rowcount == 1

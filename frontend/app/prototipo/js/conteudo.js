@@ -507,13 +507,13 @@ function doneBranchCount(topicId) {
 
 // A prova final só abre quando todas as atividades estão concluídas.
 function isFinalUnlocked(topicId) {
-  return doneBranchCount(topicId) === learningTopics[topicId].branches.length;
+  return state.isAdmin || doneBranchCount(topicId) === learningTopics[topicId].branches.length;
 }
 
 // A primeira etapa está sempre aberta; as outras abrem com a prova da anterior.
 function isTopicUnlocked(topicId) {
   const position = TOPIC_ORDER.indexOf(topicId);
-  return position === 0 || isLessonDone(TOPIC_ORDER[position - 1], "final");
+  return state.isAdmin || position === 0 || isLessonDone(TOPIC_ORDER[position - 1], "final");
 }
 
 // Etapa em que o aluno está: a primeira cuja prova final ainda não foi feita.

@@ -21,13 +21,17 @@ const screenRenderers = {
   more: renderMore,
   mascot: renderMascotEditor,
   terms: renderTerms,
+  admin: renderAdmin,
 };
 
 // ----- Desenho da página -----
 
 // Celular: abas da barra de baixo. Perfil abre pelo mascote e Configurações
 // pela engrenagem, os dois na barra de cima.
-const MOBILE_TABS = ["trail", "signs", "leagues", "missions", "shop"];
+const BASE_MOBILE_TABS = ["trail", "signs", "leagues", "missions", "shop"];
+function mobileTabs() {
+  return state.isAdmin ? [...BASE_MOBILE_TABS, "admin"] : BASE_MOBILE_TABS;
+}
 
 // Telas que acendem uma aba mesmo não sendo ela (a atividade fica dentro da Home).
 // O Perfil e o editor do mascote não têm aba: acendem o mascote da barra de cima.
@@ -36,7 +40,9 @@ const PARENT_TAB = { lesson: "trail" };
 function renderBottomNav() {
   const activeTab = PARENT_TAB[state.screen] || state.screen;
   const ready = readyMissionsCount();
-  document.getElementById("bottom-nav").innerHTML = MOBILE_TABS.map((screen) => {
+  const tabs = mobileTabs();
+  document.getElementById("bottom-nav").style.setProperty("--tabs", tabs.length);
+  document.getElementById("bottom-nav").innerHTML = tabs.map((screen) => {
     const [, label, iconName, tone] = navigationItems.find(([id]) => id === screen);
     const isActive = activeTab === screen;
     const badge = screen === "missions" && ready > 0 ? `<span class="bottom-badge" aria-label="${ready} para resgatar">${ready}</span>` : "";
@@ -50,9 +56,9 @@ function renderMobileStats() {
   refreshEnergy();
   document.getElementById("mobile-stats").innerHTML = `
     <button class="stat-chip stat-streak" type="button" data-action="open-streak" aria-label="Ofensiva: ${state.streak} dias. Abrir calendário">${icon("fire")}<strong>${state.streak}</strong></button>
-    <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.coins} moedas. Abrir lojinha">${icon("coin")}<strong>${state.coins}</strong></button>
-    <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.energy} de ${MAX_ENERGY} de energia">${icon("battery-charging")}<strong>${state.energy}</strong></button>
-    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.lives} de ${MAX_LIVES} vidas">${icon("heart-fill")}<strong>${state.lives}</strong></button>`;
+    <button class="stat-chip stat-coins" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Moedas infinitas" : `${state.coins} moedas`}. Abrir lojinha">${icon("coin")}<strong>${state.isAdmin ? "∞" : state.coins}</strong></button>
+    <button class="stat-chip stat-energy" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Energia infinita" : `${state.energy} de ${MAX_ENERGY} de energia`}">${icon("battery-charging")}<strong>${state.isAdmin ? "∞" : state.energy}</strong></button>
+    <button class="stat-chip stat-lives${state.lives === 1 ? " is-last-life" : ""}" type="button" data-screen="shop" aria-label="${state.isAdmin ? "Vidas infinitas" : `${state.lives} de ${MAX_LIVES} vidas`}">${icon("heart-fill")}<strong>${state.isAdmin ? "∞" : state.lives}</strong></button>`;
 }
 
 // Celular: o mascote do aluno no canto de cima leva ao Perfil.
@@ -69,7 +75,7 @@ function renderMobileAvatar() {
 function renderNavigation() {
   const activeScreen = state.screen === "mascot" ? "profile" : state.screen; // o editor do mascote fica no Perfil
   const ready = readyMissionsCount();
-  const items = navigationItems.map(([screen, label, iconName, tone]) => {
+  const items = visibleNavigationItems().map(([screen, label, iconName, tone]) => {
     const isActive = activeScreen === screen;
     const symbol = screen === "profile"
       ? `<span class="nav-icon is-avatar ${backdropClass()}">${mascotSvg(state.mascot, "avatar", "")}</span>`
@@ -133,6 +139,7 @@ function render() {
 // vidas, os exercícios (ver activityBlockReason em estado.js).
 function setScreen(screen) {
   if (screen === "lesson" && !state.currentLesson) screen = "trail"; // atividade só começa pela árvore
+  if (screen === "admin" && !state.isAdmin) screen = "trail";       // a área do administrador é só dele
   if (screen === "lesson") {
     const lesson = state.currentLesson;
     const reason = activityBlockReason(lesson.topicId, lesson.branchId, lesson.kind);
@@ -283,6 +290,8 @@ document.addEventListener("click", (event) => {
   else if (action === "login-back") loginBack();
   else if (action === "login-start") setScreen("trail");
   else if (action === "delete-account") deleteAccount();
+  else if (action === "admin-delete") deleteUserAsAdmin(data.id, data.name);
+  else if (action === "admin-refresh") refreshAdminData(true);
   else if (action === "open-terms") openTerms();
   else if (action === "toggle-password") togglePassword(actionButton);
   else if (action === "close-terms") closeTerms();
@@ -296,6 +305,7 @@ document.addEventListener("click", (event) => {
 // Busca do dicionário: atualiza a lista a cada letra digitada.
 document.addEventListener("input", (event) => {
   if (event.target.id === "dictionary-search") searchDictionary(event.target.value);
+  else if (event.target.id === "admin-search") searchAdminUsers(event.target.value);
 });
 
 document.addEventListener("submit", (event) => {

@@ -274,3 +274,18 @@ class LimiteDeLoginTests(unittest.TestCase):
             muitas_tentativas("mari@email.com", registro)
 
         self.assertFalse(muitas_tentativas("biel@email.com", registro))
+
+
+class AdministradorTests(unittest.TestCase):
+    def test_liberar_tudo_enche_vidas_energia_e_moedas(self):
+        from src.services import admin_service
+
+        progresso = {"vidas": 0, "proxima_vida": datetime(2026, 11, 8), "energia": 0,
+                     "proxima_energia": datetime(2026, 11, 8), "moedas": 3}
+        admin_service.liberar_tudo(progresso)
+
+        self.assertEqual(progresso["vidas"], 3)
+        self.assertEqual(progresso["energia"], 5)
+        self.assertEqual(progresso["moedas"], admin_service.MOEDAS_DO_ADMIN)
+        self.assertIsNone(progresso["proxima_vida"])
+        self.assertIsNone(progresso["proxima_energia"])
