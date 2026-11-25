@@ -638,6 +638,5 @@ function renderTrail() {
         </section>
         ${renderHomeLeague()}
       </aside>
-    </div>
-    <p class="demo-disclaimer">O conteúdo das etapas ainda é provisório e será revisado por pessoas surdas fluentes em Libras.</p>`;
+    </div>`;
 }

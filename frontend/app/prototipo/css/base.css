@@ -718,6 +718,11 @@ textarea {
    espaço vazio. O zoom final = escala da tela × texto grande. */
 .app-shell { --escala: 1; --texto: 1; --zoom: calc(var(--escala) * var(--texto)); }
 .app-shell[data-text-size="large"] { --texto: 1.15; }
+/* Vídeos maiores (pedido em 25/11/2026): o tamanho que antes só aparecia no
+   "Texto grande" agora é o normal. Com o texto grande, o zoom ainda multiplica,
+   e os vídeos crescem mais um pouco. Vale para os vídeos e para a largura da
+   atividade (onde eles ficam); nunca passa do que cabe na tela. */
+.app-shell { --video: 1.15; }
 @media (min-width: 1500px) and (min-height: 820px) { .app-shell { --escala: 1.12; } }  /* ex.: 1536x864, 1600x900 */
 @media (min-width: 1800px) and (min-height: 900px) { .app-shell { --escala: 1.25; } }  /* Full HD (1920x1080) */
 @media (min-width: 2300px) and (min-height: 1200px) { .app-shell { --escala: 1.6; } }  /* 2K (2560x1440) */

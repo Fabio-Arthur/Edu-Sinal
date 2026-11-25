@@ -125,6 +125,7 @@ const state = {
   dictionaryCategory: "alfabeto",
   dictionaryQuery: "",
   challengeSheetOpen: false, // janelinha do Desafia-me (abre pelo botão redondo do Dicionário)
+  signSheetOpen: false,    // celular: janelinha com o vídeo da palavra ou letra tocada no Dicionário
   editingName: false,      // perfil: mostrando o campo para trocar o nome?
   mascotTab: "shirt",      // aba aberta no editor do mascote
 };

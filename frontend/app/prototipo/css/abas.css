@@ -460,6 +460,9 @@
   font-size: 18px;
 }
 .dictionary-search-box:focus-within { border-color: var(--primary); box-shadow: 0 3px 0 var(--primary); }
+/* Sem o contorno laranja de foco dentro do campo: o quadro azul em volta (acima) já mostra onde está o cursor,
+   no toque e no teclado. Os botões continuam com o contorno, só na navegação pelo teclado. */
+.dictionary-search:focus-visible { outline: none; }
 .dictionary-search {
   width: 100%;
   min-height: 48px;
@@ -501,7 +504,7 @@
 /* Palavras: cartões com o "play" e o painel do sinal escolhido ao lado */
 .dictionary-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, calc(320px * var(--video)));
   align-items: start;
   gap: 18px;
 }
@@ -551,7 +554,6 @@
 .word-detail p { margin: 0; font-size: 14px; line-height: 1.5; }
 .word-example { display: flex; gap: 8px; }
 .word-example .bi { color: var(--accent); }
-.word-detail .word-note { color: var(--muted); font-size: 12px; }
 .word-detail-empty { justify-items: center; padding: 28px 16px; color: var(--muted); text-align: center; }
 .word-detail-empty > .bi { color: var(--primary); font-size: 32px; }
 .dictionary-empty { display: flex; justify-content: center; gap: 8px; padding: 30px 0; color: var(--muted); text-align: center; }
@@ -605,18 +607,8 @@
 .challenge-button { white-space: nowrap; }
 
 @media (max-width: 1000px) {
-  /* no celular, o painel da letra vem antes da grade, compacto: vídeo pequeno ao lado do texto */
-  .letter-panel {
-    grid-template-columns: 96px minmax(0, 1fr);
-    justify-items: start;
-    align-items: center;
-    column-gap: 14px;
-    row-gap: 2px;
-    text-align: left;
-  }
-  .letter-panel .sign-video { grid-row: 1 / span 3; width: 96px; margin: 0; }
-  .letter-panel h2 { font-size: 20px; }
-  .letter-panel p:not(.word-detail-kicker) { display: none; }
+  /* no celular, o painel do vídeo não fica na tela: ele abre na janelinha (.sign-sheet, abaixo) */
+  .dictionary-layout > .word-detail { display: none; }
   .challenge-card { grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px; }
   .challenge-icon { width: 48px; height: 48px; font-size: 22px; }
   .challenge-button { grid-column: 1 / -1; width: 100%; }
@@ -682,5 +674,32 @@
   .challenge-sheet { align-items: flex-end; padding: 16px 16px calc(86px + env(safe-area-inset-bottom)); }
   .challenge-sheet-box { width: 100%; }
 }
+/* Celular: janelinha com o vídeo da palavra ou letra tocada (mesma caixa do Desafia-me).
+   O vídeo ocupa a largura toda; em celular baixo, encolhe para o resto caber. */
+.sign-sheet .word-detail { position: static; gap: 4px; padding: 14px; box-shadow: 0 4px 0 var(--line); }
+.sign-sheet .sign-video-small {
+  width: min(100%, (100dvh / var(--zoom) - 330px) * 1.6);
+  margin: 0 auto 8px;
+  border-radius: 16px;
+}
+.sign-sheet .word-detail h2 { font-size: 22px; }
+.sign-sheet-close {
+  position: absolute;
+  top: -14px;
+  right: -6px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 3px 0 var(--line);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+}
+@media (min-width: 1001px) { .sign-sheet { display: none; } } /* no PC o vídeo fica no painel ao lado */
 @keyframes challenge-sheet-in { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .challenge-sheet-box { animation: none; } }

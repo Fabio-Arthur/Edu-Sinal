@@ -91,13 +91,14 @@ function selectWord(wordId) {
   }
   state.selectedWord = wordId;
   markSignViewed(wordId);
-  render();
+  openSignSheet();
 }
 
 function chooseDictionaryCategory(categoryId) {
   state.dictionaryCategory = categoryId;
   state.dictionaryQuery = "";
   state.selectedWord = null;
+  state.signSheetOpen = false;
   render();
 }
 
@@ -209,7 +210,7 @@ function renderChallengeSheet() {
 function selectLetter(letter) {
   state.selectedLetter = letter;
   markSignViewed(signCode(`Letra ${letter}`));
-  render();
+  openSignSheet();
 }
 
 function renderLetterTile(letter) {
@@ -229,6 +230,39 @@ function renderLetterPanel() {
       <h2>Letra ${letter}</h2>
       <p class="word-example">${icon("lightbulb-fill")} ${tip}</p>
     </aside>`;
+}
+
+// ----- Celular: o vídeo abre numa janelinha -----
+// No PC o vídeo fica no painel ao lado da lista. No celular esse painel ocupava
+// o meio da tela antes de escolher qualquer coisa; agora não aparece, e tocar
+// numa palavra ou numa letra abre esta janelinha embaixo, com o vídeo grande.
+// Fecha tocando fora, no X ou com Esc.
+
+function openSignSheet() {
+  state.signSheetOpen = isMobileLayout();
+  render();
+  if (state.signSheetOpen) document.querySelector(".sign-sheet-close")?.focus({ preventScroll: true });
+}
+
+function closeSignSheet() {
+  state.signSheetOpen = false;
+  render();
+}
+
+function renderSignSheet() {
+  if (!state.signSheetOpen) return "";
+  const isAlphabet = !state.dictionaryQuery.trim() && state.dictionaryCategory === ALPHABET_CATEGORY;
+  const word = DICTIONARY_WORDS.find((entry) => entry.id === state.selectedWord && isWordUnlocked(entry));
+  if (!isAlphabet && !word) return "";
+  const title = isAlphabet ? `Letra ${state.selectedLetter}` : word.word;
+  return `
+    <div class="challenge-sheet sign-sheet" role="dialog" aria-modal="true" aria-label="Sinal: ${escapeHtml(title)}">
+      <button class="challenge-sheet-backdrop" type="button" data-action="close-sign-sheet" aria-label="Fechar o vídeo" tabindex="-1"></button>
+      <div class="challenge-sheet-box">
+        <button class="sign-sheet-close" type="button" data-action="close-sign-sheet" aria-label="Fechar o vídeo">${icon("x-lg")}</button>
+        ${isAlphabet ? renderLetterPanel() : renderWordDetail(word)}
+      </div>
+    </div>`;
 }
 
 // Mesmo formato das outras abas: título simples em cima, a grade e o painel ao lado.
@@ -253,7 +287,6 @@ function renderWordDetail(word) {
       <p class="word-detail-kicker">${categoryLabel(word.category).toUpperCase()}</p>
       <h2>${word.word}</h2>
       <p class="word-example">${icon("lightbulb-fill")} ${word.tip}</p>
-      <p class="word-note">O vídeo deste sinal será gravado e revisado por pessoas surdas fluentes em Libras.</p>
     </aside>`;
 }
 
@@ -312,7 +345,7 @@ function renderSigns() {
     </div>
     <div class="screen-scroll">
     <div id="dictionary-results">${renderDictionaryResults()}</div>
-    <p class="demo-disclaimer">O alfabeto manual representa letras; Libras é uma língua completa, com gramática e sinais próprios.</p>
     </div>
-    ${renderChallengeSheet()}`;
+    ${renderChallengeSheet()}
+    ${renderSignSheet()}`;
 }

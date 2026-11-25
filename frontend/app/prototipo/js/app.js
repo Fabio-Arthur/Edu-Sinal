@@ -161,6 +161,7 @@ function setScreen(screen) {
   state.focusTopic = null;
   state.selectedBranch = null;
   state.editingName = false;
+  state.signSheetOpen = false;
   if (screen !== "lesson") state.currentLesson = null;
   heading.textContent = screenTitles[screen] || "EduSinal";
   render();
@@ -268,6 +269,7 @@ document.addEventListener("click", (event) => {
   else if (action === "start-challenge") startAlphabetChallenge();
   else if (action === "open-player") openPlayerCard(Number(data.position), data.name);
   else if (action === "toggle-challenge-sheet") toggleChallengeSheet();
+  else if (action === "close-sign-sheet") closeSignSheet();
   else if (action === "mascot-react") playMascotReaction();
   // Missões e lojinha
   else if (action === "claim-mission") claimMission(data.scope, data.mission);
@@ -332,11 +334,12 @@ function playSignVideos() {
 document.addEventListener("click", playSignVideos, true);
 document.addEventListener("touchend", playSignVideos, { capture: true, passive: true });
 
-// Esc fecha o modo foco e a janelinha do Desafia-me.
+// Esc fecha o modo foco e as janelinhas do Dicionário (Desafia-me e vídeo).
 document.addEventListener("keydown", (event) => {
   if (handleLessonKey(event)) return; // atividade: 1 a 4 e Enter (em licao.js)
   if (event.key !== "Escape") return;
   if (state.challengeSheetOpen) toggleChallengeSheet();
+  else if (state.signSheetOpen) closeSignSheet();
   else if (state.focusTopic) closeTopic();
 });
 
