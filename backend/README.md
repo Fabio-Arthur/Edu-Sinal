@@ -155,4 +155,5 @@ Os testes cobrem as regras (pasta `src/services/`), sem precisar do banco.
 - O cookie da sessão é `HttpOnly` e `SameSite=Lax`. Com a API publicada em HTTPS, ponha `COOKIE_SEGURO=true` no `.env`.
 - Só os endereços em `ORIGENS_PERMITIDAS` podem chamar a API pelo navegador (CORS).
 - Apagar a conta apaga tudo do aluno, graças ao `ON DELETE CASCADE` das tabelas.
+- **Conexões reaproveitadas (pool):** publicado, abrir uma conexão com o banco custa ~0,7 s, e cada clique abria duas (medido em 25/11/2026: ~1,7 s por clique). Agora `conectar()` (em `src/database/conexao.py`) empresta uma conexão de uma "gaveta" e devolve no fim do `with`, sempre com rollback (desfaz o que não teve commit e solta as travas). Conexão parada há mais de 5 s leva um ping antes de ser usada; se a gaveta estiver vazia, abre outra. As rotas continuam iguais.
 - **Publicar:** o app publicado chama `/api/...` no próprio endereço. A hospedagem precisa repassar `/api` para a API (na Vercel, um "rewrite" no `vercel.json`). Enquanto a API não estiver publicada, o site publicado não consegue entrar nem cadastrar.
